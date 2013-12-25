@@ -11,7 +11,8 @@
 (defsystem pddl.component-planner-test
   :author "guicho"
   :license "LLGPL"
-  :depends-on (:pddl.component-planner
+  :depends-on (:pddl.component-abstraction
+               :pddl.component-planner
                :pddl.instances
                :pddl.instances.cell-assembly-eachparts
                :pddl.instances.rover
