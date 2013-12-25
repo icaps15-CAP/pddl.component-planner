@@ -140,10 +140,12 @@
   (with-fixture problem ()
     (with-fixture tasks ()
       (with-fixture bucket ()
-        (for-all ((t1 (curry #'random-elt bucket) t1)
-                  (t2 (curry #'random-elt bucket) (not (eq t1 t2))))
-          (finishes
-            (print (mapping-between-tasks t1 t2))))))))
+        (if (>= (length bucket) 2)
+            (for-all ((t1 (curry #'random-elt bucket) t1)
+                      (t2 (curry #'random-elt bucket) (not (eq t1 t2))))
+              (finishes
+                (print (mapping-between-tasks t1 t2))))
+            (pass))))))
 
 (test (:categorize-by-plan-conversion :fixture problem)
   (finishes
