@@ -12,4 +12,4 @@
         :alexandria
         :cl-annot
         :anaphora)
-  (:shadow :minimize :maximize))
+  (:shadowing-import-from :pddl :minimize :maximize))

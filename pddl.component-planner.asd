@@ -31,8 +31,9 @@
                :anaphora)
   :components ((:module "src"
                 :components
-                ((:file "package")
-                 (:file "pddl.component-planner"))
+                ((:file :package)
+                 (:file :pddl.component-planner)
+                 (:file :delete-effect-minimization))
                 :serial t))
   :description ""
   :long-description
