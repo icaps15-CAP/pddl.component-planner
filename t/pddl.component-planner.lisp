@@ -71,7 +71,7 @@
                      (apply #'test-problem
                             (append path-pair
                                     '(:time-limit 5
-                                      :hard-time-limit 10
+                                      :hard-time-limit 20
                                       :options "--search astar(lmcut())"))))
                    (lambda (problem)
                      (is (typep problem 'pddl-problem))
