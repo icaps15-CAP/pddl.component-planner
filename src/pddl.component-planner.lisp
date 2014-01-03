@@ -59,7 +59,7 @@
 (defun task-plan-equal (t1 t2)
   (assert (abstract-component-task-strict= t1 t2))
   (some (lambda (plan)
-          (validate (apply-mapping plan (make-mapping-between-tasks t1 t2))))
+          (validate (apply-mapping plan (mapping-between-tasks t1 t2))))
         (plan-task t1)))
 
 @export
