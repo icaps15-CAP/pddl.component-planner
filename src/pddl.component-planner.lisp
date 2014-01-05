@@ -63,17 +63,22 @@
 @export
 (defun task-plan-equal (t1 t2)
   (assert (abstract-component-task-strict= t1 t2))
-  (some 
-   (let ((problem (build-component-problem t2)))
+  (let* ((problem
+          ;; @break+
+          (build-component-problem t2))
+         (problem-path
+          ;; @break+
+           (write-problem problem)))
+    (some 
      (lambda (plan)
        (validate-plan
         (path (domain problem))
-        (write-problem problem)
+        problem-path
         (write-plan
          (apply-mapping plan (mapping-between-tasks t1 t2) problem))
-        ;; :verbose t
-        )))
-   (plan-task t1)))
+        :verbose t
+        ))
+     (plan-task t1))))
 
 @export
 (defun fluently-connected-objects (components attributes f)
