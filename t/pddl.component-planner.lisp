@@ -171,7 +171,7 @@
 
 (test (:categorize-by-plan-conversion2
        :fixture problem
-       :depends-on :categorize-by-plan-conversion)
+       :depends-on :categorize-by-plan-conversion1)
   (finishes
     (mapcar (lambda (tasks)
               (categorize-by-equality
