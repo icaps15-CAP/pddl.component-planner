@@ -31,6 +31,7 @@
                    objs)))
              @ignorable new-objs
              (pddl-problem
+              :domain *domain*
               :name (apply #'concatenate-symbols
                            total-name 'component (mapcar #'name components))
               :objects objs
@@ -47,20 +48,32 @@
 (defcached plan-task (task)
   (let* ((*problem* (build-component-problem task))
          (*domain* (domain *problem*)))
-    (mapcar (curry #'pddl-plan :path)
+    (mapcar (let ((i 0))
+              (curry #'pddl-plan
+                     :name (concatenate-symbols (name *problem*) 'plan (incf i))
+                     :path))
             (test-problem
              (write-problem *problem*)
              (path *domain*)
-             :time-limit 5
-             :hard-time-limit 10
-             :options "--search astar(lmcut())"))))
+             :time-limit 10
+             :hard-time-limit 1800
+             ;; :options "--search astar(lmcut())"
+             ))))
 
 @export
 (defun task-plan-equal (t1 t2)
   (assert (abstract-component-task-strict= t1 t2))
-  (some (lambda (plan)
-          (validate (apply-mapping plan (mapping-between-tasks t1 t2))))
-        (plan-task t1)))
+  (some 
+   (let ((problem (build-component-problem t2)))
+     (lambda (plan)
+       (validate-plan
+        (path (domain problem))
+        (write-problem problem)
+        (write-plan
+         (apply-mapping plan (mapping-between-tasks t1 t2) problem))
+        ;; :verbose t
+        )))
+   (plan-task t1)))
 
 @export
 (defun fluently-connected-objects (components attributes f)
@@ -95,7 +108,11 @@
 
 @export
 (defun mapping-between-tasks (t1 t2)
-  (list (two-list-mapping (init-object t1) (init-object t2))
+  (list (two-list-mapping (abstract-component-components
+                           (abstract-component-task-ac t1))
+                          (abstract-component-components
+                           (abstract-component-task-ac t2)))
+        (two-list-mapping (init-object t1) (init-object t2))
         (two-list-mapping (goal-object t1) (goal-object t2))))
 
 @export
@@ -104,4 +121,51 @@
             (cons o1 o2))
           os1 os2))
 
+
+@export
+(defun apply-mapping (plan mapping mapped-problem)
+  (ematch plan
+    ((pddl-plan actions problem)
+     (let ((%mapping 
+            ;; @break+
+            (%remove-nochange mapping)))
+       (shallow-copy
+        plan
+        :problem mapped-problem
+        :name (concatenate-symbols
+               'plan-mapped-from
+               (name plan)
+               'to
+               (name mapped-problem))
+        :actions
+        ;;@break+
+        (map 'vector
+             (lambda (action)
+               (ematch action
+                 ((or (pddl-initial-action)
+                      (pddl-goal-action))
+                  action)
+                 ((pddl-intermediate-action parameters)
+                  (shallow-copy
+                   action
+                   :parameters (%apply parameters %mapping)))))
+             actions))))))
+
+(defun %apply (parameters mappings)
+  (reduce (lambda (parameters mapping)
+            (ematch mapping
+              ((cons from to)
+               (substitute to from parameters))))
+          mappings :initial-value parameters))
+
+(defun %remove-nochange (mapping)
+  (ematch mapping
+    ((list component-mapping init-mapping goal-mapping)
+     (flet ((fn (mapping)
+              (ematch mapping
+                ((cons from to)
+                 (eq from to)))))
+       (append component-mapping
+               (remove-if #'fn init-mapping)
+               (remove-if #'fn goal-mapping))))))
 

@@ -72,7 +72,8 @@
                             (append path-pair
                                     '(:time-limit 5
                                       :hard-time-limit 20
-                                      :options "--search astar(lmcut())"))))
+                                      ;; :options "--search astar(lmcut())"
+                                      ))))
                    (lambda (problem)
                      (is (typep problem 'pddl-problem))
                      (list (write-problem problem)
@@ -147,7 +148,30 @@
                 (print (mapping-between-tasks t1 t2))))
             (pass))))))
 
-(test (:categorize-by-plan-conversion :fixture problem)
+
+(defvar problem)
+(defvar seed)
+(defvar tasks)
+
+(test (:categorize-by-plan-conversion0)
+  (finishes
+    (setf problem cell-assembly-model2a-each-3)
+    (setf seed :base)
+    (setf tasks (flatten (abstract-tasks problem seed)))))
+
+(test (:categorize-by-plan-conversion1
+       :depends-on
+       :categorize-by-plan-conversion0)
+    (is (= 3 (length tasks)))
+    (is (= 1 (length (categorize-tasks tasks :strict))))
+    (is (= 1 (length (categorize-by-equality
+                      tasks
+                      #'task-plan-equal
+                      :transitive nil)))))
+
+(test (:categorize-by-plan-conversion2
+       :fixture problem
+       :depends-on :categorize-by-plan-conversion)
   (finishes
     (mapcar (lambda (tasks)
               (categorize-by-equality
