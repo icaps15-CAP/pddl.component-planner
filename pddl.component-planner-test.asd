@@ -17,7 +17,11 @@
                :pddl.instances.cell-assembly-eachparts
                :pddl.instances.rover
                :pddl.instances.woodworking-small
+               :pddl.instances.woodworking-large
                :fiveam
+               :guicho-utilities
+               :guicho-utilities.threading
+               :lparallel
                :repl-utilities)
   :components ((:module "t"
                 :components

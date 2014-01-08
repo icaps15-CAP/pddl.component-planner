@@ -21,26 +21,30 @@
         (match abstract-task
           ((abstract-component-task- (ac (abstract-component components))
                                      (goal task-goal))
-           (let ((new-objs
-                  (remove-if-not
-                   (lambda (o)
-                     (or (some (curry #'eq o) components)
-                         (every (lambda (comp)
-                                  (not (pddl-supertype-p (type o) (type comp))))
-                                components)))
-                   objs)))
+           (let* ((removed nil)
+                  (new-objs
+                   (remove-if
+                    (lambda (o)
+                      (when (some (lambda (comp)
+                                    (and (pddl-supertype-p (type o) (type comp))
+                                         (not (eq comp o))))
+                                  components)
+                        (push o removed)
+                        t))
+                    objs)))
              @ignorable new-objs
+             (format t "~{~a~^, ~_~} is removed~%" (mapcar #'name removed))
              (pddl-problem
               :domain *domain*
               :name (apply #'concatenate-symbols
                            total-name 'component (mapcar #'name components))
-              :objects objs
-              :init init;; (remove-if-not
-              ;; (lambda (f)
-              ;;   (every (lambda (p)
-              ;;            (find p new-objs))
-              ;;          (parameters f)))
-              ;; init)
+              :objects new-objs ;; objs
+              :init (remove-if
+                     (lambda (f)
+                       (some (lambda (p)
+                               (find p removed))
+                             (parameters f)))
+                     init)
               :goal (list* 'and task-goal)
               :metric metric)))))))))
 
@@ -55,10 +59,14 @@
             (test-problem
              (write-problem *problem*)
              (path *domain*)
-             :time-limit 10
+             :time-limit 3
              :hard-time-limit 1800
              ;; :options "--search astar(lmcut())"
              ))))
+
+@export
+(defun clear-plan-task-cache ()
+  (clear-cache *PLAN-TASK-CACHE*))
 
 @export
 (defun task-plan-equal (t1 t2)
@@ -76,7 +84,7 @@
         problem-path
         (write-plan
          (apply-mapping plan (mapping-between-tasks t1 t2) problem))
-        :verbose t
+        ;; :verbose t
         ))
      (plan-task t1))))
 

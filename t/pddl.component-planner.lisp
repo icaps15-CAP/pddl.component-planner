@@ -7,6 +7,7 @@
 (defpackage pddl.component-planner-test
   (:use :cl
         :alexandria
+        :eazylazy
         :pddl
         :pddl.component-abstraction
         :pddl.component-planner
@@ -14,11 +15,14 @@
         :pddl.loop-detection
         :pddl.instances
         :guicho-utilities
+        :guicho-utilities.threading
         :repl-utilities
         :iterate
+        :function-cache
         :optima
-        :fiveam)
-  (:shadow :fail :maximize :minimize))
+        :fiveam
+        :lparallel)
+  (:shadow :fail :maximize :minimize :delay :force))
 (in-package :pddl.component-planner-test)
 
 (def-suite :pddl.component-planner)
@@ -35,18 +39,41 @@
                 roverprob20)))
 
 (defparameter *eachparts-problems*
-    (mapcar (lambda (x) (list x :base))
-            (list cell-assembly-model2a-each-1
-                  cell-assembly-model2a-each-2
-                  cell-assembly-model2a-each-3
-                  cell-assembly-model2a-each-4
-                  cell-assembly-model2a-each-5)))
+  (mapcar (lambda (x) (list x :base))
+          (list cell-assembly-model2a-each-1
+                cell-assembly-model2a-each-2
+                cell-assembly-model2a-each-3
+                cell-assembly-model2a-each-4
+                cell-assembly-model2a-each-5)))
+
+(defparameter *woodworking-problems*
+  (mapcar (lambda (x) (list x :part))
+          (list wood-prob-sat-1
+                wood-prob-sat-2
+                wood-prob-sat-3
+                wood-prob-sat-4
+                wood-prob-sat-5
+                wood-prob-sat-6
+                wood-prob-sat-7
+                wood-prob-sat-8
+                wood-prob-sat-9
+                wood-prob-sat-10
+                wood-prob-sat-11
+                wood-prob-sat-12
+                wood-prob-sat-13
+                wood-prob-sat-14
+                wood-prob-sat-15
+                wood-prob-sat-16
+                wood-prob-sat-17
+                wood-prob-sat-18
+                wood-prob-sat-19)))
 
 (defvar *seed*)
 
 (defparameter *problem-sets* 
   (shuffle (append *rover-problems*
-                   *eachparts-problems*)))
+                   *eachparts-problems*
+                   *woodworking-problems*)))
 
 (defun until-exhaust (howmany list)
   (let ((i 0))
@@ -153,19 +180,21 @@
 (defvar seed)
 (defvar tasks)
 
-(test (:categorize-by-plan-conversion0)
-  (finishes
-    (setf problem cell-assembly-model2a-each-3)
-    (setf seed :base)
-    (setf tasks (flatten (abstract-tasks problem seed)))))
+(defun set-tasks (%problem %seed)
+  (setf problem %problem)
+  (setf seed %seed)
+  (setf tasks (categorize-tasks
+               (flatten
+                (abstract-tasks problem seed)) :strict)))
 
-(test (:categorize-by-plan-conversion1
-       :depends-on
-       :categorize-by-plan-conversion0)
-    (is (= 3 (length tasks)))
-    (is (= 1 (length (categorize-tasks tasks :strict))))
+(test (:categorize-by-plan-conversion1)
+    (finishes
+      (set-tasks cell-assembly-model2a-each-3 :base))
+    (is (= 1 (length tasks)))
+    (is (= 3 (length (first tasks))))
+    (is (= 1 (length (categorize-tasks (first tasks) :strict))))
     (is (= 1 (length (categorize-by-equality
-                      tasks
+                      (first tasks)
                       #'task-plan-equal
                       :transitive nil)))))
 
@@ -181,3 +210,65 @@
             (mappend (rcurry #'categorize-tasks :strict)
                      (abstract-tasks *problem* *seed*)))))
 
+
+(test (:categorize-by-plan-conversion3)
+  (finishes
+    (set-tasks roverprob20 :objective)
+    (print (mappend (lambda (bucket)
+                      (categorize-by-equality
+                       bucket
+                       #'task-plan-equal
+                       :transitive nil))
+                    tasks))))
+
+
+(test (:categorization-not-bloat)
+  (flet ((set-big-wood-problem (problem)
+           (handler-bind ((storage-condition
+                           (lambda (c)
+                             (abort c))))
+             (set-tasks problem :part)
+             (print (mapcar #'length tasks))
+             (sb-ext:gc :full t))))
+    (finishes (set-big-wood-problem wood-prob-sat-80))
+    (finishes (set-big-wood-problem wood-prob-sat-81))
+    (finishes (set-big-wood-problem wood-prob-sat-82))
+    (finishes (set-big-wood-problem wood-prob-sat-83))
+    (finishes (set-big-wood-problem wood-prob-sat-84))
+    (finishes (set-big-wood-problem wood-prob-sat-85))
+    (finishes (set-big-wood-problem wood-prob-sat-86))))
+
+(test (:categorize-by-plan-conversion4)
+  (finishes
+    (set-tasks wood-prob-sat-86 :part)
+    (clear-plan-task-cache)  
+    (let* ((*validator-verbosity* nil)
+           (result (mapcar (lambda (bucket)
+                             (let ((result (categorize-by-equality
+                                            bucket
+                                            #'task-plan-equal
+                                            :transitive nil)))
+                               result
+                               ;; (if (< 1 (length bucket))
+                               ;;     (break+ result)
+                               ;;     result)
+                               ))
+                           tasks)))
+      (print result)
+      (print (mapcar #'length result)))))
+
+
+(test (:categorize-by-plan-conversion-parallel)
+  (finishes
+    (set-tasks wood-prob-sat-86 :part)
+    (clear-plan-task-cache)
+    (let ((result (pmap-reduce (lambda (bucket)
+                                 (categorize-by-equality
+                                  bucket
+                                  #'task-plan-equal
+                                  :transitive nil))
+                               #'append
+                               tasks
+                               :initial-value nil)))
+      (print result)
+      (print (mapcar #'length result)))))
