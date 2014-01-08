@@ -243,19 +243,26 @@
     (set-tasks wood-prob-sat-86 :part)
     (clear-plan-task-cache)  
     (let* ((*validator-verbosity* nil)
-           (result (mapcar (lambda (bucket)
-                             (let ((result (categorize-by-equality
-                                            bucket
-                                            #'task-plan-equal
-                                            :transitive nil)))
-                               result
-                               ;; (if (< 1 (length bucket))
-                               ;;     (break+ result)
-                               ;;     result)
-                               ))
-                           tasks)))
+           (result
+            (time
+             (mapcar (lambda (bucket)
+                       (let ((result (categorize-by-equality
+                                      bucket
+                                      #'task-plan-equal
+                                      :transitive nil)))
+                         result))
+                     tasks)))
+           (result2
+            (time
+             (mapcar (lambda (bucket)
+                       (let ((result (categorize-by-equality
+                                      bucket
+                                      #'task-plan-equal)))
+                         result))
+                     tasks))))
       (print result)
-      (print (mapcar #'length result)))))
+      (print (mapcar #'length result))
+      (print (mapcar #'length result2)))))
 
 
 (test (:categorize-by-plan-conversion-parallel)
@@ -270,5 +277,10 @@
                                #'append
                                tasks
                                :initial-value nil)))
-      (print result)
-      (print (mapcar #'length result)))))
+      (let ((result2 (categorize-by-equality
+                      result
+                      (lambda (bucket1 bucket2)
+                        (task-plan-equal (car bucket1) (car bucket2)))
+                      :transitive nil)))
+        (print (mapcar #'length result))
+        (print (mapcar #'length result2))))))
