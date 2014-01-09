@@ -70,7 +70,7 @@
 
 @export
 (defun task-plan-equal (t1 t2)
-  (assert (abstract-component-task-strict= t1 t2))
+  ;; (assert (abstract-component-task-strict= t1 t2))
   (let* ((problem
           ;; @break+
           (build-component-problem t2))

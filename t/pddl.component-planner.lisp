@@ -241,7 +241,7 @@
 (test (:categorize-by-plan-conversion4)
   (finishes
     (set-tasks wood-prob-sat-86 :part)
-    (clear-plan-task-cache)  
+    ;; (clear-plan-task-cache)  
     (let* ((*validator-verbosity* nil)
            (result
             (time
@@ -268,7 +268,7 @@
 (test (:categorize-by-plan-conversion-parallel)
   (finishes
     (set-tasks wood-prob-sat-86 :part)
-    (clear-plan-task-cache)
+    ;; (clear-plan-task-cache)
     (let ((result (pmap-reduce (lambda (bucket)
                                  (categorize-by-equality
                                   bucket
@@ -283,4 +283,5 @@
                         (task-plan-equal (car bucket1) (car bucket2)))
                       :transitive nil)))
         (print (mapcar #'length result))
-        (print (mapcar #'length result2))))))
+        (print (mapcar #'length result2))
+        result2))))
