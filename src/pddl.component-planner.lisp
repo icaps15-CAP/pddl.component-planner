@@ -9,9 +9,21 @@
 ;; blah blah blah.
 
 @export
-(defun build-component-problem (abstract-task)
+(defvar *default-keep-objects* nil)
+@export
+(defvar *default-keep-init* nil)
+
+@export
+(defun build-component-problem (abstract-task &optional
+                                (keep-objects *default-keep-objects*)
+                                (keep-init *default-keep-init*))
   "build a small problem which contains only the relevant objects in a
 abstract task."
+  (assert (not (and (null keep-objects) keep-init))
+          (keep-objects keep-init)
+          "If you remove the objects in other tasks, then it's not
+possible to keep the initial states which depends on those objects.
+Change the value of keep-objects or keep-init.")
   (ematch abstract-task
     ((abstract-component-task :problem *problem*)
      (ematch *problem*
@@ -24,15 +36,17 @@ abstract task."
           ((abstract-component-task- (ac (abstract-component components))
                                      (goal task-goal))
            (let* ((removed nil)
+                  (other-objects (set-difference objs components))
                   (environment-objects
-                   (remove-if
-                     (lambda (o)
-                       (when (some (lambda (comp)
-                                     (pddl-supertype-p (type o) (type comp)))
-                                   components)
-                         (push o removed)
-                         t))
-                     (set-difference objs components))))
+                   (if keep-objects
+                       other-objects
+                       (remove-if
+                        (lambda (o)
+                          (when (some (lambda (comp)
+                                        (pddl-supertype-p (type o) (type comp)))
+                                      components)
+                            (push o removed) t))
+                        other-objects))))
              (format t "~&Component: ~{~a~^, ~_~}" (mapcar #'name components))
              (format t "~&Removed  : ~{~a~^, ~_~}" (mapcar #'name removed))
              (pddl-problem
@@ -40,12 +54,13 @@ abstract task."
               :name (apply #'concatenate-symbols
                            total-name 'component (mapcar #'name components))
               :objects (append components environment-objects)
-              :init (remove-if
-                     (lambda (f)
-                       (some (lambda (p)
-                               (find p removed))
-                             (parameters f)))
-                     init)
+              :init (if keep-init
+                        init
+                        (remove-if
+                         (lambda (f)
+                           (some (lambda (p) (find p removed))
+                                 (parameters f)))
+                         init))
               :goal (list* 'and task-goal)
               :metric metric)))))))))
 
@@ -75,22 +90,38 @@ returns a PDDL-PLAN."
 @export
 (defun task-plan-equal (t1 t2)
   ;; (assert (abstract-component-task-strict= t1 t2))
-  (let* ((problem
-          ;; @break+
-          (build-component-problem t2))
-         (problem-path
-          ;; @break+
-           (write-problem problem)))
-    (some 
-     (lambda (plan)
-       (validate-plan
-        (path (domain problem))
-        problem-path
-        (write-plan
-         (apply-mapping plan (mapping-between-tasks t1 t2) problem))
-        ;; :verbose t
-        ))
-     (plan-task t1))))
+  (let ((*default-keep-init* nil)
+        (*default-keep-objects* nil)
+        (*validator-verbosity* nil)
+        (first-time t))
+    (handler-bind ((plan-not-found
+                    (lambda (c)
+                      @ignore c
+                      (if first-time
+                          (progn
+                            (setf *validator-verbosity* t
+                                  *default-keep-init* t
+                                  *default-keep-objects* t
+                                  first-time nil)
+                            (invoke-restart (find-restart 'retry)))
+                          (return-from task-plan-equal nil)))))
+      (do-restart ((retry (lambda () (warn "Retrying, restoring objects in the other tasks."))))
+        (let* ((problem2
+                ;; @break+
+                (build-component-problem t2))
+               (problem-path2
+                ;; @break+
+                (write-problem problem2)))
+          (some 
+           (lambda (plan1)
+             (validate-plan
+              (path (domain problem2))
+              problem-path2
+              (write-plan
+               (apply-mapping plan1 (mapping-between-tasks t1 t2) problem2))
+              ;; :verbose t
+              ))
+           (plan-task t1)))))))
 
 @export
 (defun fluently-connected-objects (components attributes f)
@@ -150,9 +181,7 @@ returns a PDDL-PLAN."
         plan
         :problem mapped-problem
         :name (concatenate-symbols
-               'plan-mapped-from
-               (name plan)
-               'to
+               'plan-mapped-to
                (name mapped-problem))
         :actions
         ;;@break+
