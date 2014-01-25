@@ -24,6 +24,7 @@
         :lparallel)
   (:shadow :fail :maximize :minimize :delay :force))
 (in-package :pddl.component-planner-test)
+(cl-syntax:use-syntax :annot)
 
 (def-suite :pddl.component-planner)
 (in-suite :pddl.component-planner)
@@ -92,30 +93,58 @@
                 elevators-sequencedstrips-p40_60_1)))
 
 (defparameter *barman-sat11-problems*
-  (mapcar (lambda (x) (list x :cocktail))
-          (list barman-06-021 barman-06-022 barman-06-023
-                barman-06-024 barman-07-025 barman-07-026
-                barman-07-027 barman-07-028 barman-08-029
-                barman-08-030 barman-08-031 barman-08-032
-                barman-09-033 barman-09-034 barman-09-035
-                barman-09-036 barman-10-037 barman-10-038
-                barman-10-039 barman-10-040)))
+  (mappend (lambda (x) (list (list x :cocktail)
+                             (list x :shot)))
+           (list barman-06-021 barman-06-022 barman-06-023
+                 barman-06-024 barman-07-025 barman-07-026
+                 barman-07-027 barman-07-028 barman-08-029
+                 barman-08-030 barman-08-031 barman-08-032
+                 barman-09-033 barman-09-034 barman-09-035
+                 barman-09-036 barman-10-037 barman-10-038
+                 barman-10-039 barman-10-040)))
 
 (defparameter *openstacks-problems*
-  (mapcar (lambda (x) (list x :part))
-          (list openstacks-1 openstacks-2 openstacks-3 openstacks-4
-                openstacks-5 openstacks-6 openstacks-7 openstacks-8
-                openstacks-9)))
+  (mappend (lambda (x) (list (list x :order)
+                             (list x :product)))
+           (list openstacks-1 openstacks-2 openstacks-3 openstacks-4
+                 openstacks-5 openstacks-6 openstacks-7 openstacks-8
+                 openstacks-9)))
+
+
+(defparameter *satellite-problems*
+  (mappend (lambda (x) (list (list x :direction)))
+           (list satellite-typed-1 satellite-typed-2 satellite-typed-3
+                 satellite-typed-4 satellite-typed-5 satellite-typed-6
+                 satellite-typed-7 satellite-typed-8 satellite-typed-9
+                 ;; satellite-typed-10 satellite-typed-11
+                 ;; satellite-typed-12 satellite-typed-13
+                 ;; satellite-typed-14 satellite-typed-15
+                 ;; satellite-typed-16 satellite-typed-17
+                 ;; satellite-typed-18 satellite-typed-19
+                 ;; satellite-typed-20 satellite-typed-21
+                 ;; satellite-typed-22 satellite-typed-23
+                 ;; satellite-typed-24 satellite-typed-25
+                 ;; satellite-typed-26 satellite-typed-27
+                 ;; satellite-typed-28 satellite-typed-29
+                 ;; satellite-typed-30 satellite-typed-31
+                 ;; satellite-typed-32 satellite-typed-33
+                 ;; satellite-typed-34 satellite-typed-35
+                 satellite-typed-36)))
+
 
 (defvar *seed*)
 
+(defparameter *problem-sets-orig*
+ (append *rover-problems*
+         *eachparts-problems*
+         *woodworking-problems*
+         *elevators-problems*
+         *barman-sat11-problems*
+         *openstacks-problems*
+         *satellite-problems*))
+
 (defparameter *problem-sets* 
-  (shuffle (append *rover-problems*
-                   *eachparts-problems*
-                   *woodworking-problems*
-                   *elevators-problems*
-                   *barman-sat11-problems*
-                   *openstacks-problems*)))
+  (shuffle (copy-list *problem-sets-orig*)))
 
 (defun until-exhaust (howmany list)
   (let ((i 0))
@@ -333,3 +362,33 @@
     ;; (print (mapcar #'length result2))
     ;; result2
     ))
+
+(defun categorize-all (problem-sets)
+  (iter (for (problem seed) in problem-sets)
+        (collect (categorize-problem problem seed))))
+
+(defun categorize-problem (problem seed)
+  (format t "~&Categorizing problem ~a with seed ~a"
+          (name problem) seed)
+  (let* ((tasks/type
+          (flatten
+           (abstract-tasks problem seed)))
+         (tasks/structure
+          (categorize-tasks tasks/type :strict)))
+    ;; list pf bags. each bag contains tasks of the same structure
+    (format t "~&Tasks: ~a in total" (length tasks/type))
+    (print (mapcar #'length tasks/structure))
+    (let ((tasks/plan
+           (pmap-reduce (lambda (bucket)
+                          (categorize-by-equality
+                           bucket
+                           #'task-plan-equal
+                           :transitive nil))
+                        #'append
+                        tasks/structure
+                        :initial-value nil)))
+      ;; list of bags. each bag contains tasks whose plans are interchangeable
+      (list (name problem)
+            seed
+            (mapcar #'length tasks/structure)
+            (mapcar #'length tasks/plan)))))
