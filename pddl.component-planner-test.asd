@@ -25,7 +25,8 @@
                :guicho-utilities
                :guicho-utilities.threading
                :lparallel
-               :repl-utilities)
+               :repl-utilities
+               :log4cl)
   :components ((:module "t"
                 :components
                 ((:file "pddl.component-planner"))))
