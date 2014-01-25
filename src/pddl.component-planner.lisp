@@ -24,23 +24,22 @@ abstract task."
           ((abstract-component-task- (ac (abstract-component components))
                                      (goal task-goal))
            (let* ((removed nil)
-                  (new-objs
+                  (environment-objects
                    (remove-if
-                    (lambda (o)
-                      (when (some (lambda (comp)
-                                    (and (pddl-supertype-p (type o) (type comp))
-                                         (not (eq comp o))))
-                                  components)
-                        (push o removed)
-                        t))
-                    objs)))
-             @ignorable new-objs
-             (format t "~{~a~^, ~_~} is removed~%" (mapcar #'name removed))
+                     (lambda (o)
+                       (when (some (lambda (comp)
+                                     (pddl-supertype-p (type o) (type comp)))
+                                   components)
+                         (push o removed)
+                         t))
+                     (set-difference objs components))))
+             (format t "~&Component: ~{~a~^, ~_~}" (mapcar #'name components))
+             (format t "~&Removed  : ~{~a~^, ~_~}" (mapcar #'name removed))
              (pddl-problem
               :domain *domain*
               :name (apply #'concatenate-symbols
                            total-name 'component (mapcar #'name components))
-              :objects new-objs ;; objs
+              :objects (append components environment-objects)
               :init (remove-if
                      (lambda (f)
                        (some (lambda (p)
