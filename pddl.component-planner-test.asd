@@ -17,6 +17,7 @@
                :pddl.instances.cell-assembly-eachparts
                :pddl.instances.elevators
                :pddl.instances.openstacks
+               :pddl.instances.satellite-typed
                :pddl.instances.barman-sat11
                :pddl.instances.rover
                :pddl.instances.woodworking-small
