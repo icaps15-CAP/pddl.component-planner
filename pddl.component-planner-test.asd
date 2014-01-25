@@ -15,6 +15,9 @@
                :pddl.component-planner
                :pddl.instances
                :pddl.instances.cell-assembly-eachparts
+               :pddl.instances.elevators
+               :pddl.instances.openstacks
+               :pddl.instances.barman-sat11
                :pddl.instances.rover
                :pddl.instances.woodworking-small
                :pddl.instances.woodworking-large

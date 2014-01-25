@@ -68,12 +68,54 @@
                 wood-prob-sat-18
                 wood-prob-sat-19)))
 
+(defparameter *elevators-problems*
+  (mapcar (lambda (x) (list x :passenger))
+          (list elevators-sequencedstrips-p16_14_1
+                elevators-sequencedstrips-p16_22_1
+                elevators-sequencedstrips-p16_26_1
+                elevators-sequencedstrips-p24_21_1
+                elevators-sequencedstrips-p24_24_1
+                elevators-sequencedstrips-p24_27_1
+                elevators-sequencedstrips-p24_30_1
+                elevators-sequencedstrips-p24_33_1
+                elevators-sequencedstrips-p24_36_1
+                elevators-sequencedstrips-p24_39_1
+                elevators-sequencedstrips-p24_40_1
+                elevators-sequencedstrips-p24_43_1
+                elevators-sequencedstrips-p24_46_1
+                elevators-sequencedstrips-p24_49_1
+                elevators-sequencedstrips-p24_52_1
+                elevators-sequencedstrips-p40_40_1
+                elevators-sequencedstrips-p40_45_1
+                elevators-sequencedstrips-p40_50_1
+                elevators-sequencedstrips-p40_55_1
+                elevators-sequencedstrips-p40_60_1)))
+
+(defparameter *barman-sat11-problems*
+  (mapcar (lambda (x) (list x :cocktail))
+          (list barman-06-021 barman-06-022 barman-06-023
+                barman-06-024 barman-07-025 barman-07-026
+                barman-07-027 barman-07-028 barman-08-029
+                barman-08-030 barman-08-031 barman-08-032
+                barman-09-033 barman-09-034 barman-09-035
+                barman-09-036 barman-10-037 barman-10-038
+                barman-10-039 barman-10-040)))
+
+(defparameter *openstacks-problems*
+  (mapcar (lambda (x) (list x :part))
+          (list openstacks-1 openstacks-2 openstacks-3 openstacks-4
+                openstacks-5 openstacks-6 openstacks-7 openstacks-8
+                openstacks-9)))
+
 (defvar *seed*)
 
 (defparameter *problem-sets* 
   (shuffle (append *rover-problems*
                    *eachparts-problems*
-                   *woodworking-problems*)))
+                   *woodworking-problems*
+                   *elevators-problems*
+                   *barman-sat11-problems*
+                   *openstacks-problems*)))
 
 (defun until-exhaust (howmany list)
   (let ((i 0))
@@ -264,24 +306,30 @@
       (print (mapcar #'length result))
       (print (mapcar #'length result2)))))
 
+(defvar result)
+;; (defvar result2)
+
 
 (test (:categorize-by-plan-conversion-parallel)
   (finishes
     (set-tasks wood-prob-sat-86 :part)
     ;; (clear-plan-task-cache)
-    (let ((result (pmap-reduce (lambda (bucket)
-                                 (categorize-by-equality
-                                  bucket
-                                  #'task-plan-equal
-                                  :transitive nil))
-                               #'append
-                               tasks
-                               :initial-value nil)))
-      (let ((result2 (categorize-by-equality
-                      result
-                      (lambda (bucket1 bucket2)
-                        (task-plan-equal (car bucket1) (car bucket2)))
-                      :transitive nil)))
-        (print (mapcar #'length result))
-        (print (mapcar #'length result2))
-        result2))))
+    (setf result (pmap-reduce (lambda (bucket)
+                                (categorize-by-equality
+                                 bucket
+                                 #'task-plan-equal
+                                 :transitive nil))
+                              #'append
+                              tasks
+                              :initial-value nil))
+    ;;効果なし
+    ;; (setf result2 (categorize-by-equality
+    ;;                result
+    ;;                (lambda (bucket1 bucket2)
+    ;;                  (or (task-plan-equal (car bucket1) (car bucket2))
+    ;;                      (task-plan-equal (car bucket2) (car bucket1))))
+    ;;                :transitive nil))
+    (print (mapcar #'length result))
+    ;; (print (mapcar #'length result2))
+    ;; result2
+    ))

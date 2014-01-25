@@ -10,6 +10,8 @@
 
 @export
 (defun build-component-problem (abstract-task)
+  "build a small problem which contains only the relevant objects in a
+abstract task."
   (ematch abstract-task
     ((abstract-component-task :problem *problem*)
      (ematch *problem*
@@ -50,6 +52,8 @@
 
 @export
 (defcached plan-task (task)
+  "Calls build-component-problem, make a plan with FD, then parse the results.
+returns a PDDL-PLAN."
   (let* ((*problem* (build-component-problem task))
          (*domain* (domain *problem*)))
     (mapcar (let ((i 0))
@@ -61,6 +65,7 @@
              (path *domain*)
              :time-limit 3
              :hard-time-limit 1800
+             :memory 500000 ;; 500MB
              ;; :options "--search astar(lmcut())"
              ))))
 
