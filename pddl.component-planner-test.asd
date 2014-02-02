@@ -22,6 +22,7 @@
                :pddl.instances.rover
                :pddl.instances.woodworking-small
                :pddl.instances.woodworking-large
+               :pddl.instances.woodworking-xlarge
                :fiveam
                :guicho-utilities
                :guicho-utilities.threading

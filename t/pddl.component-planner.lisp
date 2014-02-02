@@ -29,107 +29,46 @@
 (def-suite :pddl.component-planner)
 (in-suite :pddl.component-planner)
 
+(defun collect-problems (regex)
+  (mapcar #'symbol-value
+          (sort (iter (for problem in-package *package*)
+                      (when (and (ppcre:scan regex (symbol-name problem))
+                                 (boundp problem)
+                                 (typep (symbol-value problem)
+                                        'pddl-problem))
+                        (collect problem)))
+                #'string< :key #'symbol-name)))
+
 (defparameter *rover-problems*
   (mapcar (lambda (x) (list x :objective))
-          (list roverprob14
-                roverprob15
-                roverprob16
-                roverprob17
-                roverprob18
-                roverprob19
-                roverprob20)))
+          (collect-problems "ROVERPROB3[0-9]")))
 
 (defparameter *eachparts-problems*
-  (mapcar (lambda (x) (list x :base))
-          (list cell-assembly-model2a-each-1
-                cell-assembly-model2a-each-2
-                cell-assembly-model2a-each-3
-                cell-assembly-model2a-each-4
-                cell-assembly-model2a-each-5)))
+              (mapcar (lambda (x) (list x :base))
+                      (collect-problems "CELL-ASSEMBLY-MODEL2A-EACH-[12][0-9]")))
 
 (defparameter *woodworking-problems*
   (mapcar (lambda (x) (list x :part))
-          (list wood-prob-sat-1
-                wood-prob-sat-2
-                wood-prob-sat-3
-                wood-prob-sat-4
-                wood-prob-sat-5
-                wood-prob-sat-6
-                wood-prob-sat-7
-                wood-prob-sat-8
-                wood-prob-sat-9
-                wood-prob-sat-10
-                wood-prob-sat-11
-                wood-prob-sat-12
-                wood-prob-sat-13
-                wood-prob-sat-14
-                wood-prob-sat-15
-                wood-prob-sat-16
-                wood-prob-sat-17
-                wood-prob-sat-18
-                wood-prob-sat-19)))
+          (collect-problems "WOOD-PROB-SAT-[0-9]*")))
 
 (defparameter *elevators-problems*
   (mapcar (lambda (x) (list x :passenger))
-          (list elevators-sequencedstrips-p16_14_1
-                elevators-sequencedstrips-p16_22_1
-                elevators-sequencedstrips-p16_26_1
-                elevators-sequencedstrips-p24_21_1
-                elevators-sequencedstrips-p24_24_1
-                elevators-sequencedstrips-p24_27_1
-                elevators-sequencedstrips-p24_30_1
-                elevators-sequencedstrips-p24_33_1
-                elevators-sequencedstrips-p24_36_1
-                elevators-sequencedstrips-p24_39_1
-                elevators-sequencedstrips-p24_40_1
-                elevators-sequencedstrips-p24_43_1
-                elevators-sequencedstrips-p24_46_1
-                elevators-sequencedstrips-p24_49_1
-                elevators-sequencedstrips-p24_52_1
-                elevators-sequencedstrips-p40_40_1
-                elevators-sequencedstrips-p40_45_1
-                elevators-sequencedstrips-p40_50_1
-                elevators-sequencedstrips-p40_55_1
-                elevators-sequencedstrips-p40_60_1)))
+          (collect-problems ".*ELEVATORS.*")))
 
 (defparameter *barman-sat11-problems*
   (mappend (lambda (x) (list (list x :cocktail)
                              (list x :shot)))
-           (list barman-06-021 barman-06-022 barman-06-023
-                 barman-06-024 barman-07-025 barman-07-026
-                 barman-07-027 barman-07-028 barman-08-029
-                 barman-08-030 barman-08-031 barman-08-032
-                 barman-09-033 barman-09-034 barman-09-035
-                 barman-09-036 barman-10-037 barman-10-038
-                 barman-10-039 barman-10-040)))
+           (collect-problems ".*BARMAN.*")))
 
 (defparameter *openstacks-problems*
   (mappend (lambda (x) (list (list x :order)
                              (list x :product)))
-           (list openstacks-1 openstacks-2 openstacks-3 openstacks-4
-                 openstacks-5 openstacks-6 openstacks-7 openstacks-8
-                 openstacks-9)))
+           (collect-problems ".*OPENSTACKS.*")))
 
 
 (defparameter *satellite-problems*
   (mappend (lambda (x) (list (list x :direction)))
-           (list satellite-typed-1 satellite-typed-2 satellite-typed-3
-                 satellite-typed-4 satellite-typed-5 satellite-typed-6
-                 satellite-typed-7 satellite-typed-8 satellite-typed-9
-                 ;; satellite-typed-10 satellite-typed-11
-                 ;; satellite-typed-12 satellite-typed-13
-                 ;; satellite-typed-14 satellite-typed-15
-                 ;; satellite-typed-16 satellite-typed-17
-                 ;; satellite-typed-18 satellite-typed-19
-                 ;; satellite-typed-20 satellite-typed-21
-                 ;; satellite-typed-22 satellite-typed-23
-                 ;; satellite-typed-24 satellite-typed-25
-                 ;; satellite-typed-26 satellite-typed-27
-                 ;; satellite-typed-28 satellite-typed-29
-                 ;; satellite-typed-30 satellite-typed-31
-                 ;; satellite-typed-32 satellite-typed-33
-                 ;; satellite-typed-34 satellite-typed-35
-                 satellite-typed-36)))
+           (collect-problems "SATELLITE-TYPED-.*")))
 
 
 (defvar *seed*)
@@ -365,6 +304,7 @@
 
 (defun categorize-all (problem-sets)
   (iter (for (problem seed) in problem-sets)
+        (sb-ext:gc :full t)
         (collect (categorize-problem problem seed))))
 
 (defun categorize-problem (problem seed)
