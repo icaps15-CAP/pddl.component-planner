@@ -11,7 +11,7 @@
          "--load"
          "script2.lisp"
          "--eval"
-         (format nil "(run-benchmark ~a)" i))
+         (format nil "(pddl.component-planner-test:run-benchmark ~a)" i))
    :search t
    :output *standard-output*))
 
