@@ -45,6 +45,7 @@
 (defun load-and-collect-problems (systems seeds regexp)
   (mapc #'asdf:load-system systems)
   (mappend (lambda (x)
+             (print (name x))
              (mapcar (curry #'list x) seeds))
            (collect-problems regexp)))
 
@@ -169,5 +170,6 @@
   (log:config :daily *log-name*)
   (log:info "start categorization" domain-num)
   (mapc (lambda (pair)
+          (print pair)
           (apply #'categorize-problem-csv pair))
         (force (nth domain-num *delayed-problems*))))
