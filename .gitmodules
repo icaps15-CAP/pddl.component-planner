@@ -1,0 +1,3 @@
+[submodule "aflab-fabric"]
+	path = aflab-fabric
+	url = ../aflab-fabric.git
