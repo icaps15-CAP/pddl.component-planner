@@ -18,6 +18,7 @@
         :guicho-utilities.threading
         :repl-utilities
         :iterate
+        :log4cl
         :function-cache
         :optima
         :fiveam
@@ -85,27 +86,41 @@
         (collect (categorize-problem problem seed))))
 
 (defun categorize-problem (problem seed)
-  (format t "~&Categorizing problem ~a with seed ~a"
-          (name problem) seed)
+  (log:info "~&Categorizing problem ~a with seed ~a"
+            (name problem) seed)
   (let* ((tasks/type
           (flatten
            (abstract-tasks problem seed)))
          (tasks/structure
           (categorize-tasks tasks/type :strict)))
     ;; list pf bags. each bag contains tasks of the same structure
-    (format t "~&Tasks: ~a in total" (length tasks/type))
-    (print (mapcar #'length tasks/structure))
+    (log:info (length tasks/type))
+    (log:info (mapcar #'length tasks/structure))
     (let ((tasks/plan
-           (pmap-reduce (lambda (bucket)
-                          (categorize-by-equality
-                           bucket
-                           #'task-plan-equal
-                           :transitive nil))
-                        #'append
-                        tasks/structure
-                        :initial-value nil)))
+           (mappend (lambda (bucket)
+                      (categorize-by-equality
+                       bucket
+                       #'task-plan-equal
+                       :transitive nil))
+                    tasks/structure)))
+      (log:info (mapcar #'length tasks/plan))
+      (log:info (length tasks/plan))
       ;; list of bags. each bag contains tasks whose plans are interchangeable
       (list (name problem)
             seed
             (mapcar #'length tasks/structure)
             (mapcar #'length tasks/plan)))))
+
+(defparameter *log-dir*
+  (merge-pathnames
+   #p"Dropbox/component-planner/"
+   (user-homedir-pathname)))
+(ensure-directories-exist *log-dir*)
+
+(defparameter *log-name*
+  (merge-pathnames #p"logfile" *log-dir*))
+
+(defun benchmark ()
+  (log:config :daily *log-name*)
+  (log:info "start categorization")
+  (categorize-all *problem-sets-orig*))
