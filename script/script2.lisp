@@ -7,5 +7,6 @@
 (defun run-benchmark (i)
   (handler-bind ((error (lambda (c)
                           (sb-ext:exit))))
-    (benchmark i)))
+    (benchmark i)
+    (print "finished successfully.")))
 
