@@ -34,7 +34,7 @@
 
 (defun collect-problems (regex)
   (mapcar #'symbol-value
-          (sort (iter (for problem in-package *package*)
+          (sort (iter (for problem in-package (find-package :pddl.instances))
                       (when (and (ppcre:scan regex (symbol-name problem))
                                  (boundp problem)
                                  (typep (symbol-value problem)
