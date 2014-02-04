@@ -39,45 +39,45 @@
                         (collect problem)))
                 #'string< :key #'symbol-name)))
 
+(defun load-and-collect-problems (systems seeds regexp)
+  (mapc #'asdf:load-system systems)
+  (mappend (lambda (x)
+             (mapcar (curry #'list x) seeds))
+           (collect-problems regexp)))
 
-(defparameter *rover-problems*
-  (mapcar (lambda (x) (list x :objective))
-          (collect-problems "ROVERPROB3[0-9]")))
-
-(defparameter *eachparts-problems*
-  (mapcar (lambda (x) (list x :base))
-          (collect-problems "CELL-ASSEMBLY-MODEL2A-EACH-[12][0-9]")))
-
-(defparameter *woodworking-problems*
-  (mapcar (lambda (x) (list x :part))
-          (collect-problems "WOOD-PROB-SAT-[0-9]*")))
-
-(defparameter *elevators-problems*
-  (mapcar (lambda (x) (list x :passenger))
-          (collect-problems ".*ELEVATORS.*")))
-
-(defparameter *barman-sat11-problems*
-  (mappend (lambda (x) (list (list x :cocktail)
-                             (list x :shot)))
-           (collect-problems ".*BARMAN.*")))
-
-(defparameter *openstacks-problems*
-  (mappend (lambda (x) (list (list x :order)
-                             (list x :product)))
-           (collect-problems ".*OPENSTACKS.*")))
-
-(defparameter *satellite-problems*
-  (mappend (lambda (x) (list (list x :direction)))
-           (collect-problems "SATELLITE-TYPED-.*")))
-
-(defparameter *problem-sets-orig*
- (append *rover-problems*
-         *eachparts-problems*
-         *woodworking-problems*
-         *elevators-problems*
-         *barman-sat11-problems*
-         *openstacks-problems*
-         *satellite-problems*))
+(defvar *delayed-problems*
+    (list (delay (load-and-collect-problems
+                  '(:pddl.instances.rover)
+                  '(:objective)
+                  "ROVERPROB3[0-9]"))
+          (delay (load-and-collect-problems
+                  '(:pddl.instances.cell-assembly-eachparts)
+                  '(:base)
+                  "CELL-ASSEMBLY-MODEL2A-EACH-[12][0-9]"))
+          (delay (load-and-collect-problems
+                  '(:pddl.instances.woodworking-xlarge)
+                  '(:part)
+                  "WOOD-PROB-SAT-[0-9]*"))
+          (delay (load-and-collect-problems
+                  '(:pddl.instances.cell-assembly-eachparts)
+                  '(:base)
+                  "CELL-ASSEMBLY-MODEL2A-EACH-[12][0-9]"))
+          (delay (load-and-collect-problems
+                  '(:pddl.instances.elevators)
+                  '(:passenger)
+                  ".*ELEVATORS.*"))
+          (delay (load-and-collect-problems
+                  '(:pddl.instances.barman-sat11)
+                  '(:cocktail :shot)
+                  ".*BARMAN.*"))
+          (delay (load-and-collect-problems
+                  '(:pddl.instances.openstacks)
+                  '(:order :product)
+                  ".*OPENSTACKS.*"))
+          (delay (load-and-collect-problems
+                  '(:pddl.instances.openstacks)
+                  '(:direction)
+                  "SATELLITE-TYPED-.*"))))
 
 (defun categorize-all (problem-sets)
   (iter (for (problem seed) in problem-sets)
