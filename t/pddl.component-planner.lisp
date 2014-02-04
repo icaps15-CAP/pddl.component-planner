@@ -50,17 +50,9 @@
 
 (defvar *delayed-problems*
     (list (delay (load-and-collect-problems
-                  '(:pddl.instances.rover)
-                  '(:objective)
-                  "ROVERPROB3[0-9]"))
-          (delay (load-and-collect-problems
-                  '(:pddl.instances.cell-assembly-eachparts)
-                  '(:base)
-                  "CELL-ASSEMBLY-MODEL2A-EACH-[12][0-9]"))
-          (delay (load-and-collect-problems
-                  '(:pddl.instances.woodworking-xlarge)
-                  '(:part)
-                  "WOOD-PROB-SAT-[0-9]*"))
+                  '(:pddl.instances.barman-sat11)
+                  '(:cocktail :shot)
+                  ".*BARMAN.*"))
           (delay (load-and-collect-problems
                   '(:pddl.instances.cell-assembly-eachparts)
                   '(:base)
@@ -70,17 +62,23 @@
                   '(:passenger)
                   ".*ELEVATORS.*"))
           (delay (load-and-collect-problems
-                  '(:pddl.instances.barman-sat11)
-                  '(:cocktail :shot)
-                  ".*BARMAN.*"))
-          (delay (load-and-collect-problems
-                  '(:pddl.instances.openstacks)
+                  '(:pddl.instances.openstacks
+                    :pddl.instances.openstacks-large)
                   '(:order :product)
                   ".*OPENSTACKS.*"))
           (delay (load-and-collect-problems
-                  '(:pddl.instances.openstacks)
+                  '(:pddl.instances.rover)
+                  '(:objective)
+                  "ROVERPROB3[0-9]"))
+          (delay (load-and-collect-problems
+                  '(:pddl.instances.satellite-typed)
                   '(:direction)
-                  "SATELLITE-TYPED-.*"))))
+                  "SATELLITE-TYPED-.*"))
+          (delay (load-and-collect-problems
+                  '(:pddl.instances.woodworking-large
+                    :pddl.instances.woodworking-xlarge)
+                  '(:part)
+                  "WOOD-PROB-SAT-[0-9]*"))))
 
 (defun categorize-problem (problem seed)
   (log:info "~&Categorizing problem ~a with seed ~a"
