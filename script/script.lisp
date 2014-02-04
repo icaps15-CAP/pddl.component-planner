@@ -6,7 +6,8 @@
    "sbcl"
    (list "--load"
          "script2.lisp"
-         (princ-to-string i))
+         "--eval"
+         (format nil "(run ~a)" i))
    :search t
    :output *standard-output*))
 
