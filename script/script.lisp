@@ -4,7 +4,8 @@
 (defun run (i)
   (sb-ext:run-program
    "sbcl"
-   (list " --load script2.lisp"
+   (list "--load"
+         "script2.lisp"
          (princ-to-string i))
    :search t
    :output *standard-output*))
