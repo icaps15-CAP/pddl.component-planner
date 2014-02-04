@@ -15,3 +15,5 @@
      (loop for i from 0 to 3 do (run i)))
     ((string= m "fun007")
      (loop for i from 4 to 7 do (run i)))))
+
+(exit)
