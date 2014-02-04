@@ -4,7 +4,11 @@
 (defun run (i)
   (sb-ext:run-program
    "sbcl"
-   (list "--load"
+   (list "--core"
+         (format nil "~a/repos/core.original" (user-homedir-pathname))
+         "--dynamic-space-size"
+         "16000"
+         "--load"
          "script2.lisp"
          "--eval"
          (format nil "(run ~a)" i))
