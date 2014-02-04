@@ -8,6 +8,7 @@
   (:use :cl
         :alexandria
         :eazylazy
+        :trivial-lazy
         :pddl
         :pddl.component-abstraction
         :pddl.component-planner
@@ -23,7 +24,8 @@
         :optima
         :fiveam
         :lparallel)
-  (:shadow :fail :maximize :minimize :delay :force))
+  (:shadow :fail :maximize :minimize)
+  (:shadowing-import-from :eazylazy :delay :force))
 (in-package :pddl.component-planner-test)
 (cl-syntax:use-syntax :annot)
 
@@ -80,11 +82,6 @@
                   '(:direction)
                   "SATELLITE-TYPED-.*"))))
 
-(defun categorize-all (problem-sets)
-  (iter (for (problem seed) in problem-sets)
-        (sb-ext:gc :full t)
-        (collect (categorize-problem problem seed))))
-
 (defun categorize-problem (problem seed)
   (log:info "~&Categorizing problem ~a with seed ~a"
             (name problem) seed)
@@ -97,30 +94,82 @@
     (log:info (length tasks/type))
     (log:info (mapcar #'length tasks/structure))
     (let ((tasks/plan
-           (mappend (lambda (bucket)
-                      (categorize-by-equality
-                       bucket
-                       #'task-plan-equal
-                       :transitive nil))
-                    tasks/structure)))
+           (pmap-reduce (lambda (bucket)
+                          (categorize-by-equality
+                           bucket
+                           #'task-plan-equal
+                           :transitive nil
+                           ))
+                        #'append
+                        tasks/structure
+                        :initial-value nil)))
       (log:info (mapcar #'length tasks/plan))
       (log:info (length tasks/plan))
       ;; list of bags. each bag contains tasks whose plans are interchangeable
       (list (name problem)
             seed
+            (length tasks/type)
             (mapcar #'length tasks/structure)
             (mapcar #'length tasks/plan)))))
 
 (defparameter *log-dir*
   (merge-pathnames
-   #p"Dropbox/component-planner/"
+   (format nil
+           "Dropbox/lisp-output/~a/"
+           (machine-instance))
    (user-homedir-pathname)))
 (ensure-directories-exist *log-dir*)
+
+;; generic version
+;; (defun histogram (list)
+;;   (iter (with h = nil)
+        ;; (for n in list)
+        ;; (incf (getf h n 0))
+;;         (finally (return (plist-alist h)))))
+
+;; assumes list of numbers
+(defun histogram (list)
+  (iter (with v = (make-array 10
+                              :initial-element 0
+                              :adjustable t))
+        (for n in list)
+        (when (>= n (array-dimension v 0))
+          (adjust-array v (1+ n)))
+        (incf (aref v n))
+        (finally (return v))))
+
+(defun categorize-problem-csv (problem seed)
+  (let ((*default-pathname-defaults*
+         (ensure-directories-exist
+          (merge-pathnames
+           (format nil "~a/~a/~a/"
+                   (name (domain problem))
+                   seed
+                   (name problem))
+           *log-dir*))))
+    (match (categorize-problem problem seed)
+      ((list _ _ length/type length/structure length/plan)
+       (with-output-to-file (s "total"
+                               :if-exists :supersede
+                               :if-does-not-exist :create)
+         (print length/type s))
+       (with-output-to-file (s "hist-structure"
+                               :if-exists :supersede
+                               :if-does-not-exist :create)
+         (cl-csv:write-csv (coerce (histogram length/structure) 'list)
+                           :stream s))
+       (with-output-to-file (s "hist-plan"
+                               :if-exists :supersede
+                               :if-does-not-exist :create)
+         (cl-csv:write-csv (coerce (histogram length/plan) 'list)
+                           :stream s))))))
 
 (defparameter *log-name*
   (merge-pathnames #p"logfile" *log-dir*))
 
-(defun benchmark ()
+(defun benchmark (domain-num)
   (log:config :daily *log-name*)
-  (log:info "start categorization")
-  (categorize-all *problem-sets-orig*))
+  (log:info "start categorization" domain-num)
+  (mapc (lambda (pair)
+          (apply #'categorize-problem-csv pair))
+        (force (nth domain-num *delayed-problems*))))

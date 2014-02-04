@@ -15,6 +15,7 @@
                :pddl.component-planner
                :pddl.instances
                :fiveam
+               :cl-csv
                :guicho-utilities
                :guicho-utilities.threading
                :lparallel
