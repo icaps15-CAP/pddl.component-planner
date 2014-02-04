@@ -1,4 +1,5 @@
 
+(print "This is script.lisp")
 
 (defun run (i)
   (sb-ext:run-program
