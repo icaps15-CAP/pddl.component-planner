@@ -51,9 +51,9 @@
 
 (defvar *delayed-problems*
     (list (delay (load-and-collect-problems
-                  '(:pddl.instances.barman-sat11)
+                  '(:pddl.instances.barman-x1.3)
                   '(:cocktail :shot)
-                  ".*BARMAN.*"))
+                  ".*BARMAN-.*"))
           (delay (load-and-collect-problems
                   '(:pddl.instances.cell-assembly-eachparts)
                   '(:base)
@@ -62,11 +62,10 @@
                   '(:pddl.instances.elevators)
                   '(:passenger)
                   ".*ELEVATORS.*"))
-          (delay (load-and-collect-problems
-                  '(:pddl.instances.openstacks
-                    :pddl.instances.openstacks-large)
-                  '(:order :product)
-                  ".*OPENSTACKS.*"))
+          ;; (delay (load-and-collect-problems
+          ;;         '(:pddl.instances.openstacks-middle)
+          ;;         '(:order :product)
+          ;;         ".*OPENSTACKS.*"))
           (delay (load-and-collect-problems
                   '(:pddl.instances.rover)
                   '(:objective)
