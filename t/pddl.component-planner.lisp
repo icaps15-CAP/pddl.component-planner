@@ -64,13 +64,13 @@
                   '(:passenger)
                   ".*ELEVATORS.*"))
           (delay (load-and-collect-problems
-                  '(:pddl.instances.openstacks-middle)
+                  '(:pddl.instances.openstacks)
                   '(:order :product)
                   ".*OPENSTACKS.*"))
           (delay (load-and-collect-problems
                   '(:pddl.instances.rover)
                   '(:objective)
-                  "ROVERPROB3[0-9]"))
+                  "ROVERPROB[0-9]*"))
           (delay (load-and-collect-problems
                   '(:pddl.instances.satellite-typed)
                   '(:direction)
