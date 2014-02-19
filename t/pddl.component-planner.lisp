@@ -57,7 +57,7 @@
           (delay (load-and-collect-problems
                   '(:pddl.instances.cell-assembly-eachparts)
                   '(:base)
-                  "CELL-ASSEMBLY-MODEL2A-EACH-[12][0-9]"))
+                  "CELL-ASSEMBLY-(2A2B-MIXED-EACH-.*|MODEL2A-EACH-[12][0-9])"))
           (delay (load-and-collect-problems
                   '(:pddl.instances.elevators)
                   '(:passenger)
