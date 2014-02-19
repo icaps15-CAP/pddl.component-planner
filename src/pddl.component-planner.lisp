@@ -79,7 +79,7 @@ returns a PDDL-PLAN."
              (path *domain*)
              :time-limit 3
              :hard-time-limit 1800
-             :memory 500000 ;; 500MB
+             :memory 2000000 ;; 2GB
              ;; :options "--search astar(lmcut())"
              ))))
 
