@@ -52,7 +52,7 @@ Change the value of keep-objects or keep-init.")
              (pddl-problem
               :domain *domain*
               :name (apply #'concatenate-symbols
-                           total-name 'component (mapcar #'name components))
+                           total-name (mapcar #'name components))
               :objects (append components environment-objects)
               :init (if keep-init
                         init
@@ -181,8 +181,7 @@ returns a PDDL-PLAN."
         plan
         :problem mapped-problem
         :name (concatenate-symbols
-               'plan-mapped-to
-               (name mapped-problem))
+               'MP (name mapped-problem))
         :actions
         ;;@break+
         (map 'vector
