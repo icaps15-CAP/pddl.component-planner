@@ -21,6 +21,7 @@
         :iterate
         :log4cl
         :function-cache
+        :local-time
         :optima
         :fiveam
         :lparallel)
@@ -62,10 +63,10 @@
                   '(:pddl.instances.elevators)
                   '(:passenger)
                   ".*ELEVATORS.*"))
-          ;; (delay (load-and-collect-problems
-          ;;         '(:pddl.instances.openstacks-middle)
-          ;;         '(:order :product)
-          ;;         ".*OPENSTACKS.*"))
+          (delay (load-and-collect-problems
+                  '(:pddl.instances.openstacks-middle)
+                  '(:order :product)
+                  ".*OPENSTACKS.*"))
           (delay (load-and-collect-problems
                   '(:pddl.instances.rover)
                   '(:objective)
@@ -80,29 +81,33 @@
                   '(:part)
                   "WOOD-PROB-SAT-[0-9]*"))))
 
+(eval-when (:compile-toplevel :load-toplevel :execute)
+  (defmacro map-reduce (mapper reducer sequence &rest reduce-args)
+    `(reduce ,reducer
+             (map 'vector ,mapper ,sequence)
+             ,@reduce-args)))
+
 (defun categorize-problem (problem seed)
-  (log:info "~&Categorizing problem ~a with seed ~a"
-            (name problem) seed)
+  (log:info "~&Categorizing problem ~a with seed ~a" (name problem) seed)
   (let* ((tasks/type
           (flatten
            (abstract-tasks problem seed)))
          (tasks/structure
           (categorize-tasks tasks/type :strict)))
     ;; list pf bags. each bag contains tasks of the same structure
-    (log:info (length tasks/type))
-    (log:info (mapcar #'length tasks/structure))
+    (log:info (name problem) seed (length tasks/type))
+    (log:info (name problem) seed (mapcar #'length tasks/structure))
     (let ((tasks/plan
-           (pmap-reduce (lambda (bucket)
-                          (categorize-by-equality
-                           bucket
-                           #'task-plan-equal
-                           :transitive nil
-                           ))
-                        #'append
-                        tasks/structure
-                        :initial-value nil)))
-      (log:info (mapcar #'length tasks/plan))
-      (log:info (length tasks/plan))
+           (map-reduce (lambda (bucket)
+                         (categorize-by-equality
+                          bucket
+                          #'task-plan-equal
+                          :transitive nil))
+                       #'append
+                       tasks/structure
+                       :initial-value nil)))
+      (log:info (name problem) seed (mapcar #'length tasks/plan))
+      (log:info (name problem) seed (length tasks/plan))
       ;; list of bags. each bag contains tasks whose plans are interchangeable
       (list (name problem)
             seed
@@ -144,23 +149,23 @@
                    (name (domain problem))
                    seed
                    (name problem))
-           *log-dir*))))
-    (match (categorize-problem problem seed)
+           *log-dir*)))
+        start end)
+    (match (prog2
+             (setf start (now))
+             (categorize-problem problem seed)
+             (setf end (now)))
       ((list _ _ length/type length/structure length/plan)
-       (with-output-to-file (s "total"
-                               :if-exists :supersede
-                               :if-does-not-exist :create)
+       (with-output-to-file (s "total" :if-exists :supersede)
          (print length/type s))
-       (with-output-to-file (s "hist-structure"
-                               :if-exists :supersede
-                               :if-does-not-exist :create)
+       (with-output-to-file (s "hist-structure" :if-exists :supersede)
          (cl-csv:write-csv (coerce (histogram length/structure) 'list)
                            :stream s))
-       (with-output-to-file (s "hist-plan"
-                               :if-exists :supersede
-                               :if-does-not-exist :create)
+       (with-output-to-file (s "hist-plan" :if-exists :supersede)
          (cl-csv:write-csv (coerce (histogram length/plan) 'list)
-                           :stream s))))))
+                           :stream s))
+       (with-output-to-file (s "time" :if-exists :supersede)
+         (format s "~f" (timestamp-difference end start)))))))
 
 (defparameter *log-name*
   (merge-pathnames #p"logfile" *log-dir*))
@@ -171,8 +176,8 @@
   (print *delayed-problems*)
   (let ((forced (force (nth domain-num *delayed-problems*))))
     (print forced)
-    (mapc (lambda (pair)
-            (print pair)
-            (restart-return ((continue (lambda (c) c)))
-             (apply #'categorize-problem-csv pair)))
+    (pmap nil (lambda (pair)
+                (print pair)
+                (restart-return ((continue (lambda (c) c)))
+                  (apply #'categorize-problem-csv pair)))
           (force (nth domain-num *delayed-problems*)))))
