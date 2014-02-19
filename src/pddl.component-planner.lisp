@@ -77,7 +77,7 @@ returns a PDDL-PLAN."
             (test-problem
              (write-problem *problem*)
              (path *domain*)
-             :time-limit 3
+             :time-limit 1
              :hard-time-limit 1800
              :memory 2000000 ;; 2GB
              ;; :options "--search astar(lmcut())"
@@ -92,14 +92,14 @@ returns a PDDL-PLAN."
   ;; (assert (abstract-component-task-strict= t1 t2))
   (let ((*default-keep-init* nil)
         (*default-keep-objects* nil)
-        (*validator-verbosity* t)
+        (*validator-verbosity* nil)
         (first-time t))
     (handler-bind ((plan-not-found
                     (lambda (c)
                       @ignore c
                       (if first-time
                           (progn
-                            (setf *validator-verbosity* t
+                            (setf *validator-verbosity* nil
                                   *default-keep-init* t
                                   *default-keep-objects* t
                                   first-time nil)
