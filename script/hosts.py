@@ -1,6 +1,8 @@
 env.hosts=[
-    "fun007",
-    "fun003"
+    "fun003",
+    "fun004",
+    "fun005",
+    "fun007"
     ]
 
 env.user="asai"

@@ -174,5 +174,6 @@
     (print forced)
     (mapc (lambda (pair)
             (print pair)
-            (apply #'categorize-problem-csv pair))
+            (restart-return ((continue (lambda (c) c)))
+             (apply #'categorize-problem-csv pair)))
           (force (nth domain-num *delayed-problems*)))))

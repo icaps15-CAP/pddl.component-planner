@@ -30,6 +30,15 @@ def free ():
 def pwd ():
     run ("echo "+ environ["PWD"])
 
+def pstree ():
+    run ("pstree")
+
+
+def grepsbcl ():
+    run ("pgrep sbcl; exit 0")
+
+def killsbcl ():
+    run ("pkill sbcl; exit 0")
 
 def hostname ():
     run ("hostname")
