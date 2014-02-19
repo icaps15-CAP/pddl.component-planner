@@ -92,7 +92,7 @@ returns a PDDL-PLAN."
   ;; (assert (abstract-component-task-strict= t1 t2))
   (let ((*default-keep-init* nil)
         (*default-keep-objects* nil)
-        (*validator-verbosity* nil)
+        (*validator-verbosity* t)
         (first-time t))
     (handler-bind ((plan-not-found
                     (lambda (c)
