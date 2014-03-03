@@ -17,7 +17,7 @@
 (define-condition evaluation-signal (simple-condition)
   ((time :initarg :time :reader elapsed-time)))
 @export
-(define-condition restored-evaluation-signal (evaluation-signal) ())
+(define-condition restored-evaluation-signal (simple-condition) ())
 @export
 (define-condition comparison-signal (simple-condition) ())
 
