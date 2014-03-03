@@ -14,6 +14,16 @@
 (defvar *default-keep-init* nil)
 
 @export
+(define-condition evaluation-signal (simple-condition)
+  ((time :initarg :time :reader elapsed-time)))
+@export
+(define-condition restored-evaluation-signal (evaluation-signal) ())
+@export
+(define-condition comparison-signal (simple-condition) ())
+
+@export 'elapsed-time
+
+@export
 (defun build-component-problem (abstract-task &optional
                                 (keep-objects *default-keep-objects*)
                                 (keep-init *default-keep-init*))
@@ -74,14 +84,19 @@ returns a PDDL-PLAN."
               (curry #'pddl-plan
                      :name (concatenate-symbols (name *problem*) 'plan (incf i))
                      :path))
-            (test-problem
-             (write-problem *problem*)
-             (path *domain*)
-             :time-limit 1
-             :hard-time-limit 1800
-             :memory 2000000 ;; 2GB
-             ;; :options "--search astar(lmcut())"
-             ))))
+            (let ((result
+                   (multiple-value-list
+                    (test-problem
+                     (write-problem *problem*)
+                     (path *domain*)
+                     :time-limit 1
+                     :hard-time-limit (* 60 5)
+                     :memory 2000000 ;; 2GB
+                     ;; :options "--search astar(lmcut())"
+                     ))))
+              ;; (assert (= 4 (length result)))
+              (signal 'evaluation-signal :time (cdr result))
+              (car result)))))
 
 @export
 (defun clear-plan-task-cache ()
@@ -103,9 +118,11 @@ returns a PDDL-PLAN."
                                   *default-keep-init* t
                                   *default-keep-objects* t
                                   first-time nil)
+                            (signal 'restored-evaluation-signal)
                             (invoke-restart (find-restart 'retry)))
                           (return-from task-plan-equal nil)))))
       (do-restart ((retry (lambda () (warn "Retrying, restoring objects in the other tasks."))))
+        (signal 'comparison-signal)
         (let* ((problem2
                 ;; @break+
                 (build-component-problem t2))

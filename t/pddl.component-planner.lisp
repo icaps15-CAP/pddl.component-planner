@@ -54,7 +54,7 @@
               (list (delay (load-and-collect-problems
                             '(:pddl.instances.cell-assembly-eachparts)
                             '(:base)
-                            "CELL-ASSEMBLY-MODEL2A-EACH-[1-5]$"))))
+                            "CELL-ASSEMBLY-MODEL2A-EACH-5$"))))
 
 (eval-when (:compile-toplevel :load-toplevel :execute)
   (defmacro map-reduce (mapper reducer sequence &rest reduce-args)
@@ -74,10 +74,11 @@
     (log:info (name problem) seed (mapcar #'length tasks/structure))
     (let ((tasks/plan
            (map-reduce (lambda (bucket)
-                         (categorize-by-equality
-                          bucket
-                          #'task-plan-equal
-                          :transitive nil))
+                         (coerce (categorize-by-equality
+                                  bucket
+                                  #'task-plan-equal
+                                  :transitive t)
+                                 'list))
                        #'append
                        tasks/structure
                        :initial-value nil)))
@@ -125,12 +126,32 @@
                    seed
                    (name problem))
            *log-dir*)))
-        start end)
+        start end
+        (comparison 0)
+        (evaluation 0)
+        (restored-evaluation 0)
+        times)
     (match (prog2
-             (setf start (now))
-             (categorize-problem problem seed)
+             (progn (clear-plan-task-cache)
+                    (setf start (now)))
+             (handler-bind ((comparison-signal
+                             (lambda (c)
+                               (declare (ignorable c))
+                               (incf comparison)))
+                            (evaluation-signal
+                             (lambda (c)
+                               (incf evaluation)
+                               (push (elapsed-time c) times)))
+                            (restored-evaluation-signal
+                             (lambda (c)
+                               (declare (ignorable c))
+                               (incf restored-evaluation))))
+               (categorize-problem problem seed))
              (setf end (now)))
       ((list _ _ length/type length/structure length/plan)
+       ;; (break+ length/type length/structure length/plan
+       ;;         comparison evaluation restored-evaluation
+       ;;         times)
        (with-output-to-file (s "total" :if-exists :supersede)
          (print length/type s))
        (with-output-to-file (s "hist-structure" :if-exists :supersede)
@@ -140,7 +161,15 @@
          (cl-csv:write-csv (coerce (histogram length/plan) 'list)
                            :stream s))
        (with-output-to-file (s "time" :if-exists :supersede)
-         (format s "~f" (timestamp-difference end start)))))))
+         (format s "~f" (timestamp-difference end start)))
+       (with-output-to-file (s "evaluation" :if-exists :supersede)
+         (print evaluation s))
+       (with-output-to-file (s "restored-evaluation" :if-exists :supersede)
+         (print restored-evaluation s))
+       (with-output-to-file (s "comparison" :if-exists :supersede)
+         (print comparison s))
+       (with-output-to-file (s "times" :if-exists :supersede)
+         (cl-csv:write-csv times :stream s))))))
 
 (defparameter *log-name*
   (merge-pathnames #p"logfile" *log-dir*))
@@ -151,7 +180,6 @@
   (print *delayed-problems*)
   (let ((forced (force (nth domain-num *delayed-problems*))))
     (print forced)
-    (clear-plan-task-cache)
     (sb-ext:gc :full t)
     (map nil (lambda (pair)
                (print pair)
