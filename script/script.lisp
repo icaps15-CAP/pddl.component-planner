@@ -8,7 +8,7 @@
 (defparameter *delayed-problems*
               (append (load-and-collect-problems
                        '(:pddl.instances.barman-x1.3)
-                       '(:cocktail :shot)
+                       '(:cocktail)
                        ".*BARMAN-.*")
                       (load-and-collect-problems
                        '(:pddl.instances.cell-assembly-eachparts)
@@ -34,7 +34,11 @@
                       (load-and-collect-problems
                        '(:pddl.instances.satellite-typed)
                        '(:direction)
-                       "SATELLITE-TYPED-.*")))
+                       "SATELLITE-TYPED-.*")
+                      (load-and-collect-problems
+                       '(:pddl.instances.barman-x1.3)
+                       '(:shot)
+                       ".*BARMAN-.*")))
 
 (defvar *pnum* (length *delayed-problems*))
 
