@@ -45,7 +45,8 @@
         (with-output-to-file
             (s (merge-pathnames
                 (format nil "log-~a-~a" i j)
-                *log-dir*))
+                *log-dir*)
+               :if-exists :supersede)
           (for process = 
                (sb-ext:run-program
                 (merge-pathnames "lispimage" *default-pathname-defaults*)
@@ -89,6 +90,7 @@
                  (parse-integer i)))
     ((list _ j)
      (sb-ext:disable-debugger)
+     (print (sb-ext:dynamic-space-size))
      (benchmark (parse-integer j)))))
 
 (main)
