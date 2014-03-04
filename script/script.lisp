@@ -55,7 +55,7 @@
           (for process = 
                (sb-ext:run-program
                 (merge-pathnames "lispimage" *default-pathname-defaults*)
-                (list "--dynamic-space-size" "15500"
+                (list "--dynamic-space-size" "15000"
                       (princ-to-string j))
                 :search t
                 :output s))

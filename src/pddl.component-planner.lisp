@@ -91,7 +91,7 @@ returns a PDDL-PLAN."
                      (path *domain*)
                      :time-limit 1
                      :hard-time-limit (* 60 5)
-                     :memory 2000000 ;; 2GB
+                     :memory (sb-ext:dynamic-space-size) ;; 15GB * 0.8 = 120
                      ;; :options "--search astar(lmcut())"
                      ))))
               ;; (assert (= 4 (length result)))
