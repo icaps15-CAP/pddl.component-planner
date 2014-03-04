@@ -13,11 +13,11 @@ print "Running on %s hosts." % l
 @parallel
 def plan ():
     print "On host %d" % env.hosts.index(env.host)
-    run ("cd " + environ["PWD"] + "; ./lispimage %d %d" % l, env.hosts.index(env.host))
+    run ("cd " + environ["PWD"] + "; ./lispimage %d %d" % (l, env.hosts.index(env.host)))
 
 def dryrun ():
     print "On host %d" % env.hosts.index(env.host)
-    run ("cd " + environ["PWD"] + "; echo ./lispimage %d %d" % l, env.hosts.index(env.host))
+    run ("cd " + environ["PWD"] + "; echo ./lispimage %d %d" % (l, env.hosts.index(env.host)))
 
 
 def echo ():
