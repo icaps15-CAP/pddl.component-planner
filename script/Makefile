@@ -1,5 +1,5 @@
 
-.PHONY: repl executable
+.PHONY: repl exec
 
 repl: repl-image
 exec: lispimage
