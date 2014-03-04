@@ -45,6 +45,7 @@
 (print "This is script.lisp")
 
 (defun run-parent (parallel i)
+  (ensure-directories-exist *log-dir*)
   (iter (for j from i below *pnum* by parallel)
         (with-output-to-file
             (s (merge-pathnames
