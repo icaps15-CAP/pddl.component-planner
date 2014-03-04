@@ -4,7 +4,7 @@
 repl: repl-image
 exec: lispimage
 
-repl-image:
+repl-image: script.lisp
 	sbcl --core ~/repos/core.original --script script.lisp repl
 
 lispimage: repl-image
