@@ -1,10 +1,13 @@
 
+.PHONY: repl executable
 
+repl: repl-image
+exec: lispimage
 
-repl:
+repl-image:
 	sbcl --core ~/repos/core.original --script script.lisp repl
 
-executable: repl
+lispimage: repl-image
 	./repl-image --script script.lisp image
 
 clean:
