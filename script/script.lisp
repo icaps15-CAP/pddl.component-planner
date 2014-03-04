@@ -48,7 +48,7 @@
                 *log-dir*))
           (for process = 
                (sb-ext:run-program
-                "./lispimage"
+                (merge-pathnames "lispimage" *default-pathname-defaults*)
                 (list "--dynamic-space-size" "15500"
                       "--non-interactive"
                       "--disable-debugger"
