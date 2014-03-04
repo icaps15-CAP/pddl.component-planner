@@ -60,7 +60,20 @@
 
 (defun run-parent-dry (parallel i)
   (iter (for j from i below *pnum* by parallel)
-        (print j)))
+        (format t "~&Running a new process with parallel = ~a, i = ~a, j = ~a~&"
+                parallel i j)
+        (for process = 
+             (sb-ext:run-program
+              (merge-pathnames "lispimage" *default-pathname-defaults*)
+              (list "--dynamic-space-size" "15500"
+                    "-d"
+                    (princ-to-string j))
+              :output t
+              :search t))))
+
+(defun run-children-dry (j)
+  (print (sb-ext:dynamic-space-size))
+  (format t "~&In child process ~a~&" j))
 
 (defun make-image (&optional repl)
   (print (bt:all-threads))
@@ -77,7 +90,7 @@
 
 (defun main ()
   (print sb-ext:*posix-argv*)
-  (ematch sb-ext:*posix-argv*
+  (match sb-ext:*posix-argv*
     ((list _ "image")
      (make-image))
     ((list _ "repl")
@@ -85,12 +98,24 @@
     ((list _ "-d" parallel i)
      (run-parent-dry (parse-integer parallel)
                      (parse-integer i)))
+    ((list _ "-d" j)
+     (run-children-dry (parse-integer j)))
     ((list _ parallel i)
      (run-parent (parse-integer parallel)
                  (parse-integer i)))
     ((list _ j)
      (sb-ext:disable-debugger)
-     (print (sb-ext:dynamic-space-size))
      (benchmark (parse-integer j)))))
+
+(defun reload ()
+  (load "script.lisp"))
+
+(defun reload-save-repl ()
+  (reload)
+  (make-image t))
+
+(defun reload-save-image ()
+  (reload)
+  (make-image))
 
 (main)
