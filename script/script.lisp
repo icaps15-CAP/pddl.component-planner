@@ -88,6 +88,10 @@
   (sb-ext:gc :full t)
   (if repl
       (sb-ext:save-lisp-and-die "repl-image"
+                                :toplevel
+                                (lambda ()
+                                  (in-package :pddl.component-planner-test)
+                                  (sb-impl::toplevel-init))
                                 :executable t
                                 :purify t)
       (sb-ext:save-lisp-and-die "lispimage"
