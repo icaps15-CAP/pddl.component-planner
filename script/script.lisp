@@ -115,7 +115,6 @@
      (run-parent (parse-integer parallel)
                  (parse-integer i)))
     ((list _ j)
-     (sb-ext:disable-debugger)
      (benchmark (parse-integer j)))))
 
 (defun reload ()
