@@ -6,3 +6,6 @@ repl:
 
 executable: repl
 	./repl-image --script script.lisp image
+
+clean:
+	rm repl-image lispimage
