@@ -65,6 +65,7 @@
 
 
 (defun run-parent-dry (parallel i)
+  (ensure-directories-exist *log-dir*)
   (iter (for j from i below *pnum* by parallel)
         (format t "~&Running a new process with parallel = ~a, i = ~a, j = ~a~&"
                 parallel i j)
