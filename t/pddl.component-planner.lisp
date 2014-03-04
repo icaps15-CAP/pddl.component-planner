@@ -51,10 +51,10 @@
            (collect-problems regexp)))
 
 (defparameter *delayed-problems*
-              (list (delay (load-and-collect-problems
-                            '(:pddl.instances.cell-assembly-eachparts)
-                            '(:base)
-                            "CELL-ASSEMBLY-MODEL2A-EACH-5$"))))
+              (load-and-collect-problems
+               '(:pddl.instances.cell-assembly-eachparts)
+               '(:base)
+               "CELL-ASSEMBLY-MODEL2A-EACH-5$"))
 
 (eval-when (:compile-toplevel :load-toplevel :execute)
   (defmacro map-reduce (mapper reducer sequence &rest reduce-args)
@@ -174,16 +174,11 @@
 (defparameter *log-name*
   (merge-pathnames #p"logfile" *log-dir*))
 
-(defun benchmark (domain-num)
+(defun benchmark (problem-num)
   (log:config :daily *log-name*)
-  (log:info "start categorization" domain-num)
-  (print *delayed-problems*)
-  (let ((forced (force (nth domain-num *delayed-problems*))))
+  (log:info "start categorization" problem-num)
+  (let ((forced (nth problem-num *delayed-problems*)))
     (print forced)
     (sb-ext:gc :full t)
-    (map nil (lambda (pair)
-               (print pair)
-               (sb-ext:gc)
-               (restart-return ((continue (lambda (c) c)))
-                 (apply #'categorize-problem-csv pair)))
-         forced)))
+    (restart-return ((continue (lambda (c) c)))
+      (apply #'categorize-problem-csv forced))))
