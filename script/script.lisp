@@ -46,6 +46,7 @@
             (s (merge-pathnames
                 (format nil "log-~a-~a" i j)
                 *log-dir*)
+               :if-does-not-exist :create
                :if-exists :supersede)
           (for process = 
                (sb-ext:run-program
