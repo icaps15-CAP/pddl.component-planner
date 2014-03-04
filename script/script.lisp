@@ -50,8 +50,6 @@
                (sb-ext:run-program
                 (merge-pathnames "lispimage" *default-pathname-defaults*)
                 (list "--dynamic-space-size" "15500"
-                      "--non-interactive"
-                      "--disable-debugger"
                       (princ-to-string j))
                 :search t
                 :output s))
@@ -90,6 +88,7 @@
      (run-parent (parse-integer parallel)
                  (parse-integer i)))
     ((list _ j)
+     (sb-ext:disable-debugger)
      (benchmark (parse-integer j)))))
 
 (main)
