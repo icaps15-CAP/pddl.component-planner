@@ -48,12 +48,13 @@
                 *log-dir*))
           (for process = 
                (sb-ext:run-program
-                "lispimage"
+                "./lispimage"
                 (list "--dynamic-space-size" "15500"
                       "--non-interactive"
                       "--disable-debugger"
                       (princ-to-string j))
-                :search t :output s))
+                :search t
+                :output s))
           (when (not (= 0 (sb-ext:process-exit-code process)))
             (format s "The child sbcl process has stopped with some error!")))))
 
