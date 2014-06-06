@@ -32,7 +32,10 @@
   :components ((:module "src"
                 :components
                 ((:file :package)
-                 (:file :pddl.component-planner)
+                 (:file :mapping)
+                 (:file :measurement)
+                 (:file :build-component-problem)
+                 (:file :plan-task)
                  (:file :delete-effect-minimization))
                 :serial t))
   :description ""
