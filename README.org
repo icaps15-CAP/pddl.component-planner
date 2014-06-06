@@ -6410,3 +6410,13 @@ same
  (SATELLITE-TYPED-21 :DIRECTION (1 1 1 5 1 6 7 16 1 1 1 1 1)
   (1 1 1 5 1 6 7 16 1 1 1 1 1)))
 #+END_SRC
+
+** Current Task
+   DEADLINE: <2014-04-09 水>
+
+Problem: in the restored problem, the planner bloats
+
+task: trying again and again, with gradually restoring the objects
+not in the random mozaic manner, but in the growing manner
+from the already used objects.
+in the fluent graph.
