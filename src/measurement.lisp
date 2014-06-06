@@ -3,10 +3,10 @@
 
 @export
 (define-condition evaluation-signal (simple-condition)
-  ((time :initarg :time :reader elapsed-time)))
+  ((usage :initarg :usage :reader resource-usage)))
 @export
 (define-condition restored-evaluation-signal (simple-condition) ())
 @export
 (define-condition comparison-signal (simple-condition) ())
 
-@export 'elapsed-time
+@export 'resource-usage

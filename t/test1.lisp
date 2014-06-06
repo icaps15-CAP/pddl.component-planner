@@ -101,7 +101,7 @@
         (comparison 0)
         (evaluation 0)
         (restored-evaluation 0)
-        times)
+        usage)
     (match (prog2
              (progn (clear-plan-task-cache)
                     (setf start (now)))
@@ -112,7 +112,7 @@
                             (evaluation-signal
                              (lambda (c)
                                (incf evaluation)
-                               (push (elapsed-time c) times)))
+                               (push (resource-usage c) usage)))
                             (restored-evaluation-signal
                              (lambda (c)
                                (declare (ignorable c))
@@ -122,7 +122,7 @@
       ((list _ _ length/type length/structure length/plan)
        ;; (break+ length/type length/structure length/plan
        ;;         comparison evaluation restored-evaluation
-       ;;         times)
+       ;;         usage)
        (with-output-to-file (s "total" :if-exists :supersede)
          (print length/type s))
        (with-output-to-file (s "hist-structure" :if-exists :supersede)
@@ -139,8 +139,8 @@
          (print restored-evaluation s))
        (with-output-to-file (s "comparison" :if-exists :supersede)
          (print comparison s))
-       (with-output-to-file (s "times" :if-exists :supersede)
-         (cl-csv:write-csv times :stream s))))))
+       (with-output-to-file (s "usage" :if-exists :supersede)
+         (cl-csv:write-csv usage :stream s))))))
 
 (defparameter *log-name*
   (merge-pathnames #p"logfile" *log-dir*))
