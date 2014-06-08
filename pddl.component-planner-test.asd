@@ -24,5 +24,6 @@
                :log4cl)
   :components ((:module "t"
                 :components
-                ((:file "pddl.component-planner"))))
+                ((:file "pddl.component-planner")
+                 (:file "test1"))))
   :perform (load-op :after (op c) (asdf:clear-system c)))

@@ -2,7 +2,7 @@
 (handler-bind ((SB-INT:EXTENSION-FAILURE
                 (lambda (c)
                   (invoke-restart (find-restart 'asdf/action:ACCEPT c)))))
-  (asdf:load-system :pddl.component-planner-test))
+  (ql:quickload :pddl.component-planner-test))
 
 (in-package :pddl.component-planner-test)
 (defparameter *delayed-problems*
@@ -106,11 +106,13 @@
      (make-image))
     ((list _ "repl")
      (make-image t))
+    ;; dry-runs
     ((list _ "-d" parallel i)
      (run-parent-dry (parse-integer parallel)
                      (parse-integer i)))
     ((list _ "-d" j)
      (run-children-dry (parse-integer j)))
+    ;; actual runs
     ((list _ parallel i)
      (run-parent (parse-integer parallel)
                  (parse-integer i)))
