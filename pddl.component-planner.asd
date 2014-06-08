@@ -34,6 +34,7 @@
                 ((:file :package)
                  (:file :mapping)
                  (:file :measurement)
+                 (:file :restoration)
                  (:file :build-component-problem)
                  (:file :plan-task)
                  (:file :delete-effect-minimization))

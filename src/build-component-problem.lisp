@@ -3,21 +3,15 @@
 
 
 @export
-(defvar *default-keep-objects* nil)
-@export
-(defvar *default-keep-init* nil)
-
-@export
-(defun build-component-problem (abstract-task &optional
-                                (keep-objects *default-keep-objects*)
-                                (keep-init *default-keep-init*))
+(defun build-component-problem (abstract-task
+                                &optional
+                                  (keeping-strategy
+                                   (ask-for
+                                    keeping-strategy
+                                    (make-instance 'full-restoration-strategy))))
   "build a small problem which contains only the relevant objects in a
-abstract task."
-  (assert (not (and (null keep-objects) keep-init))
-          (keep-objects keep-init)
-          "If you remove the objects in other tasks, then it's not
-possible to keep the initial states which depends on those objects.
-Change the value of keep-objects or keep-init.")
+abstract task. objects and initial state is filtered according to the functions
+given in *def"
   (ematch abstract-task
     ((abstract-component-task :problem *problem*)
      (ematch *problem*
@@ -29,31 +23,29 @@ Change the value of keep-objects or keep-init.")
         (match abstract-task
           ((abstract-component-task- (ac (abstract-component components))
                                      (goal task-goal))
-           (let* ((removed nil)
-                  (other-objects (set-difference objs components))
-                  (environment-objects
-                   (if keep-objects
-                       other-objects
-                       (remove-if
-                        (lambda (o)
-                          (when (some (lambda (comp)
-                                        (pddl-supertype-p (type o) (type comp)))
-                                      components)
-                            (push o removed) t))
-                        other-objects))))
-             (format t "~&Component: ~{~a~^, ~_~}" (mapcar #'name components))
-             (format t "~&Removed  : ~{~a~^, ~_~}" (mapcar #'name removed))
-             (pddl-problem
-              :domain *domain*
-              :name (apply #'concatenate-symbols
-                           total-name (mapcar #'name components))
-              :objects (append components environment-objects)
-              :init (if keep-init
-                        init
-                        (remove-if
-                         (lambda (f)
-                           (some (lambda (p) (find p removed))
-                                 (parameters f)))
-                         init))
-              :goal (list* 'and task-goal)
-              :metric metric)))))))))
+           (multiple-value-bind
+                 (active-objects removed-objects)
+               (filter-objects keeping-strategy
+                               :objs objs
+                               :components components
+                               :init init)
+             (multiple-value-bind
+                   (active-init removed-init)
+                 (filter-inits keeping-strategy
+                               :objs objs
+                               :components components
+                               :active-objects active-objects
+                               :removed-objects removed-objects
+                               :init init)
+               (format t "~&Component: ~{~a~^, ~_~}"
+                       (mapcar #'name components))
+               (format t "~&Removed  : ~{~a~^, ~_~}"
+                       (mapcar #'name removed-objects))
+               (pddl-problem
+                :domain *domain*
+                :name (apply #'concatenate-symbols
+                             total-name (mapcar #'name components))
+                :objects active-objects
+                :init active-init
+                :goal (list* 'and task-goal)
+                :metric metric))))))))))
