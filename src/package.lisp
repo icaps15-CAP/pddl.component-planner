@@ -12,5 +12,5 @@
         :alexandria
         :cl-annot
         :anaphora)
-  (:import-from :pddl.loop-planner :*validator-verbosity*)
+  (:export :resource-usage)
   (:shadowing-import-from :pddl :minimize :maximize))

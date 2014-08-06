@@ -6,9 +6,11 @@
 (defgeneric filter-object (strategy o &key &allow-other-keys))
 (defgeneric filter-init (strategy i &key &allow-other-keys))
 
+;;; filtering-strategy -- basic filtering
+
 (defclass filtering-strategy () ()
   (:documentation
-   "Removes all objects that's part of the other components.
+   "Removes all objects that is a part of the other components.
 Remaining objects are those who do not belongs to any components,
 and the objects in the target component itself."))
 
@@ -43,14 +45,7 @@ and the objects in the target component itself."))
   (notany (lambda (p) (find p removed-objects))
           (parameters i)))
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;;; full restoration strategy
-
-;;   (assert (not (and (null keep-objects) keep-init))
-;;           (keep-objects keep-init)
-;;           "If you remove the objects in other tasks, then it's not
-;; possible to keep the initial states which depends on those objects.
-;; Change the value of keep-objects or keep-init.")
+;;; full restoration strategy -- proposed in KEPS14
 
 (defclass full-restoration-strategy (filtering-strategy)
   ((obj-restored :type boolean :initform nil :accessor obj-restored)
@@ -75,8 +70,7 @@ when it is called more than twice."))
           (call-next-method)
         (setf (init-restored strategy) t))))
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;;; gradual restoring strategy
+;;; gradual restoration strategy
 
 ;; (defclass gradual-restoration-strategy (filtering-strategy)
 ;;   ((kernel :initform nil :accessor kernel)
@@ -85,11 +79,10 @@ when it is called more than twice."))
 ;;    (active-inits :initform nil :accessor active-inits)
 ;;    (removed-inits :initform nil :accessor removed-inits))
 ;;   (:documentation
-;;    "In the first call, it behaves just the same way as filtering-strategy does.
-;; After that, the number of returned objects grows gradually.
-;; It incrementally grows its kernel, which is defined as:
-;; Initially, the kernel is the component itself.
-;; After that, the kernel grows:
+;;    "In the first call, it behaves just the same way as filtering-strategy
+;;  does.  After that, the number of returned objects grows gradually.  It
+;;  incrementally grows its kernel, which is defined as: Initially, the kernel
+;;  is the component itself.  After that, the kernel grows:
 
 ;; If any components are statically connected to the kernel,
 

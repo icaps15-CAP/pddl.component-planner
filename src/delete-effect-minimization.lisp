@@ -1,5 +1,7 @@
 (in-package :pddl.component-planner)
 
+;; this file is not used now.
+
 (cl-syntax:use-syntax :annot)
 ;; blah blah blah.
 

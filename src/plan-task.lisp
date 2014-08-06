@@ -1,6 +1,16 @@
 (in-package :pddl.component-planner)
 (cl-syntax:use-syntax :annot)
 
+;; this file contains functions that builds a component-problem and compute
+;; the component-plan.
+
+;;;; basic plan-task functionality
+
+@export
+(defun clear-plan-task-cache ()
+  "Clear the cache for plan-task."
+  (clear-cache *PLAN-TASK-CACHE*))
+
 @export
 (defcached plan-task (task)
   "Calls build-component-problem, make a plan with FD, then parse the results.
@@ -30,44 +40,73 @@ careful if you measure the elapsed time. When you measure the time, run
                                     t-memory p-memory s-memory))
                plans)))))
 
-@export
-(defun clear-plan-task-cache ()
-  "Clear the cache for plan-task."
-  (clear-cache *PLAN-TASK-CACHE*))
-
-@export
-(defun task-plan-equal (t1 t2)
-  "Computes plan-wise compatibility. It returns true if any of the component plan
-mapped from t1 to t2 is a valid plan of t2."
-  ;; (assert (abstract-component-task-strict= t1 t2))
-  (signal 'comparison-signal)
-  (let* ((problem2 (build-component-problem t2))
-         (problem-path2 (write-problem problem2)))
-    (some 
-     (lambda (plan1)
-       (validate-plan (path (domain problem2))
-                      problem-path2
-                      (write-plan
-                       (apply-mapping
-                        plan1
-                        (mapping-between-tasks t1 t2)
-                        problem2))))
-     (plan-task-with-retry t1))))
+;;;; retry wrapper for plan-task
 
 (defun plan-task-with-retry (t1)
-  "It first tries to compute a
-component plan of t1 and return the result plans.
-If it fails, it restore the objects in the problem."
+  "It computes a component plan of t1 and return the result
+plans.  If it fails, it signals plan-not-found. If the signal is not
+handled, return nil. It also provides `retry' restart, which signals
+`restored-evaluation-signal' for the logging purpose and recompute the
+component-plan. "
   (handler-bind
       ((plan-not-found
         (lambda (c)
-          (signal c)
-          ;; default handler
+          (signal c) ; default handler
           (return-from plan-task-with-retry nil))))
     (do-restart ((retry
                   (lambda ()
                     (signal 'restored-evaluation-signal)
                     (warn "Retrying, restoring objects in the other tasks."))))
       (plan-task t1))))
+
+;;;; build-component-problem
+
+@export
+(defun build-component-problem
+    (abstract-task
+     &optional
+       (keeping-strategy
+        (ask-for keeping-strategy
+                 (make-instance 'full-restoration-strategy))))
+  "Build a small problem which contains only the relevant objects in a
+abstract task. objects and initial state is filtered according to the
+given strategy."
+  (ematch abstract-task
+    ((abstract-component-task :problem *problem*)
+     (ematch *problem*
+       ((pddl-problem :name total-name
+                      :domain *domain*
+                      :objects objs
+                      :init init
+                      :metric metric)
+        (match abstract-task
+          ((abstract-component-task- (ac (abstract-component components))
+                                     (goal task-goal))
+           (multiple-value-bind
+                 (active-objects removed-objects)
+               (filter-objects keeping-strategy
+                               :objs objs
+                               :components components
+                               :init init)
+             (multiple-value-bind
+                   (active-init removed-init)
+                 (filter-inits keeping-strategy
+                               :objs objs
+                               :components components
+                               :active-objects active-objects
+                               :removed-objects removed-objects
+                               :init init)
+               (format t "~&Component: ~{~a~^, ~_~}"
+                       (mapcar #'name components))
+               (format t "~&Removed  : ~{~a~^, ~_~}"
+                       (mapcar #'name removed-objects))
+               (pddl-problem
+                :domain *domain*
+                :name (apply #'concatenate-symbols
+                             total-name (mapcar #'name components))
+                :objects active-objects
+                :init active-init
+                :goal (list* 'and task-goal)
+                :metric metric))))))))))
 
 

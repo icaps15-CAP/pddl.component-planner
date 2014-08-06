@@ -32,11 +32,11 @@
   :components ((:module "src"
                 :components
                 ((:file :package)
-                 (:file :mapping)
-                 (:file :measurement)
+                 (:file :map-component-plan)
+                 (:file :conditions)
                  (:file :restoration)
-                 (:file :build-component-problem)
                  (:file :plan-task)
+                 (:file :task-equality)
                  (:file :delete-effect-minimization))
                 :serial t))
   :description ""
