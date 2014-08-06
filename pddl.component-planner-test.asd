@@ -11,17 +11,8 @@
 (defsystem pddl.component-planner-test
   :author "guicho"
   :license "LLGPL"
-  :depends-on (:pddl.component-abstraction
-               :pddl.component-planner
-               :pddl.instances
-               :fiveam
-               :local-time
-               :cl-csv
-               :guicho-utilities
-               :guicho-utilities.threading
-               :lparallel
-               :repl-utilities
-               :log4cl)
+  :depends-on (:pddl.component-planner
+               :fiveam)
   :components ((:module "t"
                 :components
                 ((:file "pddl.component-planner")
