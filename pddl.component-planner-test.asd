@@ -15,7 +15,8 @@
                :fiveam)
   :components ((:module "t"
                 :components
-                ((:file "pddl.component-planner")
+                ((:file "package")
+                 (:file "basis")
                  (:file "test1"))))
   :perform (load-op :after (op c) 
 		    (eval (read-from-string "(fiveam:run! :pddl.component-planner)"))

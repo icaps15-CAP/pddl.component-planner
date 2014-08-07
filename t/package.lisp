@@ -14,4 +14,7 @@
         :iterate
         :optima
         :fiveam)
-  (:shadow :fail :maximize :minimize))
+  (:shadow :fail)
+  (:shadowing-import-from :pddl :maximize :minimize))
+(in-package :pddl.component-planner-test)
+(def-suite :pddl.component-planner)

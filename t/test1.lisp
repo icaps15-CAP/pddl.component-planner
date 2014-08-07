@@ -1,7 +1,13 @@
 (in-package :pddl.component-planner-test)
-(cl-syntax:use-syntax :annot)
-
-(def-suite :pddl.component-planner)
 (in-suite :pddl.component-planner)
 
+
+(test component
+  (let (task-groups)
+    (finishes
+      (setf task-groups (abstract-tasks assemblep :product)))
+    (finishes
+      (ematch task-groups
+        ((list (list t1 t2)) task-groups
+         (is (task-plan-equal t1 t2)))))))
 
