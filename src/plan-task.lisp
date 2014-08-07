@@ -29,9 +29,10 @@ careful if you measure the elapsed time. When you measure the time, run
                 (test-problem
                  (write-pddl *problem* "problem.pddl" dir)
                  (write-pddl *domain* "domain.pddl" dir)
-                 :time-limit (ask-for time-limit 1)
+                 :time-limit (ask-for time-limit 100)
                  :hard-time-limit (ask-for hard-time-limit (* 60 5))
                  :memory (ask-for memory (floor (/ (sb-ext:dynamic-space-size) 1000)))
+                 :verbose t
                  ;; 15GB * 0.8 = 120
                  ;; :options "--search astar(lmcut())"
                  )
@@ -69,10 +70,11 @@ component-plan. "
      &optional
        (keeping-strategy
         (ask-for keeping-strategy
-                 (make-instance 'full-restoration-strategy))))
+                 (make-instance 'filtering-strategy))))
   "Build a small problem which contains only the relevant objects in a
 abstract task. objects and initial state is filtered according to the
 given strategy."
+  (format t "~&Building a component problem of~&~a ..." abstract-task)
   (ematch abstract-task
     ((abstract-component-task :problem *problem*)
      (ematch *problem*
@@ -98,10 +100,10 @@ given strategy."
                                :active-objects active-objects
                                :removed-objects removed-objects
                                :init init)
-               (format t "~&Component: ~{~a~^, ~_~}"
-                       (mapcar #'name components))
-               (format t "~&Removed  : ~{~a~^, ~_~}"
-                       (mapcar #'name removed-objects))
+               (format t "~&~<Component Obj: ~;~@{~a~^, ~:_~}~:>" components)
+               (format t "~&~<Removed Obj  : ~;~@{~a~^, ~:_~}~:>" removed-objects)
+               (format t "~&~<Active Init  : ~;~@{~a~^, ~:_~}~:>" active-init)
+               (format t "~&~<Removed Init : ~;~@{~a~^, ~:_~}~:>" removed-init)
                (pddl-problem
                 :domain *domain*
                 :name (apply #'concatenate-symbols
