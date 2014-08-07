@@ -4,22 +4,19 @@
 ;;; primary function : apply-mapping
 
 @export
-(defun map-component-plan (plan mapping problem)
-  (ematch plan
+(defun map-component-plan (pddl-plan mapping)
+  (ematch pddl-plan
     ((pddl-plan actions problem)
      (let ((%mapping (%remove-nochange mapping)))
        (shallow-copy
-        plan
+        pddl-plan
         :problem problem
         :name (concatenate-symbols 'MP (name problem))
         :actions
         (map 'vector
              (lambda (action)
                (ematch action
-                 ((or (pddl-initial-action)
-                      (pddl-goal-action))
-                  action)
-                 ((pddl-intermediate-action parameters)
+                 ((pddl-ground-action parameters)
                   (shallow-copy
                    action
                    :parameters (%apply parameters %mapping)))))
