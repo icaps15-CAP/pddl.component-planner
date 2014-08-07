@@ -18,15 +18,17 @@ returns a PDDL-PLAN. The call to this function is cached and memoized, so be
 careful if you measure the elapsed time. When you measure the time, run
  (clear-plan-task-cache) to clear the cache."
   (let* ((*problem* (build-component-problem task))
-         (*domain* (domain *problem*)))
+         (*domain* (domain *problem*))
+         (dir (mktemp "plan-task" t)))
     (mapcar (let ((i 0))
               (curry #'pddl-plan
-                     :name (concatenate-symbols (name *problem*) 'plan (incf i))
+                     :name (concatenate-symbols
+                            (name *problem*) 'plan (incf i))
                      :path))
             (multiple-value-match
                 (test-problem
-                 (write-problem *problem*)
-                 (path *domain*)
+                 (write-pddl *problem* "problem.pddl" dir)
+                 (write-pddl *domain* "domain.pddl" dir)
                  :time-limit (ask-for time-limit 1)
                  :hard-time-limit (ask-for hard-time-limit (* 60 5))
                  :memory (ask-for memory (floor (/ (sb-ext:dynamic-space-size) 1000)))
