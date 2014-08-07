@@ -60,5 +60,6 @@
          (= (span p2 s0) 0)
          (= (span p2 s1) 2)
          (= (span p2 s2) 3))
-  (:goal (and (made p1 s2) (made p2 s2)))
+  (:goal (and (made p1 s2) (made p2 s2)
+              (notmaking p1) (notmaking p2)))
   (:metric minimize (total-cost)))
