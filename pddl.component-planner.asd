@@ -32,6 +32,7 @@
   :components ((:module "src"
                 :components
                 ((:file :package)
+                 (:file :binarization)
                  (:file :map-component-plan)
                  (:file :conditions)
                  (:file :restoration)
