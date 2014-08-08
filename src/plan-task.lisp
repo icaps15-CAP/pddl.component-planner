@@ -32,7 +32,6 @@ careful if you measure the elapsed time. When you measure the time, run
                  :time-limit (ask-for time-limit 100)
                  :hard-time-limit (ask-for hard-time-limit (* 60 5))
                  :memory (ask-for memory (floor (/ (sb-ext:dynamic-space-size) 1000)))
-                 :verbose t
                  ;; 15GB * 0.8 = 120
                  ;; :options "--search astar(lmcut())"
                  )
@@ -74,7 +73,7 @@ component-plan. "
   "Build a small problem which contains only the relevant objects in a
 abstract task. objects and initial state is filtered according to the
 given strategy."
-  (format t "~&Building a component problem of~&~a ..." abstract-task)
+  ;(format t "~&Building a component problem of~&~a ..." abstract-task)
   (ematch abstract-task
     ((abstract-component-task :problem *problem*)
      (ematch *problem*
@@ -100,10 +99,11 @@ given strategy."
                                :active-objects active-objects
                                :removed-objects removed-objects
                                :init init)
-               (format t "~&~<Component Obj: ~;~@{~a~^, ~:_~}~:>" components)
-               (format t "~&~<Removed Obj  : ~;~@{~a~^, ~:_~}~:>" removed-objects)
-               (format t "~&~<Active Init  : ~;~@{~a~^, ~:_~}~:>" active-init)
-               (format t "~&~<Removed Init : ~;~@{~a~^, ~:_~}~:>" removed-init)
+               ;; (let ((*print-length* 10))
+               ;;   (format t "~&Component Obj: ~w" components)
+               ;;   (format t "~&Removed Obj  : ~w" removed-objects)
+               ;;   (format t "~&Active Init  : ~w" active-init)
+               ;;   (format t "~&Removed Init : ~w" removed-init))
                (pddl-problem
                 :domain *domain*
                 :name (apply #'concatenate-symbols
