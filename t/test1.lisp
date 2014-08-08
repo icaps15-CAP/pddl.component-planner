@@ -9,7 +9,7 @@
     (finishes
       (ematch task-groups
         ((list (list t1 t2)) task-groups
-         (is-not (task-plan-equal t1 t2))))))) ; since the problem is not
+         (is-false (task-plan-equal t1 t2))))))) ; since the problem is not
                                                ; binarized and the
                                                ; abstraction fails
 
