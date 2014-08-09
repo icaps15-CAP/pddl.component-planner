@@ -21,8 +21,6 @@
   :depends-on (:optima
                :function-cache
                :guicho-utilities
-               :pddl.loop-detection
-               :pddl.loop-planner
                :pddl.component-abstraction
                :pddl
                :iterate

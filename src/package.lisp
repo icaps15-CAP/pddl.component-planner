@@ -4,8 +4,6 @@
         :optima
         :function-cache
         :guicho-utilities
-        :pddl.loop-planner
-        :pddl.loop-detection
         :pddl.component-abstraction
         :pddl
         :iterate
