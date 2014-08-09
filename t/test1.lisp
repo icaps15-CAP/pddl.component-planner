@@ -3,22 +3,31 @@
 
 
 (test component
-  (let (task-groups)
+  (let (tasks)
     (finishes
-      (setf task-groups (abstract-tasks assemblep :product)))
+      (setf tasks (abstract-tasks assemblep :product)))
     (finishes
-      (ematch task-groups
+      (ematch tasks
         ((list t1 t2)
          (is-false (task-plan-equal t1 t2))))))) ; since the problem is not
-                                               ; binarized and the
-                                               ; abstraction fails
+                                        ; binarized and the
+                                        ; abstraction fails
 
 (test component-after-binarization
-  (let (task-groups)
+  (let (tasks)
     (finishes
-      (setf task-groups (abstract-tasks (binarize assemblep assemble) :product)))
+      (setf tasks
+            (abstract-tasks
+             (binarize assemblep assemble)
+             :product)))
     (finishes
-      (ematch task-groups
+      (ematch tasks
         ((list t1 t2)
          (is (task-plan-equal t1 t2)))))))
+
+
+(test component-macro
+  (finishes
+    (print
+     (component-macro assemblep :product))))
 

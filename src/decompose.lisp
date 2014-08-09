@@ -5,7 +5,8 @@
 ;;; categorize each problem
 
 (defun component-plans (problem seed) ;; -> (list (vector (list task) plan))
-  (format t "~&Categorizing problem ~a with seed ~a" (name problem) seed)
+  (format t "~&Categorizing problem ~a (automatically binarized)
+with seed ~a" (name problem) seed)
   (let* (;; tasks of the same component but the different init/goals
          (tasks (abstract-tasks (binarize problem (domain problem)) seed))
          ;; categorize tasks into buckets, based on init/goal/attribute.
@@ -32,7 +33,8 @@
 
 (defun component-macro/bucket (v)
   (match v
-    ((vector _ (pddl-plan actions))
-     (reduce #'merge-ground-actions actions))))
+    ((vector _ (pddl-plan actions domain))
+     (let ((*domain* domain))
+       (macro-action actions)))))
 
 

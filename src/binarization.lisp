@@ -14,7 +14,7 @@
        (let ((binarizations (mapcar #'binarization-of predicates)))
          (reinitialize-instance
           *domain*
-          :name (symbolicate name '-binarized)
+          :name (symbolicate name "2")
           :predicates (reduce #'append binarizations :key #'binarization-results)
           :actions (binarize-actions actions binarizations)))))))
 
@@ -25,7 +25,7 @@
             (init2 (mappend (compose #'binarization-results #'binarization-of) init))
             (goal2 (mappend (compose #'binarization-results #'binarization-of) positive-goals)))
        (pddl-problem :domain *domain*
-                     :name (symbolicate name '-binarized)
+                     :name (symbolicate name "2")
                      :objects objects
                      :init init2
                      :goal `(and ,@goal2)
@@ -75,7 +75,7 @@
 (defun binarize-action (action binarizations)
   (ematch action
     ((pddl-action name parameters add-list delete-list positive-preconditions assign-ops)
-     (pddl-action :name (symbolicate name '-binarized)
+     (pddl-action :name (symbolicate name "2")
                   :parameters parameters
                   :precondition `(and ,@(apply-binarizations binarizations positive-preconditions))
                   :effect `(and ,@(apply-binarizations binarizations add-list)
