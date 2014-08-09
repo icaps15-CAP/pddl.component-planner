@@ -38,6 +38,7 @@
    :source predicate
    :results 
    (match predicate
+     ;; pddl predicate (in domain) /atomic state (in problem)
      ((pddl-predicate :name name
                       :parameters (guard parameters (< 2 (length parameters))))
       (iter outer
@@ -50,6 +51,21 @@
                                                            '- (name (type p1))
                                                            '- (name (type p2)))
                                         :parameters (list p1 p2)))))))
+     
+     ;; pddl function (in domain) / function state (in problem)
+     ;; false idea
+     ;; ((pddl-function :name name
+     ;;                 :parameters (guard parameters (< 2 (length parameters))))
+     ;;  (iter outer
+     ;;        (for (p1 . rest) on parameters)
+     ;;        (iter (for p2 in rest)
+     ;;              (in outer
+     ;;                  (collect 
+     ;;                      (shallow-copy predicate
+     ;;                                    :name (symbolicate name
+     ;;                                                       '- (name (type p1))
+     ;;                                                       '- (name (type p2)))
+     ;;                                    :parameters (list p1 p2)))))))
      (_ (list predicate)))))
 
 (defun binarize-actions (actions binarizations)
@@ -58,12 +74,13 @@
 
 (defun binarize-action (action binarizations)
   (ematch action
-    ((pddl-action name parameters add-list delete-list positive-preconditions)
+    ((pddl-action name parameters add-list delete-list positive-preconditions assign-ops)
      (pddl-action :name (symbolicate name '-binarized)
                   :parameters parameters
                   :precondition `(and ,@(apply-binarizations binarizations positive-preconditions))
                   :effect `(and ,@(apply-binarizations binarizations add-list)
-                                ,@(mapcar #'wrap-not (apply-binarizations binarizations delete-list)))))))
+                                ,@(mapcar #'wrap-not (apply-binarizations binarizations delete-list))
+                                ,@assign-ops)))))
 
 (defun apply-binarizations (binarizations predicates)
   (mappend (lambda (s) (apply-binarization binarizations s)) predicates))
@@ -88,3 +105,9 @@
                               (collecting (elt ps1 (position p ps2)))))))))))))))
 
 (defun wrap-not (x) `(not ,x))
+
+;; ;;; assign-ops
+
+;; (defun binarize-assign-ops (assign-ops)
+;;   (iter (for op in assign-ops)
+        
