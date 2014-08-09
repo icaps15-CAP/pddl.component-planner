@@ -41,37 +41,3 @@
                '(:base)
                "CELL-ASSEMBLY-MODEL2A-.*"))
 
-;;; categorize each problem
-
-(eval-when (:compile-toplevel :load-toplevel :execute)
-  (defmacro map-reduce (mapper reducer sequence &rest reduce-args)
-    `(reduce ,reducer
-             (map 'vector ,mapper ,sequence)
-             ,@reduce-args)))
-
-(defun categorize-problem (problem seed)
-  (log:info "~&Categorizing problem ~a with seed ~a" (name problem) seed)
-  (let* ((tasks/type (flatten (abstract-tasks (binarize problem (domain problem)) seed)))
-         (tasks/structure (categorize-tasks tasks/type :strict)))
-    ;; list pf bags. each bag contains tasks of the same structure
-    (log:info (name problem) seed (length tasks/type))
-    (log:info (name problem) seed (mapcar #'length tasks/structure))
-    (let ((tasks/plan
-           (map-reduce (lambda (bucket)
-                         (coerce (categorize-by-equality
-                                  bucket #'task-plan-equal
-                                  :transitive t)
-                                 'list))
-                       #'append tasks/structure
-                       :initial-value nil)))
-      (log:info (name problem) seed (mapcar #'length tasks/plan))
-      (log:info (name problem) seed (length tasks/plan))
-      ;; list of bags. each bag contains tasks whose plans are interchangeable
-      (list (name problem)
-            seed
-            (length tasks/type)
-            (mapcar #'length tasks/structure)
-            (mapcar #'length tasks/plan)))))
-
-
-

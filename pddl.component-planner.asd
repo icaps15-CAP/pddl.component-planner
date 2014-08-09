@@ -22,6 +22,7 @@
                :function-cache
                :guicho-utilities
                :pddl.component-abstraction
+               :pddl.macro-action
                :pddl
                :iterate
                :alexandria
