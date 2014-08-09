@@ -39,3 +39,22 @@
     ((vector _ (pddl-plan actions))
      (macro-action actions))))
 
+(defun enhance-problem (problem seed &aux (domain (domain problem)))
+  (multiple-value-bind (problem domain) (binarize problem domain)
+    (format t "~&Enhancing domain ~a" domain)
+    (ematch domain
+      ((pddl-domain name actions)
+       (let ((*domain*
+              (shallow-copy
+               domain
+               :name (symbolicate name '-enhanced)
+               :actions (append actions
+                                (component-macro problem seed)))))
+         (values (shallow-copy problem
+                               :name (symbolicate (name problem)
+                                                  '-enhanced)
+                               :domain *domain*)
+                 *domain*))))))
+  
+  
+

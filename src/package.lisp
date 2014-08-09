@@ -14,5 +14,6 @@
   (:export :resource-usage
            :categorize-problem
            :component-plans
-           :component-macro)
+           :component-macro
+           :enhance-problem)
   (:shadowing-import-from :pddl :minimize :maximize))
