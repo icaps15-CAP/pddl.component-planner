@@ -2,9 +2,19 @@
 (in-package :pddl.component-abstraction)
 (cl-syntax:use-syntax :annot)
 
+
+;; not exported
+(defun ensure-binarized (domain)
+  "Ensuress the domain is binarized"
+  (if (every (lambda (p) (<= (length (parameters p)) 2))
+             (predicates domain))
+      (values domain nil)
+      (values (binarize-domain domain) t)))
+
 (defun binarize (problem domain)
-  (let ((*domain* (binarize-domain domain)))
-    (values (binarize-problem problem)
+  "Ensure both the problem and the domain is binarized."
+  (multiple-value-bind (*domain* changed?) (ensure-binarized domain)
+    (values (if changed? (binarize-problem problem) problem)
             *domain*)))
 
 (defun binarize-domain (domain)
