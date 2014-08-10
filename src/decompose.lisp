@@ -78,12 +78,16 @@
 
 (define-local-function debinarize-action (ga)
   (let ((a (find ga (actions bdomain) :test #'eqname)))
-    (match (binarization-origin a)
-      ((pddl-action name)
-       (shallow-copy ga
-                     :domain domain
-                     :problem problem
-                     :name name))))) ; change the name
+    (ematch a
+      ((macro-action binarization-origin)
+       (ematch binarization-origin
+         ((pddl-action name)
+          (shallow-copy ga
+                        :domain domain
+                        :problem problem
+                        :name name))))  ; change the name
+      ((pddl-action) ; the action might not have been binarized (because 
+       ga))))        ; there is no need for it)
 
 (defun debinarize-plan (domain problem bdomain bproblem plan)
   (declare (ignorable bproblem))
