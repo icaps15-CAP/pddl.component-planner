@@ -46,3 +46,8 @@
             (destructuring-bind (problem seed) list
               (solve-problem-enhancing problem seed :verbose t)))
           *delayed-problems*))
+
+#+nil
+(progn
+  (ql:quickload :pddl.component-planner.benchmark)
+  (in-package :PDDL.COMPONENT-PLANNER.BENCHMARK))
