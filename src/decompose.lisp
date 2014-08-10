@@ -44,17 +44,57 @@
     (format t "~&Enhancing domain ~a" domain)
     (ematch domain
       ((pddl-domain name actions)
-       (let ((*domain*
-              (shallow-copy
-               domain
-               :name (symbolicate name '-enhanced)
-               :actions (append actions
-                                (component-macro problem seed)))))
+       (let* ((macros (component-macro problem seed))
+              (*domain*
+               (shallow-copy
+                domain
+                :name (symbolicate name '-enhanced)
+                :actions (append actions macros))))
          (values (shallow-copy problem
                                :name (symbolicate (name problem)
                                                   '-enhanced)
                                :domain *domain*)
-                 *domain*))))))
+                 *domain*
+                 macros))))))
   
+(defun solve-problem-enhancing (problem seed &rest test-problem-args)
+  (multiple-value-bind (eproblem edomain macros) (enhance-problem problem seed)
+    (let* ((dir (mktemp "enhanced")))
+      (debinarize-plan
+       (domain problem)
+       problem
+       edomain
+       eproblem
+       (let ((*domain* edomain) (*problem* eproblem))
+         (reduce #'decode-plan
+                 macros
+                 :from-end t
+                 :initial-value
+                 (pddl-plan :path
+                            (first (apply #'test-problem
+                                          (write-pddl *problem* "eproblem.pddl" dir)
+                                          (write-pddl *domain* "edomain.pddl" dir)
+                                          test-problem-args)))))))))
+
+(define-local-function debinarize-action (ga)
+  (let ((a (find ga (actions bdomain) :test #'eqname)))
+    (match (binarization-origin a)
+      ((pddl-action name)
+       (shallow-copy ga
+                     :domain domain
+                     :problem problem
+                     :name name))))) ; change the name
+
+(defun debinarize-plan (domain problem bdomain bproblem plan)
+  (declare (ignorable bproblem))
+  (more-labels () (debinarize-action)
+    (ematch plan
+      ((pddl-plan :actions actions)
+       (pddl-plan :actions (map 'vector #'debinarize-action actions))))))
+
+
+
+;; in order to set (domain/problem plan)
+;; during the initialization
   
 

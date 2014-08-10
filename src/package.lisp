@@ -15,5 +15,6 @@
            :categorize-problem
            :component-plans
            :component-macro
-           :enhance-problem)
+           :enhance-problem
+           :solve-problem-enhancing)
   (:shadowing-import-from :pddl :minimize :maximize))

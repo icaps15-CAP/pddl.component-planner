@@ -2,6 +2,8 @@
 (in-package :pddl.component-abstraction)
 (cl-syntax:use-syntax :annot)
 
+(define-pddl-class binarized-action (pddl-action)
+  (binarization-origin))
 
 ;; not exported
 (defun ensure-binarized (domain)
@@ -85,12 +87,13 @@
 (defun binarize-action (action binarizations)
   (ematch action
     ((pddl-action name parameters add-list delete-list positive-preconditions assign-ops)
-     (pddl-action :name (symbolicate name "2")
-                  :parameters parameters
-                  :precondition `(and ,@(apply-binarizations binarizations positive-preconditions))
-                  :effect `(and ,@(apply-binarizations binarizations add-list)
-                                ,@(mapcar #'wrap-not (apply-binarizations binarizations delete-list))
-                                ,@assign-ops)))))
+     (binarized-action :name (symbolicate name "2")
+                       :binarization-origin action
+                       :parameters parameters
+                       :precondition `(and ,@(apply-binarizations binarizations positive-preconditions))
+                       :effect `(and ,@(apply-binarizations binarizations add-list)
+                                     ,@(mapcar #'wrap-not (apply-binarizations binarizations delete-list))
+                                     ,@assign-ops)))))
 
 (defun apply-binarizations (binarizations predicates)
   (mappend (lambda (s) (apply-binarization binarizations s)) predicates))
