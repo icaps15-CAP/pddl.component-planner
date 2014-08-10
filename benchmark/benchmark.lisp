@@ -41,3 +41,8 @@
                '(:base)
                "CELL-ASSEMBLY-MODEL2A-.*"))
 
+(defun run ()
+  (mapcar (lambda (list)
+            (destructuring-bind (problem seed) list
+              (solve-problem-enhancing problem seed :verbose t)))
+          *delayed-problems*))
