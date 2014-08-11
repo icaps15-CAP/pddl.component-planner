@@ -39,8 +39,8 @@
        (pddl-problem :domain *domain*
                      :name (symbolicate name "2")
                      :objects objects
-                     :init init2
-                     :goal `(and ,@goal2)
+                     :init (remove-duplicates init2 :test #'eqstate)
+                     :goal `(and ,@(remove-duplicates goal2 :test #'eqstate))
                      :metric metric)))))
 
 (defstruct binarization results source)
