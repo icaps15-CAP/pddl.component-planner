@@ -76,23 +76,26 @@
          (pushnew type types))))))
   
 (defun solve-problem-enhancing (problem seed &rest test-problem-args)
+  (clear-plan-task-cache)
   (multiple-value-bind (eproblem edomain macros) (enhance-problem problem seed)
     (let* ((dir (mktemp "enhanced")))
-      (debinarize-plan
-       (domain problem)
-       problem
-       edomain
-       eproblem
-       (let ((*domain* edomain) (*problem* eproblem))
-         (reduce #'decode-plan
-                 macros
-                 :from-end t
-                 :initial-value
-                 (pddl-plan :path
-                            (first (apply #'test-problem
-                                          (write-pddl *problem* "eproblem.pddl" dir)
-                                          (write-pddl *domain* "edomain.pddl" dir)
-                                          test-problem-args)))))))))
+      (let ((plan (debinarize-plan
+                   (domain problem)
+                   problem
+                   edomain
+                   eproblem
+                   (let ((*domain* edomain) (*problem* eproblem))
+                     (reduce #'decode-plan
+                             macros
+                             :from-end t
+                             :initial-value
+                             (pddl-plan :path
+                                        (first (apply #'test-problem
+                                                      (write-pddl *problem* "eproblem.pddl" dir)
+                                                      (write-pddl *domain* "edomain.pddl" dir)
+                                                      test-problem-args))))))))
+        (write-plan plan "final-result.plan" dir t)
+        plan))))
 
 (define-local-function debinarize-action (ga)
   (let ((a (find ga (actions bdomain) :test #'eqname)))
