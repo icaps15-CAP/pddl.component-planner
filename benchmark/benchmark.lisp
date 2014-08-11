@@ -59,9 +59,10 @@
 #+nil
 (progn
   (ql:quickload :pddl.component-planner.benchmark)
-  (in-package :PDDL.COMPONENT-PLANNER.BENCHMARK))
+  (in-package :PDDL.COMPONENT-PLANNER.BENCHMARK)
+  (ql:quickload :pddl.instances.rover))
 
 #+nil
-(progn
-  (ql:quickload :pddl.instances.woodworking))
-
+(solve-problem-enhancing pddl.instances:roverprob39 :rover
+                         :time-limit 1 :hard-time-limit 1800 :memory 2500000
+                         :verbose t)
