@@ -4,6 +4,11 @@
 
 ;;; categorize each problem
 
+(defun trivial-component-p (ac)
+  (ematch ac
+    ((abstract-component components)
+     (= 1 (length components)))))
+
 (defun component-plans (problem seed &aux (domain (domain problem)))
   ;; -> (list (vector (list task) plan))
   (multiple-value-bind (problem domain) (binarize problem domain)
@@ -11,8 +16,12 @@
     (format t "~&Categorizing problem ~a with seed ~a" (name problem) seed)
     (let* (;; tasks of the same component but the different init/goals
            (tasks (abstract-tasks problem seed))
+           ;; remove tasks of the trivial component = components of single object
+           (tasks/non-trivial (remove-if #'trivial-component-p tasks :key #'abstract-component-task-ac))
+           ;; remove tasks without goals
+           (tasks/with-goals (remove-if #'abstract-component-task-goal tasks/non-trivial))
            ;; categorize tasks into buckets, based on init/goal/attribute.
-           (tasks/same-goal-inits-attr (categorize-tasks tasks :strict)))
+           (tasks/same-goal-inits-attr (categorize-tasks tasks/with-goals :strict)))
       ;; list pf bags. each bag contains tasks of the same structure
       (let ((tasks/plan
              (reduce #'append tasks/same-goal-inits-attr
@@ -26,7 +35,8 @@
         (mapcar (lambda (task-bucket)
                   ;; assume the cached value of plan-task
                   (vector task-bucket
-                          (first (plan-task (first task-bucket)))))
+                          ;; TODO: what if the component-plan does not exists?
+                          (first (some #'plan-task task-bucket))))
                 tasks/plan)))))
 
 (defun component-macro (problem seed &aux (domain (domain problem)))
@@ -35,7 +45,7 @@
             (component-plans problem seed))))
 
 (defun component-macro/bucket (v)
-  (match v
+  (ematch v
     ((vector _ (pddl-plan actions))
      (macro-action actions))))
 
@@ -44,7 +54,8 @@
     (format t "~&Enhancing domain ~a" domain)
     (ematch domain
       ((pddl-domain name actions)
-       (let* ((macros (component-macro problem seed))
+       (let* ((macros (iter (for seed in (types-in-goal problem))
+                            (appending (component-macro problem seed))))
               (*domain*
                (shallow-copy
                 domain
@@ -56,6 +67,13 @@
                                :domain *domain*)
                  *domain*
                  macros))))))
+
+(defun types-in-goal (problem)
+  (ematch problem
+    ((pddl-problem positive-goals)
+     (let (types)
+       (dolist (type (mapcar #'type (mappend #'parameters positive-goals)) types)
+         (pushnew type types))))))
   
 (defun solve-problem-enhancing (problem seed &rest test-problem-args)
   (multiple-value-bind (eproblem edomain macros) (enhance-problem problem seed)
