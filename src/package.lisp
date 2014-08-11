@@ -16,5 +16,8 @@
            :component-plans
            :component-macro
            :enhance-problem
-           :solve-problem-enhancing)
+           :solve-problem-enhancing
+           :clear-plan-task-cache
+           :plan-task
+           :types-in-goal)
   (:shadowing-import-from :pddl :minimize :maximize))

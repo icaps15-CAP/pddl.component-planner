@@ -6,12 +6,10 @@
 
 ;;;; basic plan-task functionality
 
-@export
 (defun clear-plan-task-cache ()
   "Clear the cache for plan-task."
   (clear-cache *PLAN-TASK-CACHE*))
 
-@export
 (defcached plan-task (task)
   "Calls build-component-problem, make a plan with FD, then parse the results.
 returns a PDDL-PLAN. The call to this function is cached and memoized, so be
@@ -63,7 +61,6 @@ component-plan. "
 
 ;;;; build-component-problem
 
-@export
 (defun build-component-problem
     (abstract-task
      &optional
