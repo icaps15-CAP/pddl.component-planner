@@ -19,37 +19,46 @@
            ;; remove tasks of the trivial component = components of single object
            (tasks/non-trivial (remove-if #'trivial-component-p tasks :key #'abstract-component-task-ac))
            ;; remove tasks without goals
-           (tasks/with-goals (remove-if #'abstract-component-task-goal tasks/non-trivial))
+           (tasks/with-goals (remove-if-not #'abstract-component-task-goal tasks/non-trivial))
            ;; categorize tasks into buckets, based on init/goal/attribute.
            (tasks/same-goal-inits-attr (categorize-tasks tasks/with-goals :strict)))
       ;; list pf bags. each bag contains tasks of the same structure
+      (let ((*print-length* 4))
+        (print :tasks/same-goal-inits-attr)
+        (print tasks/same-goal-inits-attr))
       (let ((tasks/plan
              (reduce #'append tasks/same-goal-inits-attr
                      :key (lambda (bucket)
-                            (coerce (categorize-by-equality
-                                     bucket #'task-plan-equal
-                                     :transitive t)
-                                    'list))
+                            (in-reply-to ((verbosity t)
+                                          (time-limit 100)
+                                          (hard-time-limit 200))
+                              (coerce (categorize-by-equality
+                                       bucket #'task-plan-equal
+                                       :transitive t)
+                                      'list)))
                      :initial-value nil)))
         ;; list of bags. each bag contains tasks whose plans are interchangeable
-        (mapcar (lambda (task-bucket)
-                  ;; assume the cached value of plan-task
-                  (vector task-bucket
-                          ;; TODO: what if the component-plan does not exists?
-                          (first (some #'plan-task task-bucket))))
-                tasks/plan)))))
+        (iter (for task-bucket in tasks/plan)
+              ;; assume the cached value of plan-task
+              (when-let ((plans-for-a-task (some #'plan-task task-bucket)))
+                (collect
+                    (vector task-bucket
+                            ;; TODO: what if the component-plan does not exists?
+                            (first plans-for-a-task)))))))))
 
 (defun component-macro (problem seed &aux (domain (domain problem)))
   (multiple-value-bind (problem *domain*) (binarize problem domain)
-    (mapcar #'component-macro/bucket
-            (component-plans problem seed))))
+    (remove nil
+            (mapcar #'component-macro/bucket
+                    (component-plans problem seed)))))
 
 (defun component-macro/bucket (v)
   (ematch v
     ((vector _ (pddl-plan actions))
-     (macro-action actions))))
+     (macro-action actions)))) ; might return nil
 
 (defun enhance-problem (problem seed &aux (domain (domain problem)))
+  (declare (ignore seed))
   (multiple-value-bind (problem domain) (binarize problem domain)
     (format t "~&Enhancing domain ~a" domain)
     (ematch domain
@@ -61,6 +70,8 @@
                 domain
                 :name (symbolicate name '-enhanced)
                 :actions (append actions macros))))
+         (unless macros
+           (warn "No component macros are found!"))
          (values (shallow-copy problem
                                :name (symbolicate (name problem)
                                                   '-enhanced)
