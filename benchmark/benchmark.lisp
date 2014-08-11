@@ -39,15 +39,29 @@
               (load-and-collect-problems
                '(:pddl.instances.cell-assembly-eachparts)
                '(:base)
-               "CELL-ASSEMBLY-MODEL2A-.*"))
+               "CELL-ASSEMBLY-MODEL2A-EACH-.$"))
+
 
 (defun run ()
   (mapcar (lambda (list)
             (destructuring-bind (problem seed) list
-              (solve-problem-enhancing problem seed :verbose t)))
+              (let* ((plan (time (solve-problem-enhancing problem seed)))
+                     (*domain* (domain problem))
+                     (*problem* problem)
+                     (dir (mktemp "validate" t))
+                     (dp (write-pddl *domain* "domain.pddl" dir t))
+                     (pp (write-pddl *problem* "problem.pddl" dir t))
+                     (plp (write-plan plan "decoded.plan" dir t)))
+                (validate-plan dp pp plp :verbose t)
+                (pddl-plan :path plp))))
           *delayed-problems*))
 
 #+nil
 (progn
   (ql:quickload :pddl.component-planner.benchmark)
   (in-package :PDDL.COMPONENT-PLANNER.BENCHMARK))
+
+#+nil
+(progn
+  (ql:quickload :pddl.instances.woodworking))
+
