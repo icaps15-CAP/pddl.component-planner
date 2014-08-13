@@ -13,7 +13,7 @@
   ;; -> (list (vector (list task) plan))
   (multiple-value-bind (problem domain) (binarize problem domain)
     @ignorable domain
-    (format t "~&Categorizing problem ~a with seed ~a" (name problem) seed)
+    (format t "~2&Categorizing PROBLEM ~a with seed ~a" (name problem) seed)
     (let* (;; tasks of the same component but the different init/goals
            (tasks (abstract-tasks problem seed))
            ;; remove tasks of the trivial component = components of single object
@@ -23,9 +23,9 @@
            ;; categorize tasks into buckets, based on init/goal/attribute.
            (tasks/same-goal-inits-attr (categorize-tasks tasks/with-goals :strict)))
       ;; list pf bags. each bag contains tasks of the same structure
-      (let ((*print-length* 4))
-        (print :tasks/same-goal-inits-attr)
-        (print tasks/same-goal-inits-attr))
+      (format t "~&GROUPS OF TASKS with same goals/init/attributes : ~a"
+              (mapcar #'length tasks/same-goal-inits-attr))
+      (format t "~&Categorizing TASKS by equality -- calling FD")
       (let ((tasks/plan
              (reduce #'append tasks/same-goal-inits-attr
                      :key (lambda (bucket)
@@ -37,6 +37,8 @@
                                        :transitive t)
                                       'list)))
                      :initial-value nil)))
+        (format t " ... finished.")
+        (format t "~&Clustered into ~a groups." (length tasks/plan))
         ;; list of bags. each bag contains tasks whose plans are interchangeable
         (iter (for task-bucket in tasks/plan)
               ;; assume the cached value of plan-task
@@ -71,8 +73,9 @@
                 domain
                 :name (symbolicate name '-enhanced)
                 :actions (append actions macros))))
-         (unless macros
-           (warn "No component macros are found!"))
+         (if macros
+             (format t "~&~a macros found." (length macros))
+             (warn "No component macros are found!"))
          (values (shallow-copy problem
                                :name (symbolicate (name problem)
                                                   '-enhanced)
@@ -93,23 +96,23 @@
   (multiple-value-bind (eproblem edomain macros) (enhance-problem problem)
     (format t "~&Enhancement finished.~&Solving the enhanced problem with FD.")
     (let* ((dir (mktemp "enhanced")))
-      (let ((plan (debinarize-plan
-                   (domain problem)
-                   problem
-                   edomain
-                   eproblem
-                   (let ((*domain* edomain) (*problem* eproblem))
-                     (reduce #'decode-plan
-                             macros
-                             :from-end t
-                             :initial-value
-                             (pddl-plan :path
-                                        (first (apply #'test-problem
-                                                      (write-pddl *problem* "eproblem.pddl" dir)
-                                                      (write-pddl *domain* "edomain.pddl" dir)
-                                                      test-problem-args))))))))
-        (write-plan plan "final-result.plan" dir t)
-        plan))))
+      (debinarize-plan
+       (domain problem)
+       problem
+       edomain
+       eproblem
+       (let ((*domain* edomain) (*problem* eproblem))
+         (reduce #'decode-plan
+                 macros
+                 :from-end t
+                 :initial-value
+                 (pddl-plan :path
+                            (first
+                             (prog1 (apply #'test-problem
+                                           (write-pddl *problem* "eproblem.pddl" dir)
+                                           (write-pddl *domain* "edomain.pddl" dir)
+                                           test-problem-args)
+                               (format t "~&Decoding the result plan."))))))))))
 
 (define-local-function debinarize-action (ga)
   (let ((a (find ga (actions bdomain) :test #'eqname)))
