@@ -21,7 +21,7 @@ mapped from t1 to t2 is a valid plan of t2."
            (map-component-plan plan1 (mapping-between-tasks t1 t2))
            (prog1 (format nil "mapped.plan.~a" i) (incf i))
            dir
-           t))))
+           (ask-for verbose t)))))
      (plan-task-with-retry t1))))
 
 

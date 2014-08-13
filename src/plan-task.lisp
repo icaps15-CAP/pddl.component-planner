@@ -10,6 +10,7 @@
   "Clear the cache for plan-task."
   (clear-cache *PLAN-TASK-CACHE*))
 
+
 (defcached plan-task (task)
   "Calls build-component-problem, make a plan with FD, then parse the results.
 returns a PDDL-PLAN. The call to this function is cached and memoized, so be
@@ -29,9 +30,9 @@ careful if you measure the elapsed time. When you measure the time, run
                    (write-pddl *problem* "problem.pddl" dir)
                    (write-pddl *domain* "domain.pddl" dir)
                    :time-limit (ask-for time-limit 100)
-                   :hard-time-limit (ask-for hard-time-limit (* 60 5))
-                   :memory (ask-for memory (floor (/ (sb-ext:dynamic-space-size) 1000)))
-                   :verbose (ask-for verbosity nil)
+                   :hard-time-limit (ask-for hard-time-limit 200)
+                   :memory (ask-for memory 500000)
+                   :verbose (ask-for verbosity t)
                    ;; 15GB * 0.8 = 120
                    ;; :options "--search astar(lmcut())"
                    )

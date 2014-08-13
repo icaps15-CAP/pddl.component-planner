@@ -29,7 +29,7 @@
       (let ((tasks/plan
              (reduce #'append tasks/same-goal-inits-attr
                      :key (lambda (bucket)
-                            (in-reply-to ((verbosity t)
+                            (in-reply-to ((verbose nil)
                                           (time-limit 100)
                                           (hard-time-limit 200))
                               (coerce (categorize-by-equality
