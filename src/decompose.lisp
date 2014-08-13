@@ -57,8 +57,9 @@
     ((vector _ (pddl-plan actions))
      (macro-action actions)))) ; might return nil
 
-(defun enhance-problem (problem seed &aux (domain (domain problem)))
+(defun enhance-problem (problem &optional seed &aux (domain (domain problem)))
   (declare (ignore seed))
+  (format t "~&Binarizing domain ~a" domain)
   (multiple-value-bind (problem domain) (binarize problem domain)
     (format t "~&Enhancing domain ~a" domain)
     (ematch domain
@@ -86,9 +87,11 @@
        (dolist (type (mapcar #'type (mappend #'parameters positive-goals)) types)
          (pushnew type types))))))
   
-(defun solve-problem-enhancing (problem seed &rest test-problem-args)
+(defun solve-problem-enhancing (problem &rest test-problem-args)
   (clear-plan-task-cache)
-  (multiple-value-bind (eproblem edomain macros) (enhance-problem problem seed)
+  (format t "~&Enhancing the problem with macros.")
+  (multiple-value-bind (eproblem edomain macros) (enhance-problem problem)
+    (format t "~&Enhancement finished.~&Solving the enhanced problem with FD.")
     (let* ((dir (mktemp "enhanced")))
       (let ((plan (debinarize-plan
                    (domain problem)

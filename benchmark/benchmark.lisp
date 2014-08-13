@@ -45,7 +45,7 @@
 (defun run ()
   (mapcar (lambda (list)
             (destructuring-bind (problem seed) list
-              (let* ((plan (time (solve-problem-enhancing problem seed)))
+              (let* ((plan (time (solve-problem-enhancing problem)))
                      (*domain* (domain problem))
                      (*problem* problem)
                      (dir (mktemp "validate" t))
