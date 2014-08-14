@@ -35,7 +35,7 @@
 (test enhance-domain
   (finishes
     (multiple-value-bind (problem domain)
-        (enhance-problem assemblep :product)
+        (enhance-problem assemblep)
       (print-pddl-object problem *standard-output*)
       (terpri *standard-output*)
       (print-pddl-object domain *standard-output*)
@@ -47,7 +47,7 @@
                                 :verbose t))))))
 
 (test solve-problem-enhancing
-  (let* ((plan (solve-problem-enhancing assemblep :product :verbose t))
+  (let* ((plan (solve-problem-enhancing assemblep :verbose t))
          (dir (mktemp "validate" t))
          (dp (write-pddl assemble "domain.pddl" dir t))
          (pp (write-pddl assemblep "problem.pddl" dir t))
