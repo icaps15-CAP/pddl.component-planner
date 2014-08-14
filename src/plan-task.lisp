@@ -29,11 +29,10 @@ careful if you measure the elapsed time. When you measure the time, run
                   (test-problem
                    (write-pddl *problem* "problem.pddl" dir)
                    (write-pddl *domain* "domain.pddl" dir)
-                   :time-limit (ask-for time-limit 100)
-                   :hard-time-limit (ask-for hard-time-limit 200)
-                   :memory (ask-for memory 500000)
-                   :verbose (ask-for verbosity t)
-                   ;; 15GB * 0.8 = 120
+                   :time-limit 5
+                   :hard-time-limit 40
+                   :memory 500000
+                   :verbose nil
                    ;; :options "--search astar(lmcut())"
                    )
                 ((plans t-time p-time s-time
