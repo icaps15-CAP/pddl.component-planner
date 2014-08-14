@@ -28,18 +28,17 @@
 
 (defvar *verbose* nil)
 
-(defun solve (ppath dpath)
+(defun solve (ppath dpath plp)
   (multiple-value-bind (dname domain) (suppress (parse-file dpath nil t))
     (multiple-value-bind (pname problem) (suppress (parse-file ppath nil t))
       (print dname)
       (print domain)
       (print pname)
       (print problem)
-      (let ((plp (make-pathname :defaults ppath :type "plan")))
-        (let ((plan (solve-problem-enhancing problem
-                                             :time-limit 1 ; satisficing
-                                             :verbose *verbose*)))
-          (write-plan plan plp *default-pathname-defaults* t))))))
+      (let ((plan (solve-problem-enhancing problem
+                                           :time-limit 1 ; satisficing
+                                           :verbose *verbose*)))
+        (write-plan plan plp *default-pathname-defaults* t)))))
 
 (defun main (&optional (argv (cdr (print sb-ext:*posix-argv*))))
   (let ((*package* (find-package :pddl.component-planner.experiment)))
@@ -55,9 +54,17 @@
         (main rest))
        ((list ppath)
         (let ((ppath (merge-pathnames ppath)))
-          (solve ppath (make-pathname :defaults ppath :name "domain"))))
+          (main (list ppath (make-pathname :defaults ppath
+                                           :name "domain")))))
        ((list ppath dpath)
-        (solve (pathname ppath) (pathname dpath))))))
+        (let ((ppath (merge-pathnames ppath))
+              (dpath (merge-pathnames dpath)))
+          (let ((plp (make-pathname :defaults ppath :type "plan")))
+            (when (probe-file plp)
+              (delete-file plp))
+            (solve ppath dpath plp)))))))
+
+
 
 (defun save (name)
   (sb-ext:gc :full t)
