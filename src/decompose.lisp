@@ -9,44 +9,41 @@
     ((abstract-component components)
      (= 1 (length components)))))
 
+(defun categorize-bag (bag)
+  (coerce (categorize-by-equality bag #'maybe-task-plan-equal :transitive t)
+          'list))
+
+(defun maybe-task-plan-equal (x y)
+  (multiple-value-bind (result plans) (task-plan-equal x y)
+    (if plans
+        (progn (format t "~&Compatibility~@[ not~] proven" result) result)
+        (progn (format t "~&Compatibility not proven, assuming true") t))))
+
+
 (defun component-plans (problem seed &aux (domain (domain problem)))
   ;; -> (list (vector (list task) plan))
   (multiple-value-bind (problem domain) (binarize problem domain)
     @ignorable domain
-    (format t "~2&Categorizing PROBLEM ~a with seed ~a" (name problem) seed)
-    (let* (;; tasks of the same component but the different init/goals
-           (tasks (abstract-tasks problem seed))
-           ;; remove tasks of the trivial component = components of single object
-           (tasks/non-trivial (remove-if #'trivial-component-p tasks :key #'abstract-component-task-ac))
-           ;; remove tasks without goals
-           (tasks/with-goals (remove-if-not #'abstract-component-task-goal tasks/non-trivial))
-           ;; categorize tasks into buckets, based on init/goal/attribute.
-           (tasks/same-goal-inits-attr (categorize-tasks tasks/with-goals :strict)))
+    (let (tasks tasks-bag)
+      (format t "~2&Categorizing PROBLEM ~a with seed ~a" (name problem) seed)
+      (setf tasks (abstract-tasks problem seed))
+      ;; remove tasks of the trivial component = components of single object
+      ;; (setf tasks (remove-if #'trivial-component-p tasks :key #'abstract-component-task-ac))
+      ;; remove tasks without goals
+      (setf tasks (remove-if-not #'abstract-component-task-goal tasks))
+      ;; categorize tasks into buckets, based on init/goal/attribute.
+      (setf tasks-bag (categorize-tasks tasks :strict))
       ;; list pf bags. each bag contains tasks of the same structure
-      (format t "~&GROUPS OF TASKS with same goals/init/attributes : ~a"
-              (mapcar #'length tasks/same-goal-inits-attr))
+      (format t "~&TASKS/g/i/attr : ~a" (mapcar #'length tasks-bag))
       (format t "~&Categorizing TASKS by equality -- calling FD")
-      (let ((tasks/plan
-             (reduce #'append tasks/same-goal-inits-attr
-                     :key (lambda (bucket)
-                            (in-reply-to ((verbose nil)
-                                          (time-limit 100)
-                                          (hard-time-limit 200))
-                              (coerce (categorize-by-equality
-                                       bucket #'task-plan-equal
-                                       :transitive t)
-                                      'list)))
-                     :initial-value nil)))
-        (format t " ... finished.")
-        (format t "~&Clustered into ~a groups." (length tasks/plan))
-        ;; list of bags. each bag contains tasks whose plans are interchangeable
-        (iter (for task-bucket in tasks/plan)
-              ;; assume the cached value of plan-task
-              (when-let ((plans-for-a-task (some #'plan-task task-bucket)))
-                (collect
-                    (vector task-bucket
-                            ;; TODO: what if the component-plan does not exists?
-                            (first plans-for-a-task)))))))))
+      (setf tasks-bag (mappend #'categorize-bag tasks-bag))
+      (format t "~&TASKS/plan : ~a" (mapcar #'length tasks-bag))
+      ;; list of bags. each bag contains tasks whose plans are interchangeable
+      (iter (for bag in tasks-bag)
+            ;; assume the cached value of plan-task
+            (when-let ((plans-for-a-task (some #'plan-task bag)))
+              (collect ; TODO: what if the component-plan does not exists?
+                  (vector bag (first plans-for-a-task))))))))
 
 (defun component-macro (problem seed &aux (domain (domain problem)))
   (multiple-value-bind (problem *domain*) (binarize problem domain)
