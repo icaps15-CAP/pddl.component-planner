@@ -47,14 +47,18 @@
 
 (defun component-macro (problem seed &aux (domain (domain problem)))
   (multiple-value-bind (problem *domain*) (binarize problem domain)
-    (remove nil
-            (mapcar #'component-macro/bucket
-                    (component-plans problem seed)))))
+    (mapcar #'component-macro/bucket
+            (component-plans problem seed))))
 
 (defun component-macro/bucket (v)
   (ematch v
-    ((vector _ (pddl-plan actions))
-     (macro-action actions)))) ; might return nil
+    ((vector bag (pddl-plan actions))
+     (vector bag (macro-action actions))))) ; macro-action might return nil
+
+(defun filter-macros (macros)
+  (mapcar (lambda-match ((vector _ m) m))
+          (subseq (sort macros #'< :key (lambda-match ((vector bag _) (length bag))))
+                  0 (min 2 (length macros)))))
 
 (defun enhance-problem (problem &optional seed &aux (domain (domain problem)))
   (declare (ignore seed))
@@ -63,29 +67,27 @@
     (format t "~&Enhancing domain ~a" domain)
     (ematch domain
       ((pddl-domain name actions)
-       (let* ((macros (iter (for seed in (types-in-goal problem))
-                            (appending (component-macro problem seed))))
-              (*domain*
-               (shallow-copy
-                domain
-                :name (symbolicate name '-enhanced)
-                :actions (append actions macros))))
+       (let ((macros (iter (for seed in (types-in-goal problem))
+                           (appending (component-macro problem seed)))))
+         (setf macros (remove-if (lambda-match ((vector _ nil) t)) macros))
          (if macros
-             (format t "~&~a macros found." (length macros))
+             (format t "~&~a macros found~@[, filtered down to 2~]."
+                     (length macros) (< 2 (length macros)))
              (warn "No component macros are found!"))
-         (values (shallow-copy problem
-                               :name (symbolicate (name problem)
-                                                  '-enhanced)
-                               :domain *domain*)
-                 *domain*
-                 macros))))))
+         (let* ((macros/filtered (filter-macros macros))
+                (*domain*
+                 (shallow-copy domain
+                               :name (symbolicate name '-enhanced)
+                               :actions (append actions macros/filtered))))
+           (values (shallow-copy problem
+                                 :name (symbolicate (name problem) '-enhanced)
+                                 :domain *domain*)
+                   *domain* macros)))))))
 
 (defun types-in-goal (problem)
   (ematch problem
     ((pddl-problem positive-goals)
-     (let (types)
-       (dolist (type (mapcar #'type (mappend #'parameters positive-goals)) types)
-         (pushnew type types))))))
+     (remove-duplicates (mapcar #'type (mappend #'parameters positive-goals))))))
   
 (defun solve-problem-enhancing (problem &rest test-problem-args)
   (clear-plan-task-cache)
