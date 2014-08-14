@@ -1,4 +1,3 @@
-#! /usr/local/bin/sbcl --script
 
 #-quicklisp
 (let ((quicklisp-init (merge-pathnames "quicklisp/setup.lisp"
@@ -37,27 +36,28 @@
       (print pname)
       (print problem)
       (let ((plp (make-pathname :defaults ppath :type "plan")))
-        (let ((plan (solve-problem-enhancing problem :verbose *verbose*)))
+        (let ((plan (solve-problem-enhancing problem
+                                             :time-limit 1 ; satisficing
+                                             :verbose *verbose*)))
           (write-plan plan plp *default-pathname-defaults* t))))))
 
-(defun main (&optional (argv (cdr sb-ext:*posix-argv*)))
+(defun main (&optional (argv (cdr (print sb-ext:*posix-argv*))))
   (let ((*package* (find-package :pddl.component-planner.experiment)))
-    (ematch argv
-      ((list* "-v" rest)
-       (setf *verbose* t)
-       (main rest))
-      ((list* "-t" time rest)
-       (let ((parsed (parse-integer time)))
-         (setf (rlimit +rlimit-cpu-time+) parsed))
-       (main rest))
-      ((list* "-m" memory rest)
-       (let ((parsed (parse-integer memory)))
-         (setf (rlimit +rlimit-address-space+) parsed))
-       (main rest))
-      ((list ppath)
-       (solve ppath (make-pathname :defaults ppath :name "domain")))
-      ((list ppath dpath)
-       (solve ppath dpath)))))
+     (ematch argv
+       ((list* "-v" rest)
+        (setf *verbose* t)
+        (main rest))
+       ((list* "-t" time rest)
+        (setf *hard-time-limit* (parse-integer time))
+        (main rest))
+       ((list* "-m" memory rest)
+        (setf *memory-limit* (parse-integer memory))
+        (main rest))
+       ((list ppath)
+        (let ((ppath (merge-pathnames ppath)))
+          (solve ppath (make-pathname :defaults ppath :name "domain"))))
+       ((list ppath dpath)
+        (solve (pathname ppath) (pathname dpath))))))
 
 (defun save (name)
   (sb-ext:gc :full t)
@@ -65,6 +65,7 @@
    name
    :toplevel #'main
    :executable t
-   :purify t))
+   :purify t
+   :save-runtime-options t))
 
 (save "component-planner")
