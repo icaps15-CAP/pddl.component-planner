@@ -74,6 +74,6 @@
    :save-runtime-options t))
 
 (defun test ()
-  (main (list "-m" "2000000" "elevators-sat11/p01.pddl")))
+  (main (list "-v" "-m" "2000000" "elevators-sat11/p01.pddl")))
 
 (save "component-planner")
