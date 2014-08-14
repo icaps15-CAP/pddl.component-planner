@@ -19,5 +19,7 @@
            :solve-problem-enhancing
            :clear-plan-task-cache
            :plan-task
-           :types-in-goal)
+           :types-in-goal
+           :add-cost-domain
+           :add-cost-problem)
   (:shadowing-import-from :pddl :minimize :maximize))

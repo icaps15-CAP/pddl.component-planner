@@ -2,46 +2,82 @@
 (in-package :pddl.component-planner)
 (cl-syntax:use-syntax :annot)
 
-(defun enhance-with-cost (problem &optional seed &aux (domain (domain problem)))
-  (declare (ignore seed))
-  (format t "~&Binarizing domain ~a" domain)
-  (multiple-value-bind (problem domain) (binarize problem domain)
-    (format t "~&Enhancing domain ~a" domain)
-    (ematch domain
-      ((pddl-domain requirements name actions)
-       (let ((macros (iter (for seed in (types-in-goal problem))
-                           (appending (component-macro problem seed)))))
-         (setf macros (remove-if (lambda-match ((vector _ nil) t)) macros))
-         (if macros
-             (format t "~&~a macros found~@[, filtered down to 2~]."
-                     (length macros) (< 2 (length macros)))
-             (warn "No component macros are found!"))
-         (let* ((macros/filtered (filter-macros macros))
-                (*domain*
-                 (shallow-copy domain
-                               :requirements (union '(:action-cost) requirements)
-                               :name (symbolicate name '-enhanced)
-                               :actions (append actions macros/filtered))))
-           (values (shallow-copy problem
-                                 :name (symbolicate (name problem) '-enhanced)
-                                 :domain *domain*)
-                   *domain* macros)))))))
+;; (union '(:action-cost) requirements)
 
-(defun add-costs (macros)
-  (iter (for m in macros)
-        (match m
-          ((macro-action (domain (pddl-domain
-                                  :requirements
-                                  (guard req (member :action-costs req)))))
-           m)
-          ((macro-action precondition add-list delete-list actions)
-           (make-instance 'macro-action 
-                          :actions actions
-                          :precondition precondition
-                          :effect `(and ,@add-list
-                                        ,@(mapcar (lambda (x) `(not ,x)) delete-list)
-                                        ,(parse-numeric-effect
-                                          `(increase (total-cost) ,(length actions)))))))))
+;; (defun add-numeric-effect/pair (pairs)
+;;   (mapcar (lambda (pair)
+;;             (ematch pair
+;;               ((vector bag m)
+;;                (vector
+;;                 bag (%add-numeric-effect/macro m)))))
+;;           pairs))
 
-           
-           
+(defun add-numeric-effect (a)
+  (ematch a
+    ((macro-action add-list delete-list actions)
+     (shallow-copy a
+                   :domain *domain*
+                   'add-list +unbound+
+                   'delete-list +unbound+
+                   'assign-ops +unbound+
+                   :effect `(and ,@add-list
+                                 ,@(mapcar (lambda (x) `(not ,x)) delete-list)
+                                 ,(parse-numeric-effect
+                                   `(increase (total-cost) ,(length actions))))))
+    ((pddl-action add-list delete-list)
+     (shallow-copy a  ; it might be a binarized-action, so it should be a
+                      ; shallow copy
+                   :domain *domain*
+                   'add-list +unbound+
+                   'delete-list +unbound+
+                   'assign-ops +unbound+
+                   :effect `(and ,@add-list
+                                 ,@(mapcar (lambda (x) `(not ,x)) delete-list)
+                                 ,(parse-numeric-effect
+                                   `(increase (total-cost) 1)))))))
+
+(defun add-cost-domain (*domain*)
+  (unless (member :action-costs (requirements *domain*))
+    (push :action-costs (requirements *domain*))
+    (push (pddl-function :name 'total-cost
+                         :parameters nil)
+          (functions *domain*))
+    (setf (actions *domain*)
+          (mapcar #'add-numeric-effect (actions *domain*)))
+    ;(break+ (mapcar #'assign-ops (actions *domain*)))
+    )
+  *domain*)
+
+(defun add-cost-problem (*problem*)
+  (unless (member :action-costs (requirements *domain*))
+    (push (ground-function (query-function *domain* 'total-cost)
+                           nil 0 *problem*)
+          (init *problem*)))
+  *problem*)
+
+(defun solve-problem-enhancing (problem &rest test-problem-args)
+  (clear-plan-task-cache)
+  (format t "~&Enhancing the problem with macros.")
+  (multiple-value-bind (eproblem edomain macros)
+      (enhance-problem problem
+                       :modify-domain #'add-cost-domain
+                       :modify-problem #'add-cost-problem)
+    (format t "~&Enhancement finished.~&Solving the enhanced problem with FD.")
+    (let* ((dir (mktemp "enhanced")))
+      (debinarize-plan
+       (domain problem)
+       problem
+       edomain
+       eproblem
+       (let ((*domain* edomain) (*problem* eproblem))
+         (reduce #'decode-plan
+                 macros
+                 :from-end t
+                 :initial-value
+                 (pddl-plan :path
+                            (first
+                             (prog1 (apply #'test-problem
+                                           (write-pddl *problem* "eproblem.pddl" dir)
+                                           (write-pddl *domain* "edomain.pddl" dir)
+                                           test-problem-args)
+                               (format t "~&Decoding the result plan."))))))))))

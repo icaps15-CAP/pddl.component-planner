@@ -73,34 +73,33 @@
                         &key
                           (filters (list #'remove-null-macro
                                          #'sort-and-filter-macros))
-                          modifiers
+                          (modify-domain #'identity)
+                          (modify-problem #'identity)
                         &aux (domain (domain problem)))
   (format t "~&Binarizing domain ~a" domain)
   (multiple-value-bind (problem domain) (binarize problem domain)
     (format t "~&Enhancing domain ~a" domain)
     (ematch domain
       ((pddl-domain name actions)
-       (let* ((macro-pairs (iter (for seed in (types-in-goal problem))
+       (let* ((*domain* (shallow-copy domain :name (symbolicate name '-enhanced)))
+              (macro-pairs (iter (for seed in (types-in-goal problem))
                            (appending (component-macro problem seed))))
               (macro-pairs (funcall (apply #'compose (reverse filters)) macro-pairs))
-              (macro-pairs (funcall (apply #'compose (reverse modifiers)) macro-pairs))
               (macros (mapcar #'get-action macro-pairs)))
          (unless macros (warn "No component macros are found!"))
-         (let ((*domain*
-                (shallow-copy
-                 domain
-                 :name (symbolicate name '-enhanced)
-                 :actions (append actions macros))))
-           (values (shallow-copy problem
-                                 :name (symbolicate (name problem) '-enhanced)
-                                 :domain *domain*)
-                   *domain* macros)))))))
+         (setf (actions *domain*) (append actions macros))
+         (let* ((*problem* (shallow-copy problem
+                                         :name (symbolicate (name problem) '-enhanced)
+                                         :domain *domain*))
+                (*domain* (funcall modify-domain *domain*))
+                (*problem* (funcall modify-problem *problem*)))
+         (values *problem* *domain* macros)))))))
 
 (defun types-in-goal (problem)
   (ematch problem
     ((pddl-problem positive-goals)
      (remove-duplicates (mapcar #'type (mappend #'parameters positive-goals))))))
-  
+
 (defun solve-problem-enhancing (problem &rest test-problem-args)
   (clear-plan-task-cache)
   (format t "~&Enhancing the problem with macros.")
