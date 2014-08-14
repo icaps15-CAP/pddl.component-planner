@@ -64,8 +64,6 @@
               (delete-file plp))
             (solve ppath dpath plp)))))))
 
-
-
 (defun save (name)
   (sb-ext:gc :full t)
   (sb-ext:save-lisp-and-die
@@ -74,5 +72,8 @@
    :executable t
    :purify t
    :save-runtime-options t))
+
+(defun test ()
+  (main (list "-m" "2000000" "elevators-sat11/p01.pddl")))
 
 (save "component-planner")
