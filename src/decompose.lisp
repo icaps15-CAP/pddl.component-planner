@@ -55,30 +55,42 @@
     ((vector bag (pddl-plan actions))
      (vector bag (macro-action actions))))) ; macro-action might return nil
 
-(defun filter-macros (macros)
-  (mapcar (lambda-match ((vector _ m) m))
-          (subseq (sort macros #'< :key (lambda-match ((vector bag _) (length bag))))
-                  0 (min 2 (length macros)))))
+(defun get-action (x)
+  (match x ((vector _ m) m)))
 
-(defun enhance-problem (problem &optional seed &aux (domain (domain problem)))
-  (declare (ignore seed))
+
+
+(defun remove-null-macro (pairs)
+  (remove-if (lambda-match ((vector _ nil) t)) pairs))
+
+(defun sort-and-filter-macro (pairs)
+  (format t "~&~a macros found~@[, filtered down to 2~]."
+          (length pairs) (< 2 (length pairs)))
+  (subseq (sort pairs #'< :key (lambda-match ((vector bag _) (length bag))))
+          0 (min 2 (length pairs))))
+
+(defun enhance-problem (problem
+                        &key
+                          (filters (list #'remove-null-macro
+                                         #'sort-and-filter-macros))
+                          modifiers
+                        &aux (domain (domain problem)))
   (format t "~&Binarizing domain ~a" domain)
   (multiple-value-bind (problem domain) (binarize problem domain)
     (format t "~&Enhancing domain ~a" domain)
     (ematch domain
       ((pddl-domain name actions)
-       (let ((macros (iter (for seed in (types-in-goal problem))
-                           (appending (component-macro problem seed)))))
-         (setf macros (remove-if (lambda-match ((vector _ nil) t)) macros))
-         (if macros
-             (format t "~&~a macros found~@[, filtered down to 2~]."
-                     (length macros) (< 2 (length macros)))
-             (warn "No component macros are found!"))
-         (let* ((macros/filtered (filter-macros macros))
-                (*domain*
-                 (shallow-copy domain
-                               :name (symbolicate name '-enhanced)
-                               :actions (append actions macros/filtered))))
+       (let* ((macro-pairs (iter (for seed in (types-in-goal problem))
+                           (appending (component-macro problem seed))))
+              (macro-pairs (funcall (apply #'compose (reverse filters)) macro-pairs))
+              (macro-pairs (funcall (apply #'compose (reverse modifiers)) macro-pairs))
+              (macros (mapcar #'get-action macro-pairs)))
+         (unless macros (warn "No component macros are found!"))
+         (let ((*domain*
+                (shallow-copy
+                 domain
+                 :name (symbolicate name '-enhanced)
+                 :actions (append actions macros))))
            (values (shallow-copy problem
                                  :name (symbolicate (name problem) '-enhanced)
                                  :domain *domain*)
@@ -116,7 +128,7 @@
 (define-local-function debinarize-action (ga)
   (let ((a (find ga (actions bdomain) :test #'eqname)))
     (ematch a
-      ((macro-action binarization-origin)
+      ((binarized-action binarization-origin)
        (ematch binarization-origin
          ((pddl-action name)
           (shallow-copy ga
