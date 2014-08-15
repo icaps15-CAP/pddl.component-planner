@@ -107,7 +107,8 @@ given strategy."
                 :domain *domain*
                 :name (apply #'concatenate-symbols
                              total-name (mapcar #'name components))
-                :objects active-objects
+                :objects (set-difference active-objects
+                                         (constants *domain*))
                 :init active-init
                 :goal (list* 'and task-goal)
                 :metric metric))))))))))
