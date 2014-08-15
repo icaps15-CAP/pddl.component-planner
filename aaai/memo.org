@@ -1,0 +1,15 @@
+
+following domains have no macros:
+
++ depot (no types)
++ logistics (no types)
++ pipesworld-no/tankage
++ zenotravel
+
+possible approaches:
+
++ ignore these domains on the paper
++ implement TIM
++ write a generator for the typed depot
++ add types to depot manually
+

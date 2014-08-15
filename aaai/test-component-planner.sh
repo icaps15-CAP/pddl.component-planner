@@ -16,15 +16,15 @@ run(){
     fi
 }
 
-# run elevators-sat11/p01.pddl
-run cell-assembly-noneg-nocost/p01.pddl
+# # run elevators-sat11/p01.pddl
+# run cell-assembly-noneg-nocost/p01.pddl
 
-# for problem in $(find -name "p01.pddl")
-# do
-#     run $problem
-# done
+for problem in $(find -name "p01.pddl")
+do
+    run $problem
+done
 
-# for problem in $(find -name "p04.pddl")
-# do
-#     run $problem
-# done
+for problem in $(find -name "p04.pddl")
+do
+    run $problem
+done
