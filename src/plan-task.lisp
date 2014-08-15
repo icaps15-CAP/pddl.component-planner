@@ -20,27 +20,29 @@ careful if you measure the elapsed time. When you measure the time, run
     (let* ((*problem* (build-component-problem task))
            (*domain* (domain *problem*))
            (dir (mktemp "plan-task" t)))
-      (mapcar (let ((i 0))
-                (curry #'pddl-plan
-                       :name (concatenate-symbols
-                              (name *problem*) 'plan (incf i))
-                       :path))
-              (multiple-value-match
-                  (test-problem
-                   (write-pddl *problem* "problem.pddl" dir)
-                   (write-pddl *domain* "domain.pddl" dir)
-                   :time-limit 5
-                   :hard-time-limit 40
-                   :memory 500000
-                   :verbose nil
-                   ;; :options "--search astar(lmcut())"
-                   )
-                ((plans t-time p-time s-time
-                        t-memory p-memory s-memory)
-                 (signal 'evaluation-signal
-                         :usage (list t-time p-time s-time
-                                      t-memory p-memory s-memory))
-                 plans))))))
+      (multiple-value-match
+          (test-problem
+           (write-pddl *problem* "problem.pddl" dir)
+           (write-pddl *domain* "domain.pddl" dir)
+           :time-limit 10
+           :hard-time-limit 40
+           :memory 500000
+           :verbose nil
+           ;; :options "--search astar(lmcut())"
+           )
+        ((plans t-time p-time s-time
+                t-memory p-memory s-memory complete)
+         (signal 'evaluation-signal
+                 :usage (list t-time p-time s-time
+                              t-memory p-memory s-memory))
+         (values
+          (mapcar (let ((i 0))
+                    (curry #'pddl-plan
+                           :name (concatenate-symbols
+                                  (name *problem*) 'plan (incf i))
+                           :path))
+                  plans)
+          complete))))))
 
 ;;;; retry wrapper for plan-task
 

@@ -23,21 +23,26 @@ function basically cannot negatively prove the compatibility.
   (let* ((dir (mktemp "task-equal" t))
          (problem2 (build-component-problem t2))
          (problem-path2 (write-pddl problem2 "mapped-problem.pddl" dir))
-         (domain-path (write-pddl (domain problem2) "domain.pddl" dir))
-         (plans (plan-task-with-retry t1)))
-    (values
-     (some
-      (let ((i 0))
-        (lambda (plan1)
-          (validate-plan
-           domain-path
-           problem-path2
-           (write-plan
-            (map-component-plan plan1 (mapping-between-tasks t1 t2))
-            (prog1 (format nil "mapped.plan.~a" i) (incf i))
-            dir
-            (ask-for verbose t)))))
-      plans)
-     plans)))
+         (domain-path (write-pddl (domain problem2) "domain.pddl" dir)))
+    (multiple-value-bind (plans complete) (plan-task-with-retry t1)
+      (cond
+        (plans
+         (values
+          (some
+           (let ((i 0))
+             (lambda (plan1)
+               (validate-plan
+                domain-path
+                problem-path2
+                (write-plan
+                 (map-component-plan plan1 (mapping-between-tasks t1 t2))
+                 (prog1 (format nil "mapped.plan.~a" i) (incf i))
+                 dir))))
+           plans)
+          :proven))
+        ((and (null plans) complete)
+         (values nil :proven))
+        ((and (null plans) (null complete))
+         (values nil nil))))))
 
 
