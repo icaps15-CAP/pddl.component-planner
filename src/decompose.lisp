@@ -69,11 +69,13 @@
   (subseq (sort pairs #'< :key (lambda-match ((vector bag _) (length bag))))
           0 (min 2 (length pairs))))
 
+(defun identity2 (x y) (values x y))
+
 (defun enhance-problem (problem
                         &key
                           (filters (list #'remove-null-macros
                                          #'sort-and-filter-macros))
-                          (modify-domain-problem #'identity)
+                          (modify-domain-problem #'identity2)
                         &aux (domain (domain problem)))
   (format t "~&Binarizing domain ~a" domain)
   (multiple-value-bind (problem domain) (binarize problem domain)
