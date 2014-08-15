@@ -30,7 +30,10 @@
       ;; remove tasks of the trivial component = components of single object
       ;; (setf tasks (remove-if #'trivial-component-p tasks :key #'abstract-component-task-ac))
       ;; remove tasks without goals
+      (format t "~&Tasks found : ~a" (length tasks))
+      (format t "~&Removing tasks w/o goals.")
       (setf tasks (remove-if-not #'abstract-component-task-goal tasks))
+      (format t "~&Tasks : ~a" (length tasks))
       ;; categorize tasks into buckets, based on init/goal/attribute.
       (setf tasks-bag (categorize-tasks tasks :strict))
       ;; list pf bags. each bag contains tasks of the same structure
@@ -58,9 +61,8 @@
 (defun get-action (x)
   (match x ((vector _ m) m)))
 
-
-
 (defun remove-null-macros (pairs)
+  (format t "~&Filtering null macros.")
   (remove-if (lambda-match ((vector _ nil) t)) pairs))
 
 (defun sort-and-filter-macros (pairs)
@@ -82,12 +84,17 @@
     (format t "~&Enhancing domain ~a" domain)
     (ematch domain
       ((pddl-domain name actions)
-       (let* ((*domain* (shallow-copy domain :name (symbolicate name '-enhanced)))
-              (macro-pairs (iter (for seed in (types-in-goal problem))
-                           (appending (component-macro problem seed))))
-              (macro-pairs (funcall (apply #'compose (reverse filters)) macro-pairs))
-              (macros (mapcar #'get-action macro-pairs)))
-         (unless macros (warn "No component macros are found!"))
+       (let* ((*domain*
+               (shallow-copy domain :name (symbolicate name '-enhanced)))
+              macro-pairs macros)
+         (setf macro-pairs
+               (iter (for seed in (types-in-goal problem))
+                     (appending (component-macro problem seed))))
+         (format t "~&~a macros found in total." (length macro-pairs))
+         (setf macro-pairs
+               (funcall (apply #'compose (reverse filters)) macro-pairs))
+         (format t "~&~a macros after filtering." (length macro-pairs))
+         (setf macros (mapcar #'get-action macro-pairs))
          (setf (actions *domain*) (append actions macros))
          (let* ((*problem* (shallow-copy problem
                                          :name (symbolicate (name problem) '-enhanced)
