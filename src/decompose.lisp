@@ -134,7 +134,9 @@
   (clear-plan-task-cache)
   (format t "~&Enhancing the problem with macros.")
   (multiple-value-bind (eproblem edomain macros) (enhance-problem problem)
-    (format t "~&Enhancement finished.~&Solving the enhanced problem with FD.")
+    (format t "~&Enhancement finished on:~%   ~a~%-> ~a"
+            (name problem) (name eproblem))
+    (format t "~&Solving the enhanced problem with FD.")
     (let* ((dir (mktemp "enhanced")))
       (debinarize-plan
        (domain problem)
