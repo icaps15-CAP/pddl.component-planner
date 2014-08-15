@@ -73,8 +73,7 @@
                         &key
                           (filters (list #'remove-null-macro
                                          #'sort-and-filter-macros))
-                          (modify-domain #'identity)
-                          (modify-problem #'identity)
+                          (modify-domain-problem #'identity)
                         &aux (domain (domain problem)))
   (format t "~&Binarizing domain ~a" domain)
   (multiple-value-bind (problem domain) (binarize problem domain)
@@ -90,10 +89,10 @@
          (setf (actions *domain*) (append actions macros))
          (let* ((*problem* (shallow-copy problem
                                          :name (symbolicate (name problem) '-enhanced)
-                                         :domain *domain*))
-                (*domain* (funcall modify-domain *domain*))
-                (*problem* (funcall modify-problem *problem*)))
-         (values *problem* *domain* macros)))))))
+                                         :domain *domain*)))
+           (multiple-value-bind (*domain* *problem*)
+               (funcall modify-domain-problem *domain* *problem*)
+             (values *problem* *domain* macros))))))))
 
 (defun types-in-goal (problem)
   (ematch problem

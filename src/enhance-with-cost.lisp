@@ -36,7 +36,7 @@
                                  ,(parse-numeric-effect
                                    `(increase (total-cost) 1)))))))
 
-(defun add-cost-domain (*domain*)
+(defun add-cost (*domain* *problem*)
   (unless (member :action-costs (requirements *domain*))
     (push :action-costs (requirements *domain*))
     (push (pddl-function :name 'total-cost
@@ -45,23 +45,18 @@
     (setf (actions *domain*)
           (mapcar #'add-numeric-effect (actions *domain*)))
     ;(break+ (mapcar #'assign-ops (actions *domain*)))
-    )
-  *domain*)
-
-(defun add-cost-problem (*problem*)
-  (unless (member :action-costs (requirements *domain*))
     (push (ground-function (query-function *domain* 'total-cost)
                            nil 0 *problem*)
-          (init *problem*)))
-  *problem*)
+          (init *problem*))
+    (setf (metric *problem*)
+          (parse-metric-body '(minimize (total-cost)))))
+  (values *domain* *problem*))
 
 (defun solve-problem-enhancing (problem &rest test-problem-args)
   (clear-plan-task-cache)
   (format t "~&Enhancing the problem with macros.")
   (multiple-value-bind (eproblem edomain macros)
-      (enhance-problem problem
-                       :modify-domain #'add-cost-domain
-                       :modify-problem #'add-cost-problem)
+      (enhance-problem problem :modify-domain-problem #'add-cost)
     (format t "~&Enhancement finished.~&Solving the enhanced problem with FD.")
     (let* ((dir (mktemp "enhanced")))
       (debinarize-plan
