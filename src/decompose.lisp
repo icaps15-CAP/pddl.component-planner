@@ -14,11 +14,10 @@
           'list))
 
 (defun maybe-task-plan-equal (x y)
-  (multiple-value-bind (result plans) (task-plan-equal x y)
-    (if plans
-        (progn (format t "~&Compatibility~@[ not~] proven" result) result)
+  (multiple-value-bind (result proven?) (task-plan-equal x y)
+    (if proven?
+        (progn (format t "~&Compatibility~@[ negatively~] proven" result) result)
         (progn (format t "~&Compatibility not proven, assuming true") t))))
-
 
 (defun component-plans (problem seed &aux (domain (domain problem)))
   ;; -> (list (vector (list task) plan))
@@ -65,11 +64,34 @@
   (format t "~&Filtering null macros.")
   (remove-if (lambda-match ((vector _ nil) t)) pairs))
 
+(defun score-pair (pair)
+  (ematch pair
+    ((vector (and bag (list* (abstract-component-task-
+                              (ac (abstract-component components))) _))
+             (macro-action actions))
+     (let ((sample (vector (length bag)
+                           (length components)
+                           (length actions))))
+       (- (mean sample)
+          (standard-deviation sample))))))
+
+(defun print-pair-status (pair)
+  (ematch pair
+    ((vector (and bag (list* (abstract-component-task-
+                              (ac (abstract-component components))) _))
+             (macro-action actions))
+     (format t "~&tasks: ~a, objs: ~a, macro-length: ~a, score: ~a"
+             (length bag) (length components) (length actions)
+             (score-pair pair)))))
+
 (defun sort-and-filter-macros (pairs)
-  (format t "~&~a macros found~@[, filtered down to 2~]."
-          (length pairs) (< 2 (length pairs)))
-  (subseq (sort pairs #'< :key (lambda-match ((vector bag _) (length bag))))
-          0 (min 2 (length pairs))))
+  (when (< 2 (length pairs))
+    (format t "~&~a macros are filtered down to 2." (length pairs)))
+  (setf pairs
+        (sort pairs #'> :key #'score-pair))
+  (format t "~&Macro status:")
+  (mapc #'print-pair-status pairs)
+  (subseq pairs 0 (min 2 (length pairs))))
 
 (defun identity2 (x y) (values x y))
 
