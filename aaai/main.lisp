@@ -23,7 +23,8 @@
 #+add-cost
 (ql:quickload :pddl.component-planner.add-cost)
 (defpackage :pddl.component-planner.experiment
-  (:use :cl :cl-rlimit :pddl :pddl.component-planner :optima))
+  (:use :cl :cl-rlimit :pddl :pddl.component-planner :optima
+        :alexandria))
 (in-package :pddl.component-planner.experiment)
 
 (defmacro suppress (&body body)
@@ -40,7 +41,7 @@
       (print pname)
       (print problem)
       (let ((plan (solve-problem-enhancing problem
-                                           :options *opt-options*
+                                           ;:options *opt-options*
                                            :time-limit 1 ; satisficing
                                            :verbose *verbose*)))
         (write-plan plan plp *default-pathname-defaults* t)))))
@@ -79,13 +80,23 @@
    :save-runtime-options t))
 
 (defun test ()
+  (clear-plan-task-cache)
   (main (list "-v" "-m" "2000000" "elevators-sat11/p01.pddl")))
 (defun fdtest ()
+  (clear-plan-task-cache)
   (test-problem "elevators-sat11/p01.pddl" "elevators-sat11/domain.pddl"
                 :verbose t :options *opt-options*))
-(defun test2 ()
-  (main (list "-v" "-m" "2000000" "elevators-sat11/p04.pddl")))
+(defun fdtest-sat ()
+  (clear-plan-task-cache)
+  (test-problem "depot/p01.pddl" "depot/domain.pddl"
+                :verbose t))
 
+(defun test2 ()
+  (clear-plan-task-cache)
+  (main (list "-v" "-m" "2000000" "elevators-sat11/p04.pddl")))
+(defun test3 ()
+  (clear-plan-task-cache)
+  (main (list "-v" "-m" "2000000" "cell-assembly-noneg-nocost/p01.pddl")))
 
 #-add-cost
 (save "component-planner")

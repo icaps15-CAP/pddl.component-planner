@@ -5,10 +5,11 @@ TIMER="/usr/bin/time -f 'real %e\nuser %U\nsys %S\nmaxmem %M'"
 run(){
     echo $1
     log=${1%.*}.component-planner.log
-    rm -f $log
+    err=${1%.*}.component-planner.err
+    rm -f $log $err
     ulimit -v 3000000 -t 1900
     /usr/bin/time -f 'real %e\nuser %U\nsys %S\nmaxmem %M' \
-        ./component-planner -v $1 &> $log
+        ./component-planner -v $1 > $log 2> $err
     if [[ $(cat ${1%.*}.plan) != "" ]]
     then
         echo plan found!
