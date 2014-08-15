@@ -60,10 +60,10 @@
 
 
 
-(defun remove-null-macro (pairs)
+(defun remove-null-macros (pairs)
   (remove-if (lambda-match ((vector _ nil) t)) pairs))
 
-(defun sort-and-filter-macro (pairs)
+(defun sort-and-filter-macros (pairs)
   (format t "~&~a macros found~@[, filtered down to 2~]."
           (length pairs) (< 2 (length pairs)))
   (subseq (sort pairs #'< :key (lambda-match ((vector bag _) (length bag))))
@@ -71,7 +71,7 @@
 
 (defun enhance-problem (problem
                         &key
-                          (filters (list #'remove-null-macro
+                          (filters (list #'remove-null-macros
                                          #'sort-and-filter-macros))
                           (modify-domain-problem #'identity)
                         &aux (domain (domain problem)))
