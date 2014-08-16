@@ -24,7 +24,7 @@
 (ql:quickload :pddl.component-planner.add-cost)
 (defpackage :pddl.component-planner.experiment
   (:use :cl :cl-rlimit :pddl :pddl.component-planner :optima
-        :alexandria))
+        :alexandria :iterate) (:shadow :minimize :maximize))
 (in-package :pddl.component-planner.experiment)
 
 (defmacro suppress (&body body)
@@ -33,18 +33,26 @@
 
 (defvar *verbose* nil)
 
-(defun solve (ppath dpath plp)
+(defun solve (ppath dpath)
   (multiple-value-bind (dname domain) (suppress (parse-file dpath nil t))
     (multiple-value-bind (pname problem) (suppress (parse-file ppath nil t))
       (print dname)
       (print domain)
       (print pname)
       (print problem)
-      (let ((plan (solve-problem-enhancing problem
-                                           ;:options *opt-options*
-                                           :time-limit 1 ; satisficing
-                                           :verbose *verbose*)))
-        (write-plan plan plp *default-pathname-defaults* t)))))
+      (let ((plans (solve-problem-enhancing problem
+                                        ;:options *opt-options*
+                                            :time-limit 1 ; satisficing
+                                            :verbose *verbose*)))
+        (iter (for plan in plans)
+              (for i from 1)
+              (for plp =
+                   (merge-pathnames
+                    (format nil "~a.plan.~a"
+                            (pathname-name ppath) i)))
+              (when (probe-file plp) (delete-file plp))
+              (write-plan plan plp
+                          *default-pathname-defaults* t))))))
 
 (defun main (&optional (argv (cdr (print sb-ext:*posix-argv*))))
   (let ((*package* (find-package :pddl.component-planner.experiment)))
@@ -65,10 +73,7 @@
        ((list ppath dpath)
         (let ((ppath (merge-pathnames ppath))
               (dpath (merge-pathnames dpath)))
-          (let ((plp (make-pathname :defaults ppath :type "plan")))
-            (when (probe-file plp)
-              (delete-file plp))
-            (solve ppath dpath plp)))))))
+          (solve ppath dpath))))))
 
 (defun save (name)
   (sb-ext:gc :full t)

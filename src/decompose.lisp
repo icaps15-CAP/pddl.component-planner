@@ -130,6 +130,11 @@
     ((pddl-problem positive-goals)
      (remove-duplicates (mapcar #'type (mappend #'parameters positive-goals))))))
 
+(defun decode-plan-all (macros plan)
+  (reduce #'decode-plan macros
+          :from-end t
+          :initial-value (pddl-plan :path plan)))
+
 (defun solve-problem-enhancing (problem &rest test-problem-args)
   (clear-plan-task-cache)
   (format t "~&Enhancing the problem with macros.")
@@ -137,24 +142,21 @@
     (format t "~&Enhancement finished on:~%   ~a~%-> ~a"
             (name problem) (name eproblem))
     (format t "~&Solving the enhanced problem with FD.")
-    (let* ((dir (mktemp "enhanced")))
-      (debinarize-plan
-       (domain problem)
-       problem
-       edomain
-       eproblem
-       (let ((*domain* edomain) (*problem* eproblem))
-         (reduce #'decode-plan
-                 macros
-                 :from-end t
-                 :initial-value
-                 (pddl-plan :path
-                            (first
-                             (prog1 (apply #'test-problem
-                                           (write-pddl *problem* "eproblem.pddl" dir)
-                                           (write-pddl *domain* "edomain.pddl" dir)
-                                           test-problem-args)
-                               (format t "~&Decoding the result plan."))))))))))
+    (let* ((dir (mktemp "enhanced"))
+           (*domain* edomain)
+           (*problem* eproblem)
+           (plans (prog1 (apply #'test-problem
+                                (write-pddl *problem* "eproblem.pddl" dir)
+                                (write-pddl *domain* "edomain.pddl" dir)
+                                test-problem-args)
+                    (format t "~&Decoding the result plan.")))
+           (plans (mapcar (curry #'decode-plan-all macros) plans)))
+      (iter (for plan in plans)
+            (collect
+                (debinarize-plan
+                 (domain problem) problem
+                 edomain eproblem plan))))))
+
 
 (define-local-function debinarize-action (ga)
   (let ((a (find ga (actions bdomain) :test #'eqname)))
