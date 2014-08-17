@@ -1,4 +1,5 @@
 
+(require :sb-cltl2)
 #-quicklisp
 (let ((quicklisp-init (merge-pathnames "quicklisp/setup.lisp"
                                        (user-homedir-pathname))))
