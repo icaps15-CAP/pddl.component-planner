@@ -145,10 +145,15 @@
     (let* ((dir (mktemp "enhanced"))
            (*domain* edomain)
            (*problem* eproblem)
-           (plans (prog1 (apply #'test-problem
-                                (write-pddl *problem* "eproblem.pddl" dir)
-                                (write-pddl *domain* "edomain.pddl" dir)
-                                test-problem-args)
+           (plans (prog1
+                      (handler-bind ((unix-signal
+                                      (lambda (c)
+                                        (invoke-restart
+                                         (find-restart 'finish c)))))
+                        (apply #'test-problem
+                               (write-pddl *problem* "eproblem.pddl" dir)
+                               (write-pddl *domain* "edomain.pddl" dir)
+                               test-problem-args))
                     (format t "~&Decoding the result plan.")))
            (plans (mapcar (curry #'decode-plan-all macros) plans)))
       (iter (for plan in plans)
