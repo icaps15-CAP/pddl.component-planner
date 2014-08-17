@@ -18,7 +18,6 @@
            "Dropbox/asdf/build/asdf.lisp"
            (user-homedir-pathname)))))
 
-(ql:register-local-projects)
 #-add-cost
 (ql:quickload :pddl.component-planner)
 #+add-cost
@@ -104,7 +103,3 @@
   (clear-plan-task-cache)
   (main (list "-v" "-m" "2000000" "cell-assembly-noneg-nocost/p01.pddl")))
 
-#-add-cost
-(save "component-planner")
-#+add-cost
-(save "component-planner-cost")

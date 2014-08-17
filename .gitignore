@@ -7,5 +7,5 @@
 *~
 .#*
 *.pyc
-/aaai/component-planner
-/aaai/component-planner-cost
+/aaai/component-planner*
+
