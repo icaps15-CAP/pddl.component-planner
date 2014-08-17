@@ -135,10 +135,14 @@
           :from-end t
           :initial-value (pddl-plan :path plan)))
 
+(defun enhancement-method (problem)
+  (enhance-problem problem))
+
 (defun solve-problem-enhancing (problem &rest test-problem-args)
   (clear-plan-task-cache)
   (format t "~&Enhancing the problem with macros.")
-  (multiple-value-bind (eproblem edomain macros) (enhance-problem problem)
+  (multiple-value-bind (eproblem edomain macros)
+      (enhancement-method problem)
     (format t "~&Enhancement finished on:~%   ~a~%-> ~a"
             (name problem) (name eproblem))
     (format t "~&Solving the enhanced problem with FD.")

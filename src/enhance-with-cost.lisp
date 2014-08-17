@@ -52,27 +52,6 @@
           (parse-metric-body '(minimize (total-cost)))))
   (values *domain* *problem*))
 
-(defun solve-problem-enhancing (problem &rest test-problem-args)
-  (clear-plan-task-cache)
-  (format t "~&Enhancing the problem with macros.")
-  (multiple-value-bind (eproblem edomain macros)
-      (enhance-problem problem :modify-domain-problem #'add-cost)
-    (format t "~&Enhancement finished.~&Solving the enhanced problem with FD.")
-    (let* ((dir (mktemp "enhanced")))
-      (debinarize-plan
-       (domain problem)
-       problem
-       edomain
-       eproblem
-       (let ((*domain* edomain) (*problem* eproblem))
-         (reduce #'decode-plan
-                 macros
-                 :from-end t
-                 :initial-value
-                 (pddl-plan :path
-                            (first
-                             (prog1 (apply #'test-problem
-                                           (write-pddl *problem* "eproblem.pddl" dir)
-                                           (write-pddl *domain* "edomain.pddl" dir)
-                                           test-problem-args)
-                               (format t "~&Decoding the result plan."))))))))))
+(defun enhancement-method (problem)
+  (enhance-problem problem
+                   :modify-domain-problem #'add-cost))
