@@ -2,8 +2,6 @@
 
 pids=
 
-sbcl --quit --eval "(ql:register-local-projects)"
-
 sbcl --dynamic-space-size 1900 \
     --disable-debugger \
     --eval '(push :interpret-pddl *features*)' \

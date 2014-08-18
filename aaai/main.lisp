@@ -1,27 +1,4 @@
 
-(require :sb-cltl2)
-#-quicklisp
-(let ((quicklisp-init (merge-pathnames "quicklisp/setup.lisp"
-                                       (user-homedir-pathname))))
-  (format t "~%loading Quicklisp...~%")
-  (when (probe-file quicklisp-init)
-    (load quicklisp-init))
-  (eval (read-from-string
-         "(push (merge-pathnames
-         \"repos/lisp/\"
-         (user-homedir-pathname))
-        quicklisp-client:*local-project-directories*)")))
-
-(unless (asdf:version-satisfies (asdf:asdf-version) "3.0.3")
-  (handler-bind ((warning #'muffle-warning))
-    (load (merge-pathnames
-           "Dropbox/asdf/build/asdf.lisp"
-           (user-homedir-pathname)))))
-
-#-add-cost
-(ql:quickload :pddl.component-planner)
-#+add-cost
-(ql:quickload :pddl.component-planner.add-cost)
 (defpackage :pddl.component-planner.experiment
   (:use :cl :cl-rlimit :pddl :pddl.component-planner :optima
         :alexandria :iterate) (:shadow :minimize :maximize))
