@@ -1,4 +1,6 @@
 
+small = 1900
+large = 7800
 expdir = component-planner
 link = exp
 
@@ -18,6 +20,13 @@ $(link)/%: % $(link)
 $(link):
 	ln -s $(HOME)/repos/$(expdir) $(link)
 
+cost 	  = --eval '(push :add-cost *features*)'
+
+interpret = --eval '(push :interpret-pddl *features*)'
+load      = --eval '(ql:quickload :pddl.component-planner.experiment)'
+save      = --eval '(pddl.component-planner.experiment::save "$@")'
+common    = $(interpret) $(load) $(save)
+
 refresh:
 	sbcl --quit \
 	--eval "(ql:register-local-projects)" \
@@ -25,37 +34,23 @@ refresh:
 	--eval '(ql:quickload :pddl.component-planner.experiment)'
 
 component-planner: refresh
-	sbcl --dynamic-space-size 1900 \
-	--disable-debugger \
-	--eval '(push :interpret-pddl *features*)' \
-	--eval '(ql:quickload :pddl.component-planner.experiment)' \
-	--eval '(pddl.component-planner.experiment::save "component-planner")'
+	sbcl --dynamic-space-size $(small) \
+	--disable-debugger $(common)
 	chmod +x $@
 
 component-planner-cost: refresh
-	sbcl --dynamic-space-size 1900 \
-	--disable-debugger \
-	--eval '(push :interpret-pddl *features*)' \
-	--eval '(push :add-cost *features*)' \
-	--eval '(ql:quickload :pddl.component-planner.experiment)' \
-	--eval '(pddl.component-planner.experiment::save "component-planner-cost")'
+	sbcl --dynamic-space-size $(small) \
+	--disable-debugger $(cost) $(common)
 	chmod +x $@
 
 component-planner-large: refresh
-	sbcl --dynamic-space-size 8000 \
-	--disable-debugger \
-	--eval '(push :interpret-pddl *features*)' \
-	--eval '(ql:quickload :pddl.component-planner.experiment)' \
-	--eval '(pddl.component-planner.experiment::save "component-planner-large")'
+	sbcl --dynamic-space-size $(large) \
+	--disable-debugger $(common)
 	chmod +x $@
 
 component-planner-cost-large: refresh
-	sbcl --dynamic-space-size 8000 \
-	--disable-debugger \
-	--eval '(push :interpret-pddl *features*)' \
-	--eval '(push :add-cost *features*)' \
-	--eval '(ql:quickload :pddl.component-planner.experiment)' \
-	--eval '(pddl.component-planner.experiment::save "component-planner-cost-large")'
+	sbcl --dynamic-space-size $(large) \
+	--disable-debugger $(cost) $(common)
 	chmod +x $@
 
 clean:
