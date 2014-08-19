@@ -85,13 +85,13 @@
     ((vector (and bag (list* (abstract-component-task-
                               (ac (abstract-component components))) _))
              (macro-action actions))
-     (format t "~&tasks: ~a, objs: ~a, macro-length: ~a, score: ~a"
+     (format t "~&(:tasks ~a :objs ~a :macro-length ~a :score ~a)"
              (length bag) (length components) (length actions)
              (score-pair pair)))))
 
 (defun sort-and-filter-macros (pairs)
   (when (< 2 (length pairs))
-    (format t "~&~a macros are filtered down to 2." (length pairs)))
+    (format t "~&~a macros are filtered down to 2 (fixed number)." (length pairs)))
   (setf pairs
         (sort pairs #'> :key #'score-pair))
   (format t "~&Macro status:")
