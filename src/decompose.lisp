@@ -17,7 +17,7 @@
 (defun maybe-task-plan-equal (x y)
   (multiple-value-bind (result proven?) (task-plan-equal x y)
     (if proven?
-        (progn (format t "~&Compatibility~@[ negatively~] proven" result) result)
+        (progn (format t "~&Compatibility~@[ negatively~] proven" (not result)) result)
         (progn (format t "~&Compatibility not proven, assuming true") t))))
 
 (defun component-plans (problem seed &aux (domain (domain problem)))
