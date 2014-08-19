@@ -2,7 +2,8 @@
 (in-package :pddl.component-planner)
 (cl-syntax:use-syntax :annot)
 
-;;; categorize each problem
+;;; enhance domain and problem
+;;;; categorize components
 
 (defun trivial-component-p (ac)
   (ematch ac
@@ -47,6 +48,8 @@
               (collect ; TODO: what if the component-plan does not exists?
                   (vector bag (first plans-for-a-task))))))))
 
+;;;; creates macros from plans
+
 (defun component-macro (problem seed &aux (domain (domain problem)))
   (multiple-value-bind (problem *domain*) (binarize problem domain)
     (mapcar #'component-macro/bucket
@@ -56,6 +59,8 @@
   (ematch v
     ((vector bag (pddl-plan actions))
      (vector bag (macro-action actions))))) ; macro-action might return nil
+
+;;;; score, sort and filter macros
 
 (defun get-action (x)
   (match x ((vector _ m) m)))
@@ -92,6 +97,8 @@
   (format t "~&Macro status:")
   (mapc #'print-pair-status pairs)
   (subseq pairs 0 (min 2 (length pairs))))
+
+;;;; enhance the given problem
 
 (defun identity2 (x y) (values x y))
 
@@ -130,6 +137,8 @@
     ((pddl-problem positive-goals)
      (remove-duplicates (mapcar #'type (mappend #'parameters positive-goals))))))
 
+;;; enhance and solve problems & domain
+
 (defun decode-plan-all (macros plan)
   (reduce #'decode-plan macros
           :from-end t
@@ -166,6 +175,7 @@
                  (domain problem) problem
                  edomain eproblem plan))))))
 
+;;;; debinarize the result
 
 (define-local-function debinarize-action (ga)
   (let ((a (find ga (actions bdomain) :test #'eqname)))
