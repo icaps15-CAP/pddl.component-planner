@@ -1,6 +1,6 @@
 
 small = 1900
-large = 7800
+large = 7500
 expdir = component-planner
 link = exp
 
