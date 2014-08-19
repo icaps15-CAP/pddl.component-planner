@@ -61,9 +61,19 @@
    :purify t
    :save-runtime-options t))
 
-(defun test ()
+(defun test1-1 ()
   (clear-plan-task-cache)
   (main (list "-v" "-m" "2000000" "elevators-sat11/p01.pddl")))
+(defun test1-2 ()
+  (clear-plan-task-cache)
+  (main (list "-v" "-m" "2000000" "elevators-sat11/p04.pddl")))
+(defun test1-3 ()
+  (clear-plan-task-cache)
+  (main (list "-v" "-m" "2000000" "elevators-sat11/p08.pddl")))
+(defun test1-4 ()
+  (clear-plan-task-cache)
+  (main (list "-v" "-m" "2000000" "elevators-sat11/p12.pddl")))
+
 (defun fdtest ()
   (clear-plan-task-cache)
   (test-problem "elevators-sat11/p01.pddl" "elevators-sat11/domain.pddl"
@@ -73,10 +83,16 @@
   (test-problem "depot/p01.pddl" "depot/domain.pddl"
                 :verbose t))
 
-(defun test2 ()
-  (clear-plan-task-cache)
-  (main (list "-v" "-m" "2000000" "elevators-sat11/p04.pddl")))
-(defun test3 ()
+(defun test2-1 ()
   (clear-plan-task-cache)
   (main (list "-v" "-m" "2000000" "cell-assembly-noneg-nocost/p01.pddl")))
+(defun test2-2 ()
+  (clear-plan-task-cache)
+  (main (list "-v" "-m" "2000000" "cell-assembly-noneg-nocost/p04.pddl")))
+(defun test2-3 ()
+  (clear-plan-task-cache)
+  (main (list "-v" "-m" "2000000" "cell-assembly-noneg-nocost/p08.pddl")))
+(defun test2-4 ()
+  (clear-plan-task-cache)
+  (main (list "-v" "-m" "2000000" "cell-assembly-noneg-nocost/p12.pddl")))
 
