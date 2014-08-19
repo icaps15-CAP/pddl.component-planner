@@ -169,7 +169,8 @@
   (clear-plan-task-cache)
   (format t "~&Enhancing the problem with macros.")
   (multiple-value-bind (eproblem edomain macros)
-      (enhancement-method problem)
+      (time
+       (enhancement-method problem))
     (format t "~&Enhancement finished on:~%   ~a~%-> ~a"
             (name problem) (name eproblem))
     (format t "~&Solving the enhanced problem with FD.")
