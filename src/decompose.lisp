@@ -26,7 +26,7 @@
     @ignorable domain
     (let (tasks tasks-bag)
       (format t "~2&Categorizing PROBLEM ~a with seed ~a" (name problem) seed)
-      (setf tasks (abstract-tasks problem seed))
+      (setf tasks (abstract-tasks-seed-only problem seed))
       ;; remove tasks of the trivial component = components of single object
       ;; (setf tasks (remove-if #'trivial-component-p tasks :key #'abstract-component-task-ac))
       ;; remove tasks without goals
