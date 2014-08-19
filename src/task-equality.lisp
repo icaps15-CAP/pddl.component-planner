@@ -42,7 +42,7 @@ function basically cannot negatively prove the compatibility.
           :proven))
         ((and (null plans) complete)
          (values nil :proven))
-        ((and (null plans) (null complete))
+        ((and (null plans) (not complete))
          (values nil nil))))))
 
 

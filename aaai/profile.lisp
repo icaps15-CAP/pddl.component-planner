@@ -12,3 +12,10 @@
 (time (pddl.component-planner.experiment::test2-3))
 ;;(time (pddl.component-planner.experiment::test2-4))
 (sb-profile:report :print-no-call-list nil)
+
+
+(in-package "PDDL.COMPONENT-PLANNER.EXPERIMENT")
+(time (pddl.component-planner.experiment::test2-2))
+(sb-profile:report :print-no-call-list nil)
+
+(time (pddl.component-planner.experiment::test2-3))
