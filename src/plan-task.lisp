@@ -24,7 +24,7 @@ careful if you measure the elapsed time. When you measure the time, run
           (test-problem
            (write-pddl *problem* "problem.pddl" dir)
            (write-pddl *domain* "domain.pddl" dir)
-           :time-limit 10
+           :time-limit 1
            :hard-time-limit 40
            :memory 500000
            :verbose nil
