@@ -61,6 +61,8 @@
    :purify t
    :save-runtime-options t))
 
+;;;; elevators
+
 (defun test1-1 ()
   (clear-plan-task-cache)
   (main (list "-v" "-m" "2000000" "elevators-sat11/p01.pddl")))
@@ -74,6 +76,8 @@
   (clear-plan-task-cache)
   (main (list "-v" "-m" "2000000" "elevators-sat11/p12.pddl")))
 
+;;;; fd
+
 (defun fdtest ()
   (clear-plan-task-cache)
   (test-problem "elevators-sat11/p01.pddl" "elevators-sat11/domain.pddl"
@@ -82,6 +86,8 @@
   (clear-plan-task-cache)
   (test-problem "depot/p01.pddl" "depot/domain.pddl"
                 :verbose t))
+
+;;;; cell-assembly-noneg-nocost
 
 (defun test2-1 ()
   (clear-plan-task-cache)
@@ -96,3 +102,44 @@
   (clear-plan-task-cache)
   (main (list "-v" "-m" "2000000" "cell-assembly-noneg-nocost/p12.pddl")))
 
+;;;; pipesworld
+(defun test3-1 ()
+  (clear-plan-task-cache)
+  (main (list "-v" "-m" "2000000" "pipesworld-notankage/p01.pddl")))
+(defun test3-2 ()
+  (clear-plan-task-cache)
+  (main (list "-v" "-m" "2000000" "pipesworld-notankage/p04.pddl")))
+
+(defun test4-1 ()
+  (clear-plan-task-cache)
+  (main (list "-v" "-m" "2000000" "pipesworld-tankage/p01.pddl")))
+(defun test4-2 ()
+  (clear-plan-task-cache)
+  (main (list "-v" "-m" "2000000" "pipesworld-tankage/p04.pddl")))
+
+;;;; barman
+
+(defun test5-1 ()
+  (clear-plan-task-cache)
+  (main (list "-v" "-m" "2000000" "barman/p01.pddl")))
+(defun test5-2 ()
+  (clear-plan-task-cache)
+  (main (list "-v" "-m" "2000000" "barman/p04.pddl")))
+(defun test5-3 ()
+  (clear-plan-task-cache)
+  (main (list "-v" "-m" "2000000" "barman/p08.pddl")))
+
+;;;;
+
+(defun test6-1 ()
+  (clear-plan-task-cache)
+  (main (list "-v" "-m" "2000000" "childsnack/p01.pddl")))
+(defun test6-1-fd ()
+  (clear-plan-task-cache)
+  (test-problem "childsnack/p01.pddl" "childsnack/domain.pddl" :verbose t))
+(defun test6-2 ()
+  (clear-plan-task-cache)
+  (main (list "-v" "-m" "2000000" "childsnack/p04.pddl")))
+(defun test6-2-fd ()
+  (clear-plan-task-cache)
+  (test-problem "childsnack/p04.pddl" "childsnack/domain.pddl" :verbose t))
