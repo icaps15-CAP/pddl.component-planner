@@ -30,7 +30,8 @@
                :anaphora)
   :components ((:module "src"
                 :components
-                ((:file :package)
+                ((:file :cl-statistics)
+                 (:file :package)
                  (:file :binarization)
                  (:file :map-component-plan)
                  (:file :conditions)

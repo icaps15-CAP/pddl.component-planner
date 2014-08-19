@@ -1,6 +1,7 @@
 (in-package :cl-user)
 (defpackage pddl.component-planner
   (:use :cl
+        :statistics
         :optima
         :function-cache
         :guicho-utilities
@@ -22,4 +23,11 @@
            :types-in-goal
            :add-cost-domain
            :add-cost-problem)
+  (:shadowing-import-from :guicho-utilities
+                          :permutations)
+  (:shadowing-import-from :statistics
+                          :variance
+                          :median
+                          :mean
+                          :standard-deviation)
   (:shadowing-import-from :pddl :minimize :maximize))
