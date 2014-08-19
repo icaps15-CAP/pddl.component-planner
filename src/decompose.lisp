@@ -101,18 +101,19 @@
 (defvar *threshold* (z 0.8))
 
 (defun filter-macros-normdist (pairs)
-  (setf pairs (sort pairs #'> :key #'score-pair))
   (format t "~&~a macros, status:" (length pairs))
-  (mapc #'print-pair-status pairs)
-  (let* ((scores (map 'vector #'score-pair pairs))
-         (threshold (+ (mean scores) (* (standard-deviation scores) *threshold*)))
-         (results (remove-if (lambda (pair) (< (score-pair pair) threshold)) pairs)))
-    (format t "~&Pruning threshold is ~a." threshold)
-    (when (< (length results) 2)
-      (format t "~&This threshold value prunes too many macros. Recovering at least 2.")
-      (setf results (subseq pairs 0 (min 2 (length pairs)))))
-    (format t "~&~a macros are filtered down to ~a." (length pairs) (length results))
-    results))
+  (when pairs
+    (setf pairs (sort pairs #'> :key #'score-pair))
+    (mapc #'print-pair-status pairs)
+    (let* ((scores (map 'vector #'score-pair pairs))
+           (threshold (+ (mean scores) (* (standard-deviation scores) *threshold*)))
+           (results (remove-if (lambda (pair) (< (score-pair pair) threshold)) pairs)))
+      (format t "~&Pruning threshold is ~a." threshold)
+      (when (< (length results) 2)
+        (format t "~&This threshold value prunes too many macros. Recovering at least 2.")
+        (setf results (subseq pairs 0 (min 2 (length pairs)))))
+      (format t "~&~a macros are filtered down to ~a." (length pairs) (length results))
+      results)))
 
 ;;;; enhance the given problem
 
