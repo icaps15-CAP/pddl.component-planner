@@ -1,7 +1,8 @@
 
 (defpackage :pddl.component-planner.experiment
   (:use :cl :cl-rlimit :pddl :pddl.component-planner :optima
-        :alexandria :iterate) (:shadow :minimize :maximize))
+        :alexandria :iterate)
+  (:shadowing-import-from :pddl :minimize :maximize))
 (in-package :pddl.component-planner.experiment)
 
 (defmacro suppress (&body body)
