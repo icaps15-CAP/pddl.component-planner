@@ -121,7 +121,7 @@
 ;;;; barman
 
 (defun test5-1 ()
-  (clear-plan-task-cache)
+  (clear-plan-task-cache) ;; かなり難しい
   (main (list "-v" "-m" "2000000" "barman/p01.pddl")))
 (defun test5-2 ()
   (clear-plan-task-cache)
