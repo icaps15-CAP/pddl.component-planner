@@ -58,7 +58,18 @@
 (defun component-macro/bucket (v)
   (ematch v
     ((vector bag (pddl-plan actions))
-     (vector bag (macro-action actions))))) ; macro-action might return nil
+     (let ((env-objs
+            (remove-task-component
+             (objects *problem*) (first bag))))
+       (vector bag (macro-action actions env-objs)))))) ; macro-action might return nil
+
+(defun remove-task-component (objs task)
+  (iter (for o in objs)
+        (when (filter-object
+               (make-instance 'filtering-strategy) o
+               :components (abstract-component-components
+                            (abstract-component-task-ac task)))
+          (collect o))))
 
 ;;;; score, sort and filter macros
 
@@ -135,20 +146,29 @@
                (shallow-copy domain :name (symbolicate name '-enhanced)))
               macro-pairs macros)
          (setf macro-pairs
-               (iter (for seed in (types-in-goal problem))
-                     (appending (component-macro problem seed))))
+               (let ((*problem* problem))
+                 (iter (for seed in (types-in-goal problem))
+                       (appending (component-macro problem seed)))))
          (format t "~&~a macros found in total." (length macro-pairs))
          (setf macro-pairs
                (funcall (apply #'compose (reverse filters)) macro-pairs))
          (format t "~&~a macros after filtering." (length macro-pairs))
          (setf macros (mapcar #'get-action macro-pairs))
-         (setf (actions *domain*) (append actions macros))
-         (let* ((*problem* (shallow-copy problem
-                                         :name (symbolicate (name problem) '-enhanced)
-                                         :domain *domain*)))
-           (multiple-value-bind (*domain* *problem*)
+         (appendf (actions *domain*) macros)
+         (unionf (constants *domain*)
+                 (remove-duplicates (mappend #'constants macros)))
+         (let* ((*problem*
+                 (shallow-copy
+                  problem
+                  :name (symbolicate (name problem) '-enhanced)
+                  :domain *domain*
+                  :objects (set-difference
+                            (objects problem)
+                            (remove-duplicates
+                             (mappend #'originals macros))))))
+           (multiple-value-bind (domain problem)
                (funcall modify-domain-problem *domain* *problem*)
-             (values *problem* *domain* macros))))))))
+             (values problem domain macros))))))))
 
 (defun types-in-goal (problem)
   (ematch problem
