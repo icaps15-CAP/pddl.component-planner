@@ -94,31 +94,36 @@
 (defun print-pair-status (pair)
   (ematch pair
     ((vector (and bag (list* (abstract-component-task-
-                              (ac (abstract-component components))) _))
+                              (ac (abstract-component seed components))) _))
              (macro-action actions))
-     (format t "~&(:tasks ~a :objs ~a :macro-length ~a :score ~a)"
+     (format t "~&(:tasks ~a :objs ~a :macro-length ~a :score ~a :seed ~a)"
              (length bag) (length components) (length actions)
-             (score-pair pair)))))
+             (score-pair pair)
+             (name (type seed))))))
 
-(defun sort-and-filter-macros (pairs)
+(defun filter-macros-fixed (pairs)
   (when (< 2 (length pairs))
-    (format t "~&~a macros are filtered down to 2 (fixed number)." (length pairs)))
-  (setf pairs
-        (sort pairs #'> :key #'score-pair))
-  (format t "~&Macro status:")
-  (mapc #'print-pair-status pairs)
+    (format t "~&~a macros are filtered down to 2 (fixed number)."
+            (length pairs)))
   (subseq pairs 0 (min 2 (length pairs))))
 
 (defvar *threshold* (z 0.8))
 
-(defun filter-macros-normdist (pairs)
+
+(defun sort-and-print-macros (pairs)
   (format t "~&~a macros, status:" (length pairs))
   (when pairs
     (setf pairs (sort pairs #'> :key #'score-pair))
     (mapc #'print-pair-status pairs)
+    pairs))
+
+(defun filter-macros-normdist (pairs)
+  (when pairs
     (let* ((scores (map 'vector #'score-pair pairs))
-           (threshold (+ (mean scores) (* (standard-deviation scores) *threshold*)))
-           (results (remove-if (lambda (pair) (< (score-pair pair) threshold)) pairs)))
+           (threshold (+ (mean scores)
+                         (* (standard-deviation scores) *threshold*)))
+           (results (remove-if-not (curry #'< threshold) pairs
+                                   :key #'score-pair)))
       (format t "~&Pruning threshold is ~a." threshold)
       (when (< (length results) 2)
         (format t "~&This threshold value prunes too many macros. Recovering at least 2.")
@@ -133,7 +138,7 @@
 (defun enhance-problem (problem
                         &key
                           (filters (list #'remove-null-macros
-                                         ;; #'sort-and-filter-macros
+                                         #'sort-and-print-macros
                                          #'filter-macros-normdist))
                           (modify-domain-problem #'identity2)
                         &aux (domain (domain problem)))
