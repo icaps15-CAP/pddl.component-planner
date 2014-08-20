@@ -160,17 +160,25 @@
          (format t "~&~a macros after filtering." (length macro-pairs))
          (setf macros (mapcar #'get-action macro-pairs))
          (appendf (actions *domain*) macros)
-         (unionf (constants *domain*)
-                 (remove-duplicates (mappend #'constants macros)))
+         (let ((consts (remove-duplicates (mappend #'constants macros)
+                                          :test #'eqname)))
+           (format t "~& ~a constants added" (length consts))
+           (unionf (constants *domain*) consts :test #'eqname))
          (let* ((*problem*
                  (shallow-copy
                   problem
                   :name (symbolicate (name problem) '-enhanced)
                   :domain *domain*
-                  :objects (set-difference
-                            (objects problem)
-                            (remove-duplicates
-                             (mappend #'originals macros))))))
+                  :objects
+                  (set-difference
+                   (set-difference
+                    (objects problem)
+                    (remove-duplicates
+                     (mappend #'originals macros)
+                     :test #'eqname)
+                    :test #'eqname)
+                   (constants *domain*)
+                   :test #'eqname))))
            (multiple-value-bind (domain problem)
                (funcall modify-domain-problem *domain* *problem*)
              (values problem domain macros))))))))
