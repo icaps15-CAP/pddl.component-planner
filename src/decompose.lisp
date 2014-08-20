@@ -123,15 +123,14 @@
                         &key
                           (filters (list #'remove-null-macros
                                          ;; #'sort-and-filter-macros
-                                         #'filter-macros-normdist
-                                         ))
+                                         #'filter-macros-normdist))
                           (modify-domain-problem #'identity2)
                         &aux (domain (domain problem)))
   (format t "~&Binarizing domain ~a" domain)
   (multiple-value-bind (problem domain) (binarize problem domain)
     (format t "~&Enhancing domain ~a" domain)
     (ematch domain
-      ((pddl-domain name actions)
+      ((pddl-domain name)
        (let* ((*domain*
                (shallow-copy domain :name (symbolicate name '-enhanced)))
               macro-pairs macros)
@@ -154,7 +153,8 @@
 (defun types-in-goal (problem)
   (ematch problem
     ((pddl-problem positive-goals)
-     (remove-duplicates (mapcar #'type (mappend #'parameters positive-goals))))))
+     (remove-duplicates
+      (mapcar #'type (mappend #'parameters positive-goals))))))
 
 ;;; enhance and solve problems & domain
 
