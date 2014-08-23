@@ -30,8 +30,7 @@ common    = $(interpret) $(load) $(save)
 refresh:
 	sbcl --quit \
 	--eval "(ql:register-local-projects)" \
-	--eval '(push :interpret-pddl *features*)' \
-	--eval '(ql:quickload :pddl.component-planner.experiment)'
+	$(interpret) $(cost) $(load)
 
 component-planner: refresh
 	sbcl --dynamic-space-size $(small) \
