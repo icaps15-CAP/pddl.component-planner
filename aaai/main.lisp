@@ -144,3 +144,17 @@
 (defun test6-2-fd ()
   (clear-plan-task-cache)
   (test-problem "childsnack/p04.pddl" "childsnack/domain.pddl" :verbose t))
+
+
+(defun test7-1 ()
+  (clear-plan-task-cache)
+  (main (list "-v" "-m" "2000000" "woodworking-sat11-nocost/p01.pddl")))
+(defun test7-1-fd ()
+  (clear-plan-task-cache)
+  (test-problem "woodworking-sat11-nocost/p01.pddl" "woodworking-sat11-nocost/domain.pddl" :verbose t))
+(defun test7-2 ()
+  (clear-plan-task-cache)
+  (main (list "-v" "-m" "2000000" "woodworking-sat11-nocost/p04.pddl")))
+(defun test7-2-fd ()
+  (clear-plan-task-cache)
+  (test-problem "woodworking-sat11-nocost/p04.pddl" "woodworking-sat11-nocost/domain.pddl" :verbose t))
