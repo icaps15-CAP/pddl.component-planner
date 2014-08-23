@@ -128,8 +128,9 @@
             MOST-NEGATIVE-SINGLE-FLOAT)
         (/ (mean d) stdev))))
 
+(defun sum-score (d) (reduce #'+ d))
 (defun score (datum)
-  (ms-diff-score
+  (sum-score
    (map 'vector #'* datum *weights*)))
 
 (defun filter-macros-normalized (pairs)
@@ -164,10 +165,14 @@
   (format t "~&~a macros, status:" (length results))
   (when results
     (iter (for r in results)
-          (for s = (print-result r))
+          (for s = (get-score r))
           (for ps previous s)
           (when (and ps (< s th ps))
-            (format t "~&~a" *sep*)))))
+            (format t "~&~a" *sep*))
+          (print-result r))))
+(defun get-score (result)
+  (ematch result
+    ((list _ _ _ score) score)))
 (defun print-result (result)
   (ematch result
     ((list (vector (list* (abstract-component-task-
@@ -181,8 +186,7 @@
              bag components actions
              ;; nbag ncomponents nactions
              score
-             (name (type seed)))
-     score)))
+             (name (type seed))))))
 
 ;;;;; old implementation of fixed and normdist filtering
 
