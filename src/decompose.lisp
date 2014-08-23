@@ -243,8 +243,10 @@
 (defun enhance-problem (problem
                         &key
                           (filters (list #'remove-null-macros
-                                         #'sort-and-print-macros
-                                         #'filter-macros-normdist))
+                                         ;; #'sort-and-print-macros
+                                         ;; #'filter-macros-normdist
+                                         #'filter-macros-normalized
+                                         ))
                           (modify-domain-problem #'identity2)
                         &aux (domain (domain problem)))
   (format t "~&Binarizing domain ~a" domain)
