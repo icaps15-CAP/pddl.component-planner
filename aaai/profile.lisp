@@ -30,7 +30,8 @@
   (time (pddl.component-planner.experiment::test4-1))
   (time (pddl.component-planner.experiment::test5-1))
   (time (pddl.component-planner.experiment::test6-1))
-  (time (pddl.component-planner.experiment::test7-1)))
+  (time (pddl.component-planner.experiment::test7-1))
+  (time (pddl.component-planner.experiment::test8-1)))
 
 (let ((*preprocess-only* t))
   (time (pddl.component-planner.experiment::test1-1))
@@ -39,4 +40,10 @@
   (time (pddl.component-planner.experiment::test4-1))
   (time (pddl.component-planner.experiment::test5-1))
   (time (pddl.component-planner.experiment::test6-1))
-  (time (pddl.component-planner.experiment::test7-1)))
+  (time (pddl.component-planner.experiment::test7-1))
+  (time (pddl.component-planner.experiment::test8-1)))
+
+(let ((*preprocess-only* t))
+  (time (pddl.component-planner.experiment::test8-1)))
+
+(time (pddl.component-planner.experiment::test8-1))
