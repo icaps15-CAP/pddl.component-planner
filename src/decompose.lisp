@@ -310,6 +310,8 @@
 (defun enhancement-method (problem)
   (enhance-problem problem))
 
+(defvar *preprocess-only* nil)
+
 (defun solve-problem-enhancing (problem &rest test-problem-args)
   (clear-plan-task-cache)
   (format t "~&Enhancing the problem with macros.")
@@ -319,10 +321,11 @@
     (format t "~&Enhancement finished on:~%   ~a~%-> ~a"
             (name problem) (name eproblem))
     (format t "~&Solving the enhanced problem with FD.")
-    (let* ((dir (mktemp "enhanced"))
-           (*domain* edomain)
-           (*problem* eproblem)
-           (plans (prog1
+    (unless *preprocess-only*
+      (let* ((dir (mktemp "enhanced"))
+             (*domain* edomain)
+             (*problem* eproblem)
+             (plans (prog1
                       (handler-bind ((unix-signal
                                       (lambda (c)
                                         (invoke-restart
@@ -331,13 +334,13 @@
                                (write-pddl *problem* "eproblem.pddl" dir)
                                (write-pddl *domain* "edomain.pddl" dir)
                                test-problem-args))
-                    (format t "~&Decoding the result plan.")))
-           (plans (mapcar (curry #'decode-plan-all macros) plans)))
-      (iter (for plan in plans)
-            (collect
-                (debinarize-plan
-                 (domain problem) problem
-                 edomain eproblem plan))))))
+                      (format t "~&Decoding the result plan.")))
+             (plans (mapcar (curry #'decode-plan-all macros) plans)))
+        (iter (for plan in plans)
+              (collect
+                  (debinarize-plan
+                   (domain problem) problem
+                   edomain eproblem plan)))))))
 
 ;;;; debinarize the result
 

@@ -22,7 +22,8 @@
            :plan-task
            :types-in-goal
            :add-cost-domain
-           :add-cost-problem)
+           :add-cost-problem
+           :*preprocess-only*)
   (:shadowing-import-from :guicho-utilities
                           :permutations)
   (:shadowing-import-from :statistics
