@@ -244,6 +244,15 @@
 
 (defun identity2 (x y) (values x y))
 
+(defun check-macro-sanity (macros)
+  ;; ensure the name of the macros are unique
+  (iter (for (name mm) in-hashtable (categorize macros :key #'name))
+        (when (< 2 (length mm))
+          (iter (for m in mm)
+                (for i from 0)
+                (setf (name m) (symbolicate name '_ (princ-to-string i)))))
+        (appending macros)))
+
 (defun enhance-problem (problem
                         &key
                           (filters (list #'remove-null-macros
@@ -270,6 +279,7 @@
                (funcall (apply #'compose (reverse filters)) macro-pairs))
          (format t "~&~a macros after filtering." (length macro-pairs))
          (setf macros (mapcar #'get-action macro-pairs))
+         (setf macros (check-macro-sanity macros))
          (appendf (actions *domain*) macros)
          (let ((consts (remove-duplicates (mappend #'constants macros)
                                           :test #'eqname)))
