@@ -251,7 +251,7 @@
           (iter (for m in mm)
                 (for i from 0)
                 (setf (name m) (symbolicate name '_ (princ-to-string i)))))
-        (appending macros)))
+        (appending mm)))
 
 (defun enhance-problem (problem
                         &key
