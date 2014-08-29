@@ -246,12 +246,14 @@
 
 (defun check-macro-sanity (macros)
   ;; ensure the name of the macros are unique
-  (iter (for (name mm) in-hashtable (categorize macros :key #'name))
-        (when (< 2 (length mm))
-          (iter (for m in mm)
-                (for i from 0)
-                (setf (name m) (symbolicate name '_ (princ-to-string i)))))
-        (appending mm)))
+  ;; (mapc #'print (mapcar #'name macros))
+  (prog1 (iter (for (name mm) in-hashtable (categorize macros :test #'eq :key #'name))
+               (when (<= 2 (length mm))
+                 (iter (for m in mm)
+                       (for i from 0)
+                       (setf (name m) (symbolicate name '_ (princ-to-string i)))))
+               (appending mm))
+         (mapc #'print (mapcar #'name macros))))
 
 (defun enhance-problem (problem
                         &key
