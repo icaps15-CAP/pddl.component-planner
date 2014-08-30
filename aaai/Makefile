@@ -6,13 +6,9 @@ link = exp
 
 .PHONY: copy refresh clean
 
-all: component-planner component-planner-cost \
-	component-planner-cost-large component-planner-large
+all: component-planner component-planner-large
 
-copy: $(link)/component-planner \
-	$(link)/component-planner-cost \
-	$(link)/component-planner-cost-large \
-	$(link)/component-planner-large
+copy: $(link)/component-planner $(link)/component-planner-large
 
 $(link)/%: % $(link)
 	cp -v $< $@
@@ -33,23 +29,19 @@ refresh:
 	$(interpret) $(cost) $(load)
 
 component-planner: refresh
-	sbcl --dynamic-space-size $(small) \
-	--disable-debugger $(common)
+	sbcl --dynamic-space-size $(small) $(common)
 	chmod +x $@
 
 # component-planner-cost: refresh
-# 	sbcl --dynamic-space-size $(small) \
-# 	--disable-debugger $(cost) $(common)
+# 	sbcl --dynamic-space-size $(small) $(cost) $(common)
 # 	chmod +x $@
 
 component-planner-large: refresh
-	sbcl --dynamic-space-size $(large) \
-	--disable-debugger $(common)
+	sbcl --dynamic-space-size $(large) $(common)
 	chmod +x $@
 
 # component-planner-cost-large: refresh
-# 	sbcl --dynamic-space-size $(large) \
-# 	--disable-debugger $(cost) $(common)
+# 	sbcl --dynamic-space-size $(large) $(cost) $(common)
 # 	chmod +x $@
 
 clean:
