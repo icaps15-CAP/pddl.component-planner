@@ -12,6 +12,9 @@
 (defvar *verbose* nil)
 (defvar *validation* nil)
 
+(defparameter *lmcut-gbfs* (wrap-option "--search lazy_greedy(lmcut())"))
+
+
 (defun solve (ppath dpath)
   (multiple-value-bind (dname domain) (suppress (parse-file dpath nil t))
     (multiple-value-bind (pname problem) (suppress (parse-file ppath nil t))
