@@ -32,17 +32,5 @@ component-planner: refresh
 	sbcl --dynamic-space-size $(small) $(common)
 	chmod +x $@
 
-# component-planner-cost: refresh
-# 	sbcl --dynamic-space-size $(small) $(cost) $(common)
-# 	chmod +x $@
-
-component-planner-large: refresh
-	sbcl --dynamic-space-size $(large) $(common)
-	chmod +x $@
-
-# component-planner-cost-large: refresh
-# 	sbcl --dynamic-space-size $(large) $(cost) $(common)
-# 	chmod +x $@
-
 clean:
 	rm -fv component-planner* $(link)/component-planner* $(link)

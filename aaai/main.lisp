@@ -75,7 +75,8 @@
    :toplevel #'main
    :executable t
    :purify t
-   :save-runtime-options t))
+   ;; :save-runtime-options t
+   ))
 
 ;;;; elevators
 
