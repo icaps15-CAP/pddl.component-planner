@@ -26,7 +26,10 @@
       (setf tasks (remove-if-not #'abstract-component-task-goal tasks))
       (format t "~&Tasks : ~a" (length tasks))
       ;; categorize tasks into buckets, based on init/goal/attribute.
-      (setf tasks-bag (categorize-tasks tasks :strict))
+      (setf tasks-bag (categorize-by-equality
+                       tasks
+                       #'abstract-component-task=
+                       :transitive t))
       ;; list pf bags. each bag contains tasks of the same structure
       (format t "~&TASKS/g/i/attr : ~a" (mapcar #'length tasks-bag))
       tasks-bag)))
