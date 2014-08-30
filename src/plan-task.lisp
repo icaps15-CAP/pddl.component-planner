@@ -16,7 +16,8 @@
 returns a PDDL-PLAN. The call to this function is cached and memoized, so be
 careful if you measure the elapsed time. When you measure the time, run
  (clear-plan-task-cache) to clear the cache."
-  (when (abstract-component-task-goal task) ;; filter if the task has no goal
+  (when (and (abstract-component-task-goal task) ;; filter if the task has no goal
+             (within-time-limit)) ;; do not compute plans when the time limit is reached
     (let* ((*problem* (build-component-problem task))
            (*domain* (domain *problem*))
            (dir (mktemp "plan-task" t)))

@@ -23,7 +23,8 @@
            :types-in-goal
            :add-cost-domain
            :add-cost-problem
-           :*preprocess-only*)
+           :*preprocess-only*
+           :*component-plan-time-limit*)
   (:shadowing-import-from :guicho-utilities
                           :permutations)
   (:shadowing-import-from :statistics

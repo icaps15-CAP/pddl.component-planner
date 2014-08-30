@@ -32,6 +32,7 @@
                 :components
                 ((:file :cl-statistics)
                  (:file :package)
+                 (:file :limit)
                  (:file :binarization)
                  (:file :map-component-plan)
                  (:file :conditions)

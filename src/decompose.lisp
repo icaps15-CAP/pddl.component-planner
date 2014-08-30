@@ -3,24 +3,15 @@
 (cl-syntax:use-syntax :annot)
 
 ;;; enhance domain and problem
-;;;; categorize components
+;;;; extract components
 
+;; not used now
 (defun trivial-component-p (ac)
   (ematch ac
     ((abstract-component components)
      (= 1 (length components)))))
 
-(defun categorize-bag (bag)
-  (coerce (categorize-by-equality bag #'maybe-task-plan-equal :transitive t)
-          'list))
-
-(defun maybe-task-plan-equal (x y)
-  (multiple-value-bind (result proven?) (task-plan-equal x y)
-    (if proven?
-        (progn (format t "~&Compatibility~@[ negatively~] proven" (not result)) result)
-        (progn (format t "~&Compatibility not proven, assuming true") t))))
-
-(defun component-plans (problem seed &aux (domain (domain problem)))
+(defun tasks-bag/aig/seed (problem seed &aux (domain (domain problem)))
   ;; -> (list (vector (list task) plan))
   (multiple-value-bind (problem domain) (binarize problem domain)
     @ignorable domain
@@ -38,24 +29,36 @@
       (setf tasks-bag (categorize-tasks tasks :strict))
       ;; list pf bags. each bag contains tasks of the same structure
       (format t "~&TASKS/g/i/attr : ~a" (mapcar #'length tasks-bag))
-      (format t "~&Categorizing TASKS by equality -- calling FD")
-      (setf tasks-bag (mappend #'categorize-bag tasks-bag))
-      (format t "~&TASKS/plan : ~a" (mapcar #'length tasks-bag))
-      ;; list of bags. each bag contains tasks whose plans are interchangeable
-      (iter (for bag in tasks-bag)
-            ;; assume the cached value of plan-task
-            (when-let ((plans-for-a-task (some #'plan-task bag)))
-              (collect ; TODO: what if the component-plan does not exists?
-                  (vector bag (first plans-for-a-task))))))))
+      tasks-bag)))
 
-;;;; creates macros from plans
+(defun categorize-bag (bag)
+  (coerce (categorize-by-equality bag #'maybe-task-plan-equal :transitive t)
+          'list))
 
-(defun component-macro (problem seed &aux (domain (domain problem)))
-  (multiple-value-bind (problem *domain*) (binarize problem domain)
-    (mapcar #'component-macro/bucket
-            (component-plans problem seed))))
+(defun maybe-task-plan-equal (x y)
+  (multiple-value-bind (result proven?) (task-plan-equal x y)
+    (if proven?
+        (progn (format t "~&Compatibility~@[ negatively~] proven" (not result)) result)
+        (progn (format t "~&Compatibility not proven, assuming true") t))))
 
-(defun component-macro/bucket (v)
+(defun component-plans (tasks-bag)
+  (setf tasks-bag (sort tasks-bag #'> :key #'length)) ;; sort by c_i
+  (format t "~&Categorizing TASKS by equality -- calling FD")
+  (format t "~&Total TASKS/g/i/attr: ~a" (mapcar #'length tasks-bag))
+  (setf tasks-bag (mappend #'categorize-bag tasks-bag))
+  (format t "~&TASKS/plan : ~a" (mapcar #'length tasks-bag))
+  ;; list of bags. each bag contains tasks whose plans are interchangeable
+  (iter (for bag in tasks-bag)
+        ;; assume the cached value of plan-task
+        ;; however, it MIGHT consume too much time in total
+        ;; consider only those which can be computed under the time limit
+        (when-let ((plans-for-a-task (some #'plan-task bag)))
+          (collect ; TODO: what if the component-plan does not exists?
+              (vector bag (first plans-for-a-task))))))
+
+;;;; creates macros from the obtained component-plans
+
+(defun component-macro/bpvector (v)
   (ematch v
     ((vector bag (pddl-plan actions))
      (let ((env-objs
@@ -70,6 +73,16 @@
                :components (abstract-component-components
                             (abstract-component-task-ac task)))
           (collect o))))
+
+
+
+;;;; now entire procedure
+
+(defun generate-macro-pairs (problem)
+  (let* ((tasks-bag (iter (for seed in (types-in-goal problem))
+                          (appending (tasks-bag/aig/seed problem seed))))
+         (bag-plan-vector (component-plans tasks-bag)))
+    (mapcar #'component-macro/bpvector bag-plan-vector)))
 
 ;;;; score, sort and filter macros
 
@@ -274,8 +287,7 @@
               macro-pairs macros)
          (setf macro-pairs
                (let ((*problem* problem))
-                 (iter (for seed in (types-in-goal problem))
-                       (appending (component-macro problem seed)))))
+                 (generate-macro-pairs problem)))
          (format t "~&~a macros found in total." (length macro-pairs))
          (setf macro-pairs
                (funcall (apply #'compose (reverse filters)) macro-pairs))
@@ -327,32 +339,33 @@
 (defun solve-problem-enhancing (problem &rest test-problem-args)
   (clear-plan-task-cache)
   (format t "~&Enhancing the problem with macros.")
-  (multiple-value-bind (eproblem edomain macros)
-      (time
-       (enhancement-method problem))
-    (format t "~&Enhancement finished on:~%   ~a~%-> ~a"
-            (name problem) (name eproblem))
-    (format t "~&Solving the enhanced problem with FD.")
-    (unless *preprocess-only*
-      (let* ((dir (mktemp "enhanced"))
-             (*domain* edomain)
-             (*problem* eproblem)
-             (plans (prog1
-                      (handler-bind ((unix-signal
-                                      (lambda (c)
-                                        (invoke-restart
-                                         (find-restart 'finish c)))))
-                        (apply #'test-problem
-                               (write-pddl *problem* "eproblem.pddl" dir)
-                               (write-pddl *domain* "edomain.pddl" dir)
-                               test-problem-args))
-                      (format t "~&Decoding the result plan.")))
-             (plans (mapcar (curry #'decode-plan-all macros) plans)))
-        (iter (for plan in plans)
-              (collect
-                  (debinarize-plan
-                   (domain problem) problem
-                   edomain eproblem plan)))))))
+  (let ((*start* (get-universal-time)))
+    (multiple-value-bind (eproblem edomain macros)
+        (time
+         (enhancement-method problem))
+      (format t "~&Enhancement finished on:~%   ~a~%-> ~a"
+              (name problem) (name eproblem))
+      (format t "~&Solving the enhanced problem with FD.")
+      (unless *preprocess-only*
+        (let* ((dir (mktemp "enhanced"))
+               (*domain* edomain)
+               (*problem* eproblem)
+               (plans (prog1
+                        (handler-bind ((unix-signal
+                                        (lambda (c)
+                                          (invoke-restart
+                                           (find-restart 'finish c)))))
+                          (apply #'test-problem
+                                 (write-pddl *problem* "eproblem.pddl" dir)
+                                 (write-pddl *domain* "edomain.pddl" dir)
+                                 test-problem-args))
+                        (format t "~&Decoding the result plan.")))
+               (plans (mapcar (curry #'decode-plan-all macros) plans)))
+          (iter (for plan in plans)
+                (collect
+                    (debinarize-plan
+                     (domain problem) problem
+                     edomain eproblem plan))))))))
 
 ;;;; debinarize the result
 
