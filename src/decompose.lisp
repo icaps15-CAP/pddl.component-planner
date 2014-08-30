@@ -26,10 +26,7 @@
       (setf tasks (remove-if-not #'abstract-component-task-goal tasks))
       (format t "~&Tasks : ~a" (length tasks))
       ;; categorize tasks into buckets, based on init/goal/attribute.
-      (setf tasks-bag (categorize-by-equality
-                       tasks
-                       #'abstract-component-task=
-                       :transitive t))
+      (setf tasks-bag (coerce (categorize-tasks tasks) 'list))
       ;; list pf bags. each bag contains tasks of the same structure
       (format t "~&TASKS/g/i/attr : ~a" (mapcar #'length tasks-bag))
       tasks-bag)))
@@ -53,8 +50,6 @@
   ;; list of bags. each bag contains tasks whose plans are interchangeable
   (iter (for bag in tasks-bag)
         ;; assume the cached value of plan-task
-        ;; however, it MIGHT consume too much time in total
-        ;; consider only those which can be computed under the time limit
         (when-let ((plans-for-a-task (some #'plan-task bag)))
           (collect ; TODO: what if the component-plan does not exists?
               (vector bag (first plans-for-a-task))))))
