@@ -37,20 +37,20 @@ component-planner: refresh
 	--disable-debugger $(common)
 	chmod +x $@
 
-component-planner-cost: refresh
-	sbcl --dynamic-space-size $(small) \
-	--disable-debugger $(cost) $(common)
-	chmod +x $@
+# component-planner-cost: refresh
+# 	sbcl --dynamic-space-size $(small) \
+# 	--disable-debugger $(cost) $(common)
+# 	chmod +x $@
 
 component-planner-large: refresh
 	sbcl --dynamic-space-size $(large) \
 	--disable-debugger $(common)
 	chmod +x $@
 
-component-planner-cost-large: refresh
-	sbcl --dynamic-space-size $(large) \
-	--disable-debugger $(cost) $(common)
-	chmod +x $@
+# component-planner-cost-large: refresh
+# 	sbcl --dynamic-space-size $(large) \
+# 	--disable-debugger $(cost) $(common)
+# 	chmod +x $@
 
 clean:
 	rm -fv component-planner* $(link)/component-planner* $(link)
