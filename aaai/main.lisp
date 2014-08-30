@@ -12,7 +12,8 @@
 (defvar *verbose* nil)
 (defvar *validation* nil)
 
-(defparameter *lmcut-gbfs* (wrap-option "--search lazy_greedy(lmcut())"))
+(defparameter *lmcut-lazy-gbfs* (wrap-option "--search lazy_greedy(lmcut())"))
+(defparameter *lmcut-eager-gbfs* (wrap-option "--search eager_greedy(lmcut())"))
 
 
 (defun solve (ppath dpath)
@@ -23,7 +24,9 @@
       (print pname)
       (print problem)
       (let ((plans (solve-problem-enhancing problem
-                                        ;:options *opt-options*
+                                            ;; :options *lmcut-lazy-gbfs* ; not effective
+                                            ;; :options *lmcut-eager-gbfs* ; not effective
+                                            ;; :options *opt-options*
                                             :time-limit 1 ; satisficing
                                             :verbose *verbose*)))
         (iter (for plan in plans)
