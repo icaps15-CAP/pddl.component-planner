@@ -32,6 +32,7 @@
       tasks-bag)))
 
 (defun categorize-bag (bag)
+  (format t "~&Categorizing bag/g/i/attr of length ~a" (length bag))
   (coerce (categorize-by-equality bag #'maybe-task-plan-equal :transitive t)
           'list))
 
