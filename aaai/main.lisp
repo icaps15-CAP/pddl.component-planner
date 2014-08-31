@@ -41,9 +41,10 @@
               (when *validation*
                 (validate-plan dpath ppath plp :verbose *verbose*)))))))
 
-(defun main (&optional (argv (cdr (print sb-ext:*posix-argv*))))
+(defun main (&optional (argv (cdr sb-ext:*posix-argv*)))
+  (print argv)
   (let ((*package* (find-package :pddl.component-planner.experiment)))
-    (ematch argv
+    (match argv
       ((list* "-v" rest)
        (let ((*verbose* t))
          (main rest)))
@@ -69,13 +70,23 @@
       ((list ppath dpath)
        (let ((ppath (merge-pathnames ppath))
              (dpath (merge-pathnames dpath)))
-         (solve ppath dpath))))))
+         (solve ppath dpath)))
+      (_
+       (format *error-output* "~&Invalid Arguments!~2%")
+       (error "~&Invalid Arguments!~2%")))))
+
+(defun toplevel ()
+  (sb-ext:disable-debugger)
+  (handler-bind ((error (lambda (c)
+                          (declare (ignore c))
+                          (sb-ext:exit :code 1))))
+    (main)))
 
 (defun save (name)
   (sb-ext:gc :full t)
   (sb-ext:save-lisp-and-die
    name
-   :toplevel #'main
+   :toplevel #'toplevel
    :executable t
    :purify t
    ;; :save-runtime-options t
