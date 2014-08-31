@@ -6,9 +6,9 @@ link = exp
 
 .PHONY: copy refresh clean
 
-all: component-planner component-planner-large
+all: component-planner
 
-copy: $(link)/component-planner $(link)/component-planner-large
+copy: $(link)/component-planner
 
 $(link)/%: % $(link)
 	cp -v $< $@

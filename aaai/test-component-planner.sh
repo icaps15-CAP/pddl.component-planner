@@ -9,7 +9,7 @@ run(){
     rm -f $log $err
     ulimit -v 3000000 -t 1900
     /usr/bin/time -f 'real %e\nuser %U\nsys %S\nmaxmem %M' \
-        ./component-planner -v $1 > $log 2> $err
+        ./component-planner --dynamic-space-size 2000 -v $1 > $log 2> $err
     if [[ $(cat ${1%.*}.plan) != "" ]]
     then
         echo plan found!
