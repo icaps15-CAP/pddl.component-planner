@@ -1,8 +1,9 @@
 
 
 (ql:quickload :pddl.component-planner.experiment)
-(sb-profile:profile "PDDL" "PDDL.COMPONENT-PLANNER" "PDDL.COMPONENT-ABSTRACTION" "GUICHO-UTILITIES" "EAZYLAZY")
+;;(sb-profile:profile "PDDL" "PDDL.COMPONENT-PLANNER" "PDDL.COMPONENT-ABSTRACTION" "GUICHO-UTILITIES" "EAZYLAZY")
 (in-package "PDDL.COMPONENT-PLANNER.EXPERIMENT")
+(swank:set-default-directory "/mnt/video/guicho/repos/lisp/pddl.component-planner/aaai/")
 
 (time (pddl.component-planner.experiment::test1-1))
 (time (pddl.component-planner.experiment::test1-2))
