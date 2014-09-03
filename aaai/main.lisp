@@ -91,10 +91,13 @@
        (format *error-output* "~&Usage: component-planner PROBLEM [DOMAIN]~
                ~%~@{~4t~20a ~:[          ~;~:*~10a~] : ~a~%~}"
                "-v" nil "specify verbosity"
-               "--preprocess-only" nil "stops immediately when preprocess finishes"
-               "--preprocess-limit" 'time "specify the approximated maxmimum preprocessing time in integer"
-               "--use-ff" nil "use FF as an underlying planner"
                "--validation" nil "run the validator after the planning"
+               "--preprocess-only" nil "stops immediately when preprocess finishes"
+               "--preprocess-ff" nil "use FF during preprocesssing (otherwise LAMA ipc 2011)"
+               "--main-search-ff" nil "use FF during main search (otherwise LAMA ipc 2011)"
+               "--use-ff" nil "both --preprocess-ff and --main-search-ff"
+               "--preprocess-limit" 'time "specify the approximated sum of maxmimum preprocessing time in integer"
+               "--component-plan-limit" 'time "specify the time limit of component planning in integer"
                "-t" 'time "time limit for the main search. NOT the total limit"
                "-m" 'memory "memory limit for the main search. NOT the total limit")
        (format *error-output* "~&DOMAIN is by default domain.pddl in the same directory")
