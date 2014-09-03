@@ -335,6 +335,7 @@
 
 (defvar *preprocess-only* nil)
 (defvar *main-search-ff* nil)
+(defvar *main-options* nil)
 
 (defun solve-problem-enhancing (problem &rest test-problem-args)
   (clear-plan-task-cache)
@@ -355,12 +356,14 @@
                                         (lambda (c)
                                           (invoke-restart
                                            (find-restart 'finish c)))))
-                          (apply (if *main-search-ff*
-                                     #'test-problem-ff
-                                     #'test-problem)
-                                 (write-pddl *problem* "eproblem.pddl" dir)
-                                 (write-pddl *domain* "edomain.pddl" dir)
-                                 test-problem-args))
+                          (let ((*ff-options* (or *main-options* *ff-options*))
+                                (*fd-options* (or *main-options* *fd-options*)))
+                            (apply (if *main-search-ff*
+                                       #'test-problem-ff
+                                       #'test-problem)
+                                   (write-pddl *problem* "eproblem.pddl" dir)
+                                   (write-pddl *domain* "edomain.pddl" dir)
+                                   test-problem-args)))
                         (format t "~&Decoding the result plan.")))
                (plans (mapcar (curry #'decode-plan-all macros) plans)))
           (iter (for plan in plans)

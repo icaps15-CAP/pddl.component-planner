@@ -65,6 +65,9 @@
        (let ((*preprocess-ff* t)
              (*main-search-ff* t))
          (main rest)))
+      ((list* "--main-options" string rest)
+       (let ((*main-options* string))
+         (main rest)))
       ;; time limit and resource
       ((list* "--preprocess-limit" time rest)
        (let ((*preprocess-time-limit* (parse-integer time)))
@@ -89,13 +92,14 @@
       (_
        (format *error-output* "~&Invalid Arguments!")
        (format *error-output* "~&Usage: component-planner PROBLEM [DOMAIN]~
-               ~%~@{~4t~20a ~:[          ~;~:*~10a~] : ~a~%~}"
+               ~%~@{~4t~25a ~:[          ~;~:*~10a~] : ~a~%~}"
                "-v" nil "specify verbosity"
                "--validation" nil "run the validator after the planning"
                "--preprocess-only" nil "stops immediately when preprocess finishes"
                "--preprocess-ff" nil "use FF during preprocesssing (otherwise LAMA ipc 2011)"
                "--main-search-ff" nil "use FF during main search (otherwise LAMA ipc 2011)"
                "--use-ff" nil "both --preprocess-ff and --main-search-ff"
+               "--main-options" 'string "specify the additional options given to macroff/fastdownward."
                "--preprocess-limit" 'time "specify the approximated sum of maxmimum preprocessing time in integer"
                "--component-plan-limit" 'time "specify the time limit of component planning in integer"
                "-t" 'time "time limit for the main search. NOT the total limit"
