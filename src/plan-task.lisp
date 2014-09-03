@@ -10,7 +10,8 @@
   "Clear the cache for plan-task."
   (clear-cache *PLAN-TASK-CACHE*))
 
-
+(defvar *preprocess-ff* nil)
+(defvar *component-plan-time-limit* 40)
 (defcached plan-task (task)
   "Calls build-component-problem, make a plan with FD, then parse the results.
 returns a PDDL-PLAN. The call to this function is cached and memoized, so be
@@ -22,15 +23,15 @@ careful if you measure the elapsed time. When you measure the time, run
            (*domain* (domain *problem*))
            (dir (mktemp "plan-task" t)))
       (multiple-value-match
-          (test-problem
-           (write-pddl *problem* "problem.pddl" dir)
-           (write-pddl *domain* "domain.pddl" dir)
-           :time-limit 1
-           :hard-time-limit 40
-           :memory 500000
-           :verbose nil
-           ;; :options "--search astar(lmcut())"
-           )
+          (funcall (if *preprocess-ff*
+                       #'test-problem-ff
+                       #'test-problem)
+                   (write-pddl *problem* "problem.pddl" dir)
+                   (write-pddl *domain* "domain.pddl" dir)
+                   :time-limit 1
+                   :hard-time-limit *component-plan-time-limit*
+                   :memory *memory-limit*
+                   :verbose nil)
         ((plans t-time p-time s-time
                 t-memory p-memory s-memory complete)
          (signal 'evaluation-signal

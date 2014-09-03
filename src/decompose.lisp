@@ -334,6 +334,7 @@
   (enhance-problem problem))
 
 (defvar *preprocess-only* nil)
+(defvar *main-search-ff* nil)
 
 (defun solve-problem-enhancing (problem &rest test-problem-args)
   (clear-plan-task-cache)
@@ -354,7 +355,9 @@
                                         (lambda (c)
                                           (invoke-restart
                                            (find-restart 'finish c)))))
-                          (apply #'test-problem
+                          (apply (if *main-search-ff*
+                                     #'test-problem-ff
+                                     #'test-problem)
                                  (write-pddl *problem* "eproblem.pddl" dir)
                                  (write-pddl *domain* "edomain.pddl" dir)
                                  test-problem-args))

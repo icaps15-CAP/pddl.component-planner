@@ -48,14 +48,29 @@
       ((list* "-v" rest)
        (let ((*verbose* t))
          (main rest)))
+      ((list* "--validation" rest)
+       (let ((*validation* t))
+         (main rest)))
       ((list* "--preprocess-only" rest)
        (let ((*preprocess-only* t))
          (main rest)))
-      ((list* "--preprocess-limit" time rest)
-       (let ((*component-plan-time-limit* (parse-integer time)))
+      ;; underlying planner
+      ((list* "--preprocess-ff" rest)
+       (let ((*preprocess-ff* t))
          (main rest)))
-      ((list* "--validation" rest)
-       (let ((*validation* t))
+      ((list* "--main-search-ff" rest)
+       (let ((*main-search-ff* t))
+         (main rest)))
+      ((list* "--use-ff" rest)
+       (let ((*preprocess-ff* t)
+             (*main-search-ff* t))
+         (main rest)))
+      ;; time limit and resource
+      ((list* "--preprocess-limit" time rest)
+       (let ((*preprocess-time-limit* (parse-integer time)))
+         (main rest)))
+      ((list* "--component-plan-limit" time rest)
+       (let ((*component-plan-time-limit* (parse-integer time)))
          (main rest)))
       ((list* "-t" time rest)
        (let ((*hard-time-limit* (parse-integer time)))
@@ -72,15 +87,22 @@
              (dpath (merge-pathnames dpath)))
          (solve ppath dpath)))
       (_
-       (format *error-output* "~&Invalid Arguments!~2%")
+       (format *error-output* "~&Invalid Arguments!")
+       (format *error-output* "~&Usage: component-planner PROBLEM [DOMAIN]~
+               ~%~@{~4t~20a ~:[          ~;~:*~10a~] : ~a~%~}"
+               "-v" nil "specify verbosity"
+               "--preprocess-only" nil "stops immediately when preprocess finishes"
+               "--preprocess-limit" 'time "specify the approximated maxmimum preprocessing time in integer"
+               "--use-ff" nil "use FF as an underlying planner"
+               "--validation" nil "run the validator after the planning"
+               "-t" 'time "time limit for the main search. NOT the total limit"
+               "-m" 'memory "memory limit for the main search. NOT the total limit")
+       (format *error-output* "~&DOMAIN is by default domain.pddl in the same directory")
        (error "~&Invalid Arguments!~2%")))))
 
 (defun toplevel ()
   (sb-ext:disable-debugger)
-  (handler-bind ((error (lambda (c)
-                          (declare (ignore c))
-                          (sb-ext:exit :code 1))))
-    (main)))
+  (main))
 
 (defun save (name)
   (sb-ext:gc :full t)

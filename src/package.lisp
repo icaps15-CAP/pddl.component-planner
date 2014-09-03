@@ -24,7 +24,11 @@
            :add-cost-domain
            :add-cost-problem
            :*preprocess-only*
-           :*component-plan-time-limit*)
+           :*component-plan-time-limit*
+           :*use-ff*
+           :*preprocess-ff*
+           :*preprocess-time-limit*
+           :*main-search-ff*)
   (:shadowing-import-from :guicho-utilities
                           :permutations)
   (:shadowing-import-from :statistics
