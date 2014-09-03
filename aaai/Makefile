@@ -24,12 +24,12 @@ save      = --eval '(pddl.component-planner.experiment::save "$@")'
 common    = $(interpret) $(load) $(save)
 
 refresh:
-	sbcl --quit \
+	sbcl --non-interactive \
 	--eval "(ql:register-local-projects)" \
 	$(interpret) $(cost) $(load)
 
 component-planner: refresh
-	sbcl --dynamic-space-size $(small) $(common)
+	sbcl --dynamic-space-size $(small) --non-interactive $(common)
 	chmod +x $@
 
 clean:
