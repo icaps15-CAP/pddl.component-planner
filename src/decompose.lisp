@@ -91,6 +91,11 @@
 (defun remove-null-macros (pairs)
   (format t "~&Filtering null macros.")
   (remove-if (lambda-match ((vector _ nil) t)) pairs))
+(defun remove-single-macros (pairs)
+  (format t "~&Filtering macros with length 1.")
+  (remove-if (lambda-match ((vector _ (macro-action actions))
+                            (= 1 (length actions))))
+             pairs))
 
 ;;;;; normalized score
 
@@ -270,6 +275,7 @@
 (defun enhance-problem (problem
                         &key
                           (filters (list #'remove-null-macros
+                                         #'remove-single-macros
                                          ;; #'sort-and-print-macros
                                          ;; #'filter-macros-normdist
                                          #'filter-macros-normalized
