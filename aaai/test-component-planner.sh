@@ -9,7 +9,8 @@ run(){
     rm -f $log $err
     ulimit -v 3000000 -t 1900
     /usr/bin/time -f 'real %e\nuser %U\nsys %S\nmaxmem %M' \
-        ./component-planner --dynamic-space-size 2000 -v $1 > $log 2> $err
+        ./component-planner --dynamic-space-size 2000 \
+        -v --preprocess-ff --validation $1 > $log 2> $err
     if [[ $(cat ${1%.*}.plan) != "" ]]
     then
         echo plan found!
@@ -18,6 +19,8 @@ run(){
 
 # # run elevators-sat11/p01.pddl
 # run cell-assembly-noneg-nocost/p01.pddl
+
+./component-planner
 
 for problem in $(find -name "p01.pddl")
 do
