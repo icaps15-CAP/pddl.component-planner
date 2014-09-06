@@ -10,7 +10,7 @@ run(){
     ulimit -v 3000000 -t 1900
     /usr/bin/time -f 'real %e\nuser %U\nsys %S\nmaxmem %M' \
         ./component-planner --dynamic-space-size 2000 \
-        -v --preprocess-ff --validation $1 > $log 2> $err
+        -v --preprocess-ff --validation $1 2> $err | tee $log
     if [[ $(cat ${1%.*}.plan) != "" ]]
     then
         echo plan found!
@@ -22,12 +22,23 @@ run(){
 
 ./component-planner
 
+finalize(){
+
+    kill $pid
+    exit 1
+}
+trap "finalize" SIGHUP SIGINT SIGQUIT
+pid=
 for problem in $(find -name "p01.pddl")
 do
-    run $problem
+    run $problem &
+    pid=$!
+    wait $pid
 done
 
 for problem in $(find -name "p04.pddl")
 do
     run $problem
 done
+
+
