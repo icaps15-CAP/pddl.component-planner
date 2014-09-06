@@ -29,7 +29,8 @@
            :*preprocess-ff*
            :*preprocess-time-limit*
            :*main-search-ff*
-           :*main-options*)
+           :*main-options*
+           :*validation*)
   (:shadowing-import-from :guicho-utilities
                           :permutations)
   (:shadowing-import-from :statistics

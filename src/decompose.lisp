@@ -3,21 +3,16 @@
 (cl-syntax:use-syntax :annot)
 
 ;;; enhance domain and problem
-;;;; extract components
-
-;; not used now
-(defun trivial-component-p (ac)
-  (ematch ac
-    ((abstract-component components)
-     (= 1 (length components)))))
+;;;; binarize, extract and debinarize components
 
 (defun tasks-bag/aig/seed (problem seed &aux (domain (domain problem)))
   ;; -> (list (vector (list task) plan))
-  (multiple-value-bind (problem domain) (binarize problem domain)
-    @ignorable domain
+  (format t "~&Binarizing domain ~a" domain)
+  (multiple-value-bind (bproblem bdomain) (binarize problem domain)
+    @ignorable bdomain
     (let (tasks tasks-bag)
-      (format t "~2&Categorizing PROBLEM ~a with seed ~a" (name problem) seed)
-      (setf tasks (abstract-tasks-seed-only problem seed))
+      (format t "~2&Categorizing PROBLEM ~a with seed ~a" (name bproblem) seed)
+      (setf tasks (abstract-tasks-seed-only bproblem seed))
       ;; remove tasks of the trivial component = components of single object
       ;; (setf tasks (remove-if #'trivial-component-p tasks :key #'abstract-component-task-ac))
       ;; remove tasks without goals
@@ -29,11 +24,52 @@
       (setf tasks-bag (coerce (categorize-tasks tasks) 'list))
       ;; list pf bags. each bag contains tasks of the same structure
       (format t "~&TASKS/g/i/attr : ~a" (mapcar #'length tasks-bag))
-      tasks-bag)))
+      (format t "~&Debinarizing Tasks...")
+      (mapcar (curry #'mapcar (curry #'debinarize-task
+                                     bdomain bproblem domain problem))
+              tasks-bag))))
 
-(defun categorize-bag (bag)
+(defun debinarize-task (bdomain bproblem domain problem task)
+  (declare (ignorable bdomain bproblem domain problem))
+  (ematch task
+    ((abstract-component-task
+      ;; problem
+      ;; init
+      goal
+      (ac (abstract-component
+           seed ; facts
+           components attributes)))
+     (make-abstract-component-task
+      ;; NOTE: slot `problem', `init', +`goal'+ are unbound.
+      ;; THIS IS INTENTIONAL. they are not used.
+      :goal (debinarize-goals goal)
+      :ac (make-abstract-component
+           ;; NOTE: slot `facts' is unbound. THIS IS INTENTIONAL.
+           :seed seed
+           :components components
+           :attributes attributes)))))
+
+(defun debinarize-goals (bin-goals)
+  (remove-duplicates
+   (mapcar (lambda (g)
+             (match g
+               ((binarized-predicate binarization-origin)
+                binarization-origin)
+               ((pddl-predicate) g)))
+           bin-goals)
+   :test #'eqstate))
+  
+          
+
+;; task: ac, init, goal
+;; ac: seed, objects, facts, attr, attr-facts
+
+;;;; compute component-plans
+
+(defun categorize-by-compatibility (bag)
   (format t "~&Categorizing bag/g/i/attr of length ~a" (length bag))
-  (coerce (categorize-by-equality bag #'maybe-task-plan-equal :transitive t)
+  (coerce (categorize-by-equality
+           bag #'maybe-task-plan-equal :transitive t)
           'list))
 
 (defun maybe-task-plan-equal (x y)
@@ -44,9 +80,11 @@
 
 (defun component-plans (tasks-bag)
   (setf tasks-bag (sort tasks-bag #'> :key #'length)) ;; sort by c_i
-  (format t "~&Categorizing TASKS by equality -- calling FD")
-  (format t "~&Total TASKS/g/i/attr: ~a" (mapcar #'length tasks-bag))
-  (setf tasks-bag (mappend #'categorize-bag tasks-bag))
+  (format t "~&Categorizing TASKS by plan compatibility")
+  (format t "~&Calling the underlying STRIPS planner")
+  (format t "~&Total Tasks /g/i/attr: ~a" (mapcar #'length tasks-bag))
+  (setf tasks-bag (mappend #'categorize-by-compatibility tasks-bag))
+  (format t "~&Finished the categorization based on plan compatibility.")
   (format t "~&TASKS/plan : ~a" (mapcar #'length tasks-bag))
   ;; list of bags. each bag contains tasks whose plans are interchangeable
   (iter (for bag in tasks-bag)
@@ -61,11 +99,11 @@
   (ematch v
     ((vector bag (pddl-plan actions))
      (let ((env-objs
-            (remove-task-component
+            (environment-objects
              (objects *problem*) (first bag))))
        (vector bag (macro-action actions env-objs)))))) ; macro-action might return nil
 
-(defun remove-task-component (objs task)
+(defun environment-objects (objs task)
   (iter (for o in objs)
         (when (filter-object
                (make-instance 'filtering-strategy) o
@@ -75,13 +113,13 @@
 
 
 
-;;;; now entire procedure
+;;;; generate-macro-pairs
 
 (defun generate-macro-pairs (problem)
   (let* ((tasks-bag (iter (for seed in (types-in-goal problem))
-                          (appending (tasks-bag/aig/seed problem seed))))
-         (bag-plan-vector (component-plans tasks-bag)))
-    (mapcar #'component-macro/bpvector bag-plan-vector)))
+                          (appending (tasks-bag/aig/seed problem seed)))))
+    (mapcar #'component-macro/bpvector
+            (component-plans tasks-bag))))
 
 ;;;; score, sort and filter macros
 
@@ -89,13 +127,17 @@
   (match x ((vector _ m) m)))
 
 (defun remove-null-macros (pairs)
-  (format t "~&Filtering null macros.")
-  (remove-if (lambda-match ((vector _ nil) t)) pairs))
+  (format t "~&~40@<Filtering null macros.~>")
+  (let ((filtered (remove-if (lambda-match ((vector _ nil) t)) pairs)))
+    (format t "... ~a remaining." (length filtered))
+    filtered))
 (defun remove-single-macros (pairs)
-  (format t "~&Filtering macros with length 1.")
-  (remove-if (lambda-match ((vector _ (macro-action actions))
-                            (= 1 (length actions))))
-             pairs))
+  (format t "~&~40@<Filtering macros with length 1.~>")
+  (let ((filtered (remove-if (lambda-match ((vector _ (macro-action actions))
+                                            (= 1 (length actions))))
+                             pairs)))
+    (format t "... ~a remaining." (length filtered))
+    filtered))
 
 ;;;;; normalized score
 
@@ -170,10 +212,9 @@
       (format t "~&Pruning threshold is ~a." threshold)
       (when (< (length results) 2)
         (format t "~&This threshold value prunes too many macros. ~
-                     Recovering at least 2.")
+                   ~&Recovering at least 2.")
         (setf results (subseq all 0 (min 2 (length all)))))
-      (format t "~&~a macros are filtered down to ~a."
-              (length pairs) (length results))
+      (format t "~&~40@<~>... ~a remaining." (length results))
       (mapcar #'first results))))
 
 (defvar *sep*
@@ -261,16 +302,18 @@
 
 (defun identity2 (x y) (values x y))
 
-(defun check-macro-sanity (macros)
-  ;; ensure the name of the macros are unique
-  ;; (mapc #'print (mapcar #'name macros))
-  (prog1 (iter (for (name mm) in-hashtable (categorize macros :test #'eq :key #'name))
-               (when (<= 2 (length mm))
-                 (iter (for m in mm)
-                       (for i from 0)
-                       (setf (name m) (symbolicate name '_ (princ-to-string i)))))
-               (appending mm))
-         (mapc #'print (mapcar #'name macros))))
+;; This function is not used anymore since the action name is made by
+;; gensym now
+;; (defun check-macro-sanity (macros)
+;;   ;; ensure the name of the macros are unique
+;;   ;; (mapc #'print (mapcar #'name macros))
+;;   (prog1 (iter (for (name mm) in-hashtable (categorize macros :test #'eq :key #'name))
+;;                (when (<= 2 (length mm))
+;;                  (iter (for m in mm)
+;;                        (for i from 0)
+;;                        (setf (name m) (symbolicate name '_ (princ-to-string i)))))
+;;                (appending mm))
+;;          (mapc #'print (mapcar #'name macros))))
 
 (defun enhance-problem (problem
                         &key
@@ -282,46 +325,53 @@
                                          ))
                           (modify-domain-problem #'identity2)
                         &aux (domain (domain problem)))
-  (format t "~&Binarizing domain ~a" domain)
-  (multiple-value-bind (problem domain) (binarize problem domain)
-    (format t "~&Enhancing domain ~a" domain)
-    (ematch domain
-      ((pddl-domain name)
-       (let* ((*domain*
-               (shallow-copy domain :name (symbolicate name '-enhanced)))
-              macro-pairs macros)
-         (setf macro-pairs
-               (let ((*problem* problem))
-                 (generate-macro-pairs problem)))
-         (format t "~&~a macros found in total." (length macro-pairs))
-         (setf macro-pairs
-               (funcall (apply #'compose (reverse filters)) macro-pairs))
-         (format t "~&~a macros after filtering." (length macro-pairs))
-         (setf macros (mapcar #'get-action macro-pairs))
-         (setf macros (check-macro-sanity macros))
-         (appendf (actions *domain*) macros)
-         (let ((consts (remove-duplicates (mappend #'constants macros)
-                                          :test #'eqname)))
-           (format t "~& ~a constants added" (length consts))
-           (unionf (constants *domain*) consts :test #'eqname))
-         (let* ((*problem*
-                 (shallow-copy
-                  problem
-                  :name (symbolicate (name problem) '-enhanced)
-                  :domain *domain*
-                  :objects
-                  (set-difference
-                   (set-difference
-                    (objects problem)
-                    (remove-duplicates
-                     (mappend #'originals macros)
-                     :test #'eqname)
-                    :test #'eqname)
-                   (constants *domain*)
-                   :test #'eqname))))
-           (multiple-value-bind (domain problem)
-               (funcall modify-domain-problem *domain* *problem*)
-             (values problem domain macros))))))))
+  (format t "~&Enhancing domain ~a" domain)
+  (ematch domain
+    ((pddl-domain name)
+     (let* ((*domain*
+             (shallow-copy domain :name (symbolicate name '-enhanced)))
+            macro-pairs macros)
+       (setf macro-pairs
+             (let ((*problem* problem))
+               (generate-macro-pairs problem)))
+       (format t "~&~a macros found in total." (length macro-pairs))
+       (setf macro-pairs
+             (funcall (apply #'compose (reverse filters)) macro-pairs))
+       (format t "~&~a macros after filtering." (length macro-pairs))
+       (setf macros (mapcar #'get-action macro-pairs))
+       ;; (setf macros (check-macro-sanity macros))
+       (iter (for pb-vector in macro-pairs)
+             (match pb-vector
+               ((vector _ m-action)
+                (format t "~%(~50@<~a~>:length ~a)"
+                        (name m-action) (length (actions m-action))))))
+       (appendf (actions *domain*) macros)
+       (let ((consts (remove-duplicates (mappend #'constants macros)
+                                        :test #'eqname)))
+         (format t "~&~a constants added, of which:" (length consts))
+         (iter (for bag in-vector
+                    (categorize-by-equality
+                     (mapcar #'type consts) #'eq :transitive t))
+               (format t "~&~8<~a~> ~a" (length bag) (name (first bag))))
+         (unionf (constants *domain*) consts :test #'eqname))
+       (let* ((*problem*
+               (shallow-copy
+                problem
+                :name (symbolicate (name problem) '-enhanced)
+                :domain *domain*
+                :objects
+                (set-difference
+                 (set-difference
+                  (objects problem)
+                  (remove-duplicates
+                   (mappend #'originals macros)
+                   :test #'eqname)
+                  :test #'eqname)
+                 (constants *domain*)
+                 :test #'eqname))))
+         (multiple-value-bind (domain problem)
+             (funcall modify-domain-problem *domain* *problem*)
+           (values problem domain macros)))))))
 
 (defun types-in-goal (problem)
   (ematch problem
@@ -342,6 +392,7 @@
 (defvar *preprocess-only* nil)
 (defvar *main-search-ff* nil)
 (defvar *main-options* nil)
+(defvar *validation* nil)
 
 (defun solve-problem-enhancing (problem &rest test-problem-args)
   (clear-plan-task-cache)
@@ -352,6 +403,20 @@
          (enhancement-method problem))
       (format t "~&Enhancement finished on:~%   ~a~%-> ~a"
               (name problem) (name eproblem))
+      (format t "~&Added init:~%~:{~a ~a~%~}"
+              (mapcar (lambda (p)
+                        (match p
+                          ((pddl-predicate name parameters)
+                           (list name (mapcar #'name parameters)))))
+                      (set-difference (init eproblem) (init problem)
+                              :test #'eqname)))
+      (format t "~&Removed init:~%~:{~a ~a~%~}"
+              (mapcar (lambda (p)
+                        (match p
+                          ((pddl-predicate name parameters)
+                           (list name (mapcar #'name parameters)))))
+                      (set-difference (init problem) (init eproblem)
+                              :test #'eqname)))
       (format t "~&Solving the enhanced problem with FD.")
       (unless *preprocess-only*
         (let* ((dir (mktemp "enhanced"))
@@ -369,38 +434,14 @@
                                        #'test-problem)
                                    (write-pddl *problem* "eproblem.pddl" dir)
                                    (write-pddl *domain* "edomain.pddl" dir)
-                                   test-problem-args)))
-                        (format t "~&Decoding the result plan.")))
-               (plans (mapcar (curry #'decode-plan-all macros) plans)))
-          (iter (for plan in plans)
-                (collect
-                    (debinarize-plan
-                     (domain problem) problem
-                     edomain eproblem plan))))))))
-
-;;;; debinarize the result
-
-(define-local-function debinarize-action (ga)
-  (let ((a (find ga (actions bdomain) :test #'eqname)))
-    (ematch a
-      ((binarized-action binarization-origin)
-       (ematch binarization-origin
-         ((pddl-action name)
-          (shallow-copy ga
-                        :domain domain
-                        :problem problem
-                        :name name))))  ; change the name
-      ((pddl-action) ; the action might not have been binarized (because 
-       ga))))        ; there is no need for it)
-
-(defun debinarize-plan (domain problem bdomain bproblem plan)
-  (declare (ignorable bproblem))
-  (more-labels () (debinarize-action)
-    (ematch plan
-      ((pddl-plan :actions actions)
-       (pddl-plan :actions (map 'vector #'debinarize-action actions))))))
-
-
+                                   test-problem-args))))))
+          (when *validation*
+            (dolist (p plans)
+              (validate-plan (pathname (format nil "~a/edomain.pddl" dir))
+                             (pathname (format nil "~a/eproblem.pddl" dir)) p
+                             :verbose t)))
+          (format t "~&~a plans found, decoding the result plan." (length plans))
+          (mapcar (curry #'decode-plan-all macros) plans))))))
 
 ;; in order to set (domain/problem plan)
 ;; during the initialization

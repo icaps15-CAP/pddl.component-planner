@@ -78,43 +78,43 @@ abstract task. objects and initial state is filtered according to the
 given strategy."
   ;(format t "~&Building a component problem of~&~a ..." abstract-task)
   (ematch abstract-task
-    ((abstract-component-task :problem *problem*)
+    ((abstract-component-task :problem *problem*
+                              :ac (abstract-component components)
+                              :goal task-goal)
+     ;; NOTE: abstract-component-fact is not used !
      (ematch *problem*
        ((pddl-problem :name total-name
                       :domain *domain*
                       :objects objs
                       :init init
                       :metric metric)
-        (match abstract-task
-          ((abstract-component-task- (ac (abstract-component components))
-                                     (goal task-goal))
-           (multiple-value-bind
-                 (active-objects removed-objects)
-               (filter-objects keeping-strategy
-                               :objs objs
-                               :components components
-                               :init init)
-             (multiple-value-bind
-                   (active-init removed-init)
-                 (filter-inits keeping-strategy
-                               :objs objs
-                               :components components
-                               :active-objects active-objects
-                               :removed-objects removed-objects
-                               :init init)
-               ;; (let ((*print-length* 10))
-               ;;   (format t "~&Component Obj: ~w" components)
-               ;;   (format t "~&Removed Obj  : ~w" removed-objects)
-               ;;   (format t "~&Active Init  : ~w" active-init)
-               ;;   (format t "~&Removed Init : ~w" removed-init))
-               (pddl-problem
-                :domain *domain*
-                :name (apply #'concatenate-symbols
-                             total-name (mapcar #'name components))
-                :objects (set-difference active-objects
-                                         (constants *domain*))
-                :init active-init
-                :goal (list* 'and task-goal)
-                :metric metric))))))))))
+        (multiple-value-bind
+            (active-objects removed-objects)
+            (filter-objects keeping-strategy
+                            :objs objs
+                            :components components
+                            :init init)
+          (multiple-value-bind
+              (active-init removed-init)
+              (filter-inits keeping-strategy
+                            :objs objs
+                            :components components
+                            :active-objects active-objects
+                            :removed-objects removed-objects
+                            :init init)
+            ;; (let ((*print-length* 10))
+            ;;   (format t "~&Component Obj: ~w" components)
+            ;;   (format t "~&Removed Obj  : ~w" removed-objects)
+            ;;   (format t "~&Active Init  : ~w" active-init)
+            ;;   (format t "~&Removed Init : ~w" removed-init))
+            (pddl-problem
+             :domain *domain*
+             :name (apply #'concatenate-symbols
+                          total-name (mapcar #'name components))
+             :objects (set-difference active-objects
+                                      (constants *domain*))
+             :init active-init
+             :goal (list* 'and task-goal)
+             :metric metric))))))))
 
 

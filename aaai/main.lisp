@@ -10,11 +10,9 @@
      ,@body))
 
 (defvar *verbose* nil)
-(defvar *validation* nil)
 
 (defparameter *lmcut-lazy-gbfs* (wrap-option "--search lazy_greedy(lmcut())"))
 (defparameter *lmcut-eager-gbfs* (wrap-option "--search eager_greedy(lmcut())"))
-
 
 (defun solve (ppath dpath)
   (multiple-value-bind (dname domain) (suppress (parse-file dpath nil t))

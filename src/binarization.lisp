@@ -1,9 +1,17 @@
 
-(in-package :pddl.component-abstraction)
+(in-package :pddl.component-planner)
 (cl-syntax:use-syntax :annot)
 
-(define-pddl-class binarized-action (pddl-action)
+;;; class definitions
+
+(define-pddl-class binarized-object ()
   (binarization-origin))
+
+(define-pddl-class binarized-action (pddl-action binarized-object) ())
+(define-pddl-class binarized-predicate (pddl-predicate binarized-object) ())
+(define-pddl-class binarized-atomic-state (pddl-atomic-state binarized-object) ())
+
+;;; binarizing domain & problem
 
 ;; not exported
 (defun ensure-binarized (domain)
@@ -23,19 +31,18 @@
   (ematch domain
     ((pddl-domain name actions predicates)
      (let ((*domain* (shallow-copy domain)))
-       (let ((binarizations (mapcar #'binarization-of predicates)))
-         (reinitialize-instance
-          *domain*
-          :name (symbolicate name "2")
-          :predicates (reduce #'append binarizations :key #'binarization-results)
-          :actions (binarize-actions actions binarizations)))))))
+       (reinitialize-instance
+        *domain*
+        :name (symbolicate name "2")
+        :predicates (mappend #'binarize-predicate predicates)
+        :actions (mapcar #'binarize-action actions))))))
 
 (defun binarize-problem (problem &optional (*domain* *domain*))
   (match problem
     ((pddl-problem name objects init positive-goals metric)
      (let* ((*problem* (shallow-copy problem))
-            (init2 (mappend (compose #'binarization-results #'binarization-of) init))
-            (goal2 (mappend (compose #'binarization-results #'binarization-of) positive-goals)))
+            (init2 (mappend #'binarize-predicate init))
+            (goal2 (mappend #'binarize-predicate positive-goals)))
        (pddl-problem :domain *domain*
                      :name (symbolicate name "2")
                      :objects objects
@@ -43,79 +50,86 @@
                      :goal `(and ,@(remove-duplicates goal2 :test #'eqstate))
                      :metric metric)))))
 
-(defstruct binarization results source)
+;;; converting a predicate into a set of binary predicates
 
-(defun binarization-of (predicate)
-  (make-binarization
-   :source predicate
-   :results 
-   (match predicate
-     ;; pddl predicate (in domain) /atomic state (in problem)
-     ((pddl-predicate :name name
-                      :parameters (guard parameters (< 2 (length parameters))))
-      (iter outer
-            (for (p1 . rest) on parameters)
-            (iter (for p2 in rest)
-                  (in outer
-                      (collect 
-                          (shallow-copy predicate
-                                        :name (symbolicate name
-                                                           '- (name (type p1))
-                                                           '- (name (type p2)))
-                                        :parameters (list p1 p2)))))))
-     
-     ;; pddl function (in domain) / function state (in problem)
-     ;; false idea
-     ;; ((pddl-function :name name
-     ;;                 :parameters (guard parameters (< 2 (length parameters))))
-     ;;  (iter outer
-     ;;        (for (p1 . rest) on parameters)
-     ;;        (iter (for p2 in rest)
-     ;;              (in outer
-     ;;                  (collect 
-     ;;                      (shallow-copy predicate
-     ;;                                    :name (symbolicate name
-     ;;                                                       '- (name (type p1))
-     ;;                                                       '- (name (type p2)))
-     ;;                                    :parameters (list p1 p2)))))))
-     (_ (list predicate)))))
+(defun binarize-predicate (predicate)
+  "returns an object of type `binarized-predicate' or
+`binarized-atomic-state', depending on the given object.
+Returns itself if numeric-fluents are given."
+  (match predicate
+    ;; pddl predicate (in domain) /atomic state (in problem)
+    ((pddl-atomic-state :name name
+                        :parameters (guard parameters
+                                           (< 2 (length parameters))))
+     (iter outer
+           (for (p1 . rest) on parameters)
+           (for i from 1)
+           (iter (for p2 in rest)
+                 (for j from (1+ i))
+                 (in outer
+                     (collect 
+                         (binarized-atomic-state
+                          :binarization-origin predicate
+                          :name (intern
+                                 (format nil "~a-~a~a-~a~a"
+                                         name
+                                         (name (type p1)) (princ-to-string i)
+                                         (name (type p2)) (princ-to-string j)))
+                          :parameters (list p1 p2)))))))
+    ((pddl-predicate :name name
+                     :parameters (guard parameters
+                                        (< 2 (length parameters))))
+     (iter outer
+           (for (p1 . rest) on parameters)
+           (for i from 1)
+           (iter (for p2 in rest)
+                 (for j from (1+ i))
+                 (in outer
+                     (collect 
+                         (binarized-predicate
+                          :binarization-origin predicate
+                          :name (intern
+                                 (format nil "~a-~a~a-~a~a"
+                                         name
+                                         (name (type p1)) (princ-to-string i)
+                                         (name (type p2)) (princ-to-string j)))
+                          :parameters (list p1 p2)))))))
+    ;; pddl function (in domain) / function state (in problem)
+    ;; false idea --- at least, currently not supported because
+    ;; FF is not able to handle numeric fluents
+    ;; ((pddl-function :name name
+    ;;                 :parameters (guard parameters (< 2 (length parameters))))
+    ;;  (iter outer
+    ;;        (for (p1 . rest) on parameters)
+    ;;        (iter (for p2 in rest)
+    ;;              (in outer
+    ;;                  (collect 
+    ;;                      (shallow-copy predicate
+    ;;                                    :name (symbolicate name
+    ;;                                                       '- (name (type p1))
+    ;;                                                       '- (name (type p2)))
+    ;;                                    :parameters (list p1 p2)))))))
+    (_ (list predicate))))
 
-(defun binarize-actions (actions binarizations)
-  (iter (for a in actions)
-        (collect (binarize-action a binarizations))))
+;;; binarize actions
 
-(defun binarize-action (action binarizations)
+(defun binarize-action (action)
   (ematch action
-    ((pddl-action name parameters add-list delete-list positive-preconditions assign-ops)
-     (binarized-action :name (symbolicate name "2")
-                       :binarization-origin action
-                       :parameters parameters
-                       :precondition `(and ,@(apply-binarizations binarizations positive-preconditions))
-                       :effect `(and ,@(apply-binarizations binarizations add-list)
-                                     ,@(mapcar #'wrap-not (apply-binarizations binarizations delete-list))
-                                     ,@assign-ops)))))
+    ((pddl-action name parameters add-list delete-list
+                  positive-preconditions assign-ops)
+     (binarized-action
+      :name (symbolicate name "2")
+      :binarization-origin action
+      :parameters parameters
+      :precondition `(and ,@(mapcar
+                             #'binarize-predicate
+                             positive-preconditions))
+      :effect `(and ,@(mapcar #'binarize-predicate add-list)
+                    ,@(mapcar (compose #'wrap-not #'binarize-predicate)
+                              delete-list)
+                    ,@assign-ops)))))
 
-(defun apply-binarizations (binarizations predicates)
-  (mappend (lambda (s) (apply-binarization binarizations s)) predicates))
-
-(defun find-binarization (binarizations predicate)
-  (find predicate binarizations :test #'eqname :key #'binarization-source))
-
-(defun apply-binarization (binarizations predicate)
-  (let ((bin (find-binarization binarizations predicate)))
-    (ematch predicate
-      ((pddl-predicate :parameters ps1)
-       (ematch (binarization-source bin)
-         ((pddl-predicate :parameters ps2)
-          (iter (for pred in (binarization-results bin))
-                (collect
-                    (match pred
-                      ((pddl-predicate name parameters)
-                       (pddl-predicate
-                        :name name
-                        :parameters
-                        (iter (for p in parameters)
-                              (collecting (elt ps1 (position p ps2)))))))))))))))
+;; apply binarization to the predicates in the action definition.
 
 (defun wrap-not (x) `(not ,x))
 
