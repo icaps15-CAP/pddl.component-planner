@@ -39,7 +39,8 @@
               (write-plan plan plp
                           *default-pathname-defaults* t)
               (when *validation*
-                (validate-plan dpath ppath plp :verbose *verbose*)))))))
+                (always
+                 (validate-plan dpath ppath plp :verbose *verbose*))))))))
 
 (defun main (&optional (argv (cdr sb-ext:*posix-argv*)))
   (print argv)
@@ -121,6 +122,11 @@
    ;; :save-runtime-options t
    ))
 
+(defun fdtest-sat ()
+  (clear-plan-task-cache)
+  (test-problem "depot/p01.pddl" "depot/domain.pddl"
+                :verbose t))
+
 ;;;; elevators
 
 (defun test1-1 ()
@@ -135,17 +141,11 @@
 (defun test1-4 ()
   (clear-plan-task-cache)
   (main (list "--validation" "-v" "-m" "2000000" "elevators-sat11/p12.pddl")))
-
-;;;; fd
-
-(defun fdtest ()
+(defun test1-fd ()
   (clear-plan-task-cache)
   (test-problem "elevators-sat11/p01.pddl" "elevators-sat11/domain.pddl"
                 :verbose t :options *opt-options*))
-(defun fdtest-sat ()
-  (clear-plan-task-cache)
-  (test-problem "depot/p01.pddl" "depot/domain.pddl"
-                :verbose t))
+
 
 ;;;; cell-assembly-noneg-nocost
 
@@ -189,7 +189,7 @@
   (clear-plan-task-cache)
   (main (list "--validation" "-v" "-m" "2000000" "barman/p08.pddl")))
 
-;;;;
+;;;; childsnack
 
 (defun test6-1 ()
   (clear-plan-task-cache)
@@ -204,6 +204,7 @@
   (clear-plan-task-cache)
   (test-problem "childsnack/p04.pddl" "childsnack/domain.pddl" :verbose t))
 
+;;;; woodworking
 
 (defun test7-1 ()
   (clear-plan-task-cache)
@@ -217,6 +218,8 @@
 (defun test7-2-fd ()
   (clear-plan-task-cache)
   (test-problem "woodworking-sat11-nocost/p04.pddl" "woodworking-sat11-nocost/domain.pddl" :verbose t))
+
+;;;; satellite
 
 (defun test8-1 ()
   (clear-plan-task-cache)
@@ -233,3 +236,33 @@
 (defun test8-3 ()
   (clear-plan-task-cache)
   (main (list "--validation" "-v" "-m" "2000000" "satellite-typed2/p01-hard.pddl")))
+
+;;;; rovers
+
+(defun test9-1 ()
+  (clear-plan-task-cache)
+  (main (list "--validation" "-v" "-m" "2000000" "rovers/p01.pddl")))
+(defun test9-1-fd ()
+  (clear-plan-task-cache)
+  (test-problem "rovers/p01.pddl" "rovers/domain.pddl" :verbose t))
+(defun test9-2 ()
+  (clear-plan-task-cache)
+  (main (list "--validation" "-v" "-m" "2000000" "rovers/p04.pddl")))
+(defun test9-2-fd ()
+  (clear-plan-task-cache)
+  (test-problem "rovers/p04.pddl" "rovers/domain.pddl" :verbose t))
+
+
+
+(defun test9-1* ()
+  (clear-plan-task-cache)
+  (main (list "--validation" "-v" "-m" "2000000" "rovers/p01.pddl" "rovers/domain-fixed.pddl")))
+(defun test9-1*-fd ()
+  (clear-plan-task-cache)
+  (test-problem "rovers/p01.pddl" "rovers/domain-fixed.pddl" :verbose t))
+(defun test9-2* ()
+  (clear-plan-task-cache)
+  (main (list "--validation" "-v" "-m" "2000000" "rovers/p04.pddl" "rovers/domain-fixed.pddl")))
+(defun test9-2*-fd ()
+  (clear-plan-task-cache)
+  (test-problem "rovers/p04.pddl" "rovers/domain-fixed.pddl" :verbose t))
