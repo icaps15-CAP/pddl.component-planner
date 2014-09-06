@@ -25,7 +25,7 @@ common    = $(interpret) $(load) $(save)
 
 refresh:
 	sbcl --non-interactive \
-	--eval "(ql:register-local-projects)" \
+	--eval "(progn (print :register-local-projects)(ql:register-local-projects))" \
 	$(interpret) $(cost) $(load)
 
 component-planner: refresh
