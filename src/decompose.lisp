@@ -149,14 +149,9 @@
                       ((cons (and org (type pddl-object)) (and (type pddl-variable)))
                        (elt components (position org components1)))))
                   (ground-a (a)
-                    (format t "~&~A ~A" (name a) (parameters a))
                     (handler-bind ((warning #'muffle-warning)) 
                       (ground-action
-                       a (mapcar #'ground-p (parameters a)))
-                      ;; (let ((ga ))
-                      ;;   (setf (parameters ga) nil)
-                      ;;   ga)
-                      )))
+                       a (mapcar #'ground-p (parameters a))))))
            (change-class
             (ground-a m)
             'macro-action
