@@ -28,9 +28,16 @@ refresh:
 	--eval "(progn (print :register-local-projects)(ql:register-local-projects))" \
 	$(interpret) $(cost) $(load)
 
-component-planner: refresh
+component-planner: # refresh # not required anymore
 	sbcl --dynamic-space-size $(small) --non-interactive $(common)
 	chmod +x $@
 
 clean:
 	rm -fv component-planner* $(link)/component-planner* $(link)
+	find -name "*.log" -delete
+	find -name "*.plan*" -delete
+	find -name "*.cost" -delete
+	find -name "*.err" -delete
+	find -name "*.time" -delete
+	find -name "*.sas*" -delete
+
