@@ -347,29 +347,13 @@
                 (format t "~%(~50@<~a~>:length ~a)"
                         (name m-action) (length (actions m-action))))))
        (appendf (actions *domain*) macros)
-       (let ((consts (remove-duplicates (mappend #'constants macros)
-                                        :test #'eqname)))
-         (format t "~&~a constants added, of which:" (length consts))
-         (iter (for bag in-vector
-                    (categorize-by-equality
-                     (mapcar #'type consts) #'eq :transitive t))
-               (format t "~&~8<~a~> ~a" (length bag) (name (first bag))))
-         (unionf (constants *domain*) consts :test #'eqname))
+       (appendf (constants *domain*) (objects/const problem))
        (let* ((*problem*
                (shallow-copy
                 problem
                 :name (symbolicate (name problem) '-enhanced)
                 :domain *domain*
-                :objects
-                (set-difference
-                 (set-difference
-                  (objects problem)
-                  (remove-duplicates
-                   (mappend #'originals macros)
-                   :test #'eqname)
-                  :test #'eqname)
-                 (constants *domain*)
-                 :test #'eqname))))
+                :objects nil)))
          (multiple-value-bind (domain problem)
              (funcall modify-domain-problem *domain* *problem*)
            (values problem domain macros)))))))
