@@ -124,9 +124,9 @@
 ;;;; score, sort and filter macros
 
 ;; no grounding
-;; (defun get-actions (x)
-;;   (match x ((vector _ m) (list m))))
 (defun get-actions (x)
+  (match x ((vector _ m) (list m))))
+(defun get-actions-grounded (x)
   (match x
     ((vector (and tasks (list* (abstract-component-task
                                 (ac (abstract-component
@@ -368,14 +368,19 @@
 ;;                (appending mm))
 ;;          (mapc #'print (mapcar #'name macros))))
 
+
+(defvar *disable-filtering* nil)
+(defvar *use-grounded-actions* nil)
+
 (defun enhance-problem (problem
                         &key
-                          (filters (list #'remove-null-macros
-                                         #'remove-single-macros
-                                         ;; #'sort-and-print-macros
-                                         ;; #'filter-macros-normdist
-                                         #'filter-macros-normalized
-                                         ))
+                          (filters
+                           (list* #'remove-null-macros
+                                  #'remove-single-macros
+                                  ;; #'sort-and-print-macros
+                                  ;; #'filter-macros-normdist
+                                  (unless *disable-filtering*
+                                    (list #'filter-macros-normalized))))
                           (modify-domain-problem #'identity2)
                         &aux (domain (domain problem)))
   (format t "~&Enhancing domain ~a" domain)
@@ -391,7 +396,10 @@
        (setf macro-pairs
              (funcall (apply #'compose (reverse filters)) macro-pairs))
        (format t "~&~a macros after filtering." (length macro-pairs))
-       (setf macros (mappend #'get-actions macro-pairs))
+       (setf macros (mappend (if *use-grounded-actions*
+                                 #'get-actions-grounded
+                                 #'get-actions)
+                             macro-pairs))
        ;; (setf macros (check-macro-sanity macros))
        (iter (for pb-vector in macro-pairs)
              (match pb-vector

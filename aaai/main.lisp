@@ -53,6 +53,12 @@
       ((list* "--preprocess-only" rest)
        (let ((*preprocess-only* t))
          (main rest)))
+      ((list* "--use-grounded-actions" rest)
+       (let ((*use-grounded-actions* t))
+         (main rest)))
+      ((list* "--disable-filtering" rest)
+       (let ((*disable-filtering* t))
+         (main rest)))
       ;; underlying planner
       ((list* "--preprocess-ff" rest)
        (let ((*preprocess-ff* t))
@@ -95,6 +101,8 @@
                "-v" nil "specify verbosity"
                "--validation" nil "run the validator after the planning"
                "--preprocess-only" nil "stops immediately when preprocess finishes"
+               "--disable-filtering" nil "disable ranking-based macro filtering"
+               "--use-grounded-actions" nil "use non-parametric fulkly grounded macro actions"
                "--preprocess-ff" nil "use FF during preprocesssing (otherwise LAMA ipc 2011)"
                "--main-search-ff" nil "use FF during main search (otherwise LAMA ipc 2011)"
                "--use-ff" nil "both --preprocess-ff and --main-search-ff"

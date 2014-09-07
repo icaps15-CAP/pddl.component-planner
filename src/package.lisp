@@ -30,7 +30,9 @@
            :*preprocess-time-limit*
            :*main-search-ff*
            :*main-options*
-           :*validation*)
+           :*validation*
+           :*disable-filtering*
+           :*use-grounded-actions*)
   (:shadowing-import-from :guicho-utilities
                           :permutations)
   (:shadowing-import-from :statistics
