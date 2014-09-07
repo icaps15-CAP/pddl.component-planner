@@ -136,18 +136,21 @@
       (lambda-match
         ((abstract-component-task
           (ac (abstract-component components)))
-         (print components1)
-         (print components)
          (labels ((ground-p (param)
-                    (ematch (rassoc param alist)
-                      ((cons (and (type pddl-constant)) (and enh (type pddl-constant)))
-                       enh)
-                      ((cons (and org (type pddl-constant)) (and (type pddl-variable)))
-                       (elt components (position org components1)))
-                      ((cons (and (type pddl-object)) (and enh (type pddl-constant)))
-                       enh)
-                      ((cons (and org (type pddl-object)) (and (type pddl-variable)))
-                       (elt components (position org components1)))))
+                    (handler-bind ((error (lambda (c)
+                                            (let ((*standard-output* *error-output*))
+                                              (break+ components1
+                                                      components
+                                                      param
+                                                      (rassoc param alist)
+                                                      alist)))))
+                      (ematch (rassoc param alist)
+                              ((cons _ (and enh (type pddl-constant)))
+                               enh)
+                              ((cons (and org (type pddl-constant)) (and (type pddl-variable)))
+                               org)
+                              ((cons (and org (type pddl-object)) (and (type pddl-variable)))
+                               (elt components (position org components1))))))
                   (ground-a (a)
                     (handler-bind ((warning #'muffle-warning)) 
                       (ground-action
