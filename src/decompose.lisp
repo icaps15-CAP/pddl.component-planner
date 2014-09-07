@@ -123,8 +123,9 @@
 
 ;;;; score, sort and filter macros
 
-(defun get-action (x)
-  (match x ((vector _ m) m)))
+;; no grounding
+(defun get-actions (x)
+  (match x ((vector _ m) (list m))))
 
 (defun remove-null-macros (pairs)
   (format t "~&~40@<Filtering null macros.~>")
@@ -338,7 +339,7 @@
        (setf macro-pairs
              (funcall (apply #'compose (reverse filters)) macro-pairs))
        (format t "~&~a macros after filtering." (length macro-pairs))
-       (setf macros (mapcar #'get-action macro-pairs))
+       (setf macros (mappend #'get-actions macro-pairs))
        ;; (setf macros (check-macro-sanity macros))
        (iter (for pb-vector in macro-pairs)
              (match pb-vector
