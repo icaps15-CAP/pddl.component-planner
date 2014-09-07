@@ -124,8 +124,60 @@
 ;;;; score, sort and filter macros
 
 ;; no grounding
+;; (defun get-actions (x)
+;;   (match x ((vector _ m) (list m))))
 (defun get-actions (x)
-  (match x ((vector _ m) (list m))))
+  (match x
+    ((vector (and tasks (list* (abstract-component-task
+                                (ac (abstract-component
+                                     (components components1)))) _))
+             (and m (macro-action :alist alist)))
+     (mapcar
+      (lambda-match
+        ((abstract-component-task
+          (ac (abstract-component components)))
+         (print components1)
+         (print components)
+         (labels ((ground-p (param)
+                    (ematch (rassoc param alist)
+                      ((cons (and (type pddl-constant)) (and enh (type pddl-constant)))
+                       enh)
+                      ((cons (and org (type pddl-constant)) (and (type pddl-variable)))
+                       (elt components (position org components1)))
+                      ((cons (and (type pddl-object)) (and enh (type pddl-constant)))
+                       enh)
+                      ((cons (and org (type pddl-object)) (and (type pddl-variable)))
+                       (elt components (position org components1)))))
+                  (ground-a (a)
+                    (format t "~&~A ~A" (name a) (parameters a))
+                    (handler-bind ((warning #'muffle-warning)) 
+                      (ground-action
+                       a (mapcar #'ground-p (parameters a)))
+                      ;; (let ((ga ))
+                      ;;   (setf (parameters ga) nil)
+                      ;;   ga)
+                      )))
+           (change-class
+            (ground-a m)
+            'macro-action
+            :parameters nil
+            :actions (mapcar #'ground-a (actions m))
+            :name (gensym (symbol-name (name m)))
+            :alist (mapcar (lambda-match
+                             ;; of (object . variable) or (constant
+                             ;; . variable) if objects are not in the
+                             ;; ignore list, and (object . constant) or
+                             ;; (constant . constant) if they are in the
+                             ;; ignore list.
+                             ((cons (and const (type pddl-constant)) enh)
+                              (cons const enh))
+                             ((cons (and obj (type pddl-object)) enh)
+                              (if-let ((pos (position obj components1)))
+                                (cons (elt components pos) enh)
+                                (cons obj enh))))
+                          alist)))))
+                 ;; :alist do not matter now;
+      tasks))))
 
 (defun remove-null-macros (pairs)
   (format t "~&~40@<Filtering null macros.~>")
