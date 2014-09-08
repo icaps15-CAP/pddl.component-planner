@@ -110,30 +110,31 @@
          (solve ppath dpath)))
       (nil
        (format *error-output* "~&Usage: component-planner PROBLEM [DOMAIN]~
-               ~%~@{~4t~40<~a~;~{~a ~}~> : ~a~%~}"
-               "-v" nil "specify verbosity"
-               "--validation" nil "run the validator after the planning"
-               "--preprocess-only" nil "stops immediately when preprocess finishes"
-               "--disable-filtering" nil "disable ranking-based macro filtering"
-               "--use-grounded-actions" nil "use non-parametric fully grounded macro actions"
-               "--preprocess-limit" '(time) "specify the approximated sum of maxmimum preprocessing time in integer"
-               "--component-plan-limit" '(time) "specify the time limit of component planning in integer"
-               "-t" '(time) "time limit for the main search. NOT the total limit"
-               "-m" '(memory) "memory limit for the main search. NOT the total limit"
-               "--------underlying planner options------" nil "-------------------------------"
-               "--main-search" '(string string) "specify the additional options given to the underlying planner."
-               "--preprocessor" '(string string) "specify the additional options given to the underlying planner."
-               "-----------------shortcuts--------------" nil "-------------------------------"
-               "--both-search" '(string string) "specify the same config for --main-search and --preprocessor."
-               "--preprocess-ff" nil "use FF during preprocesssing (otherwise LAMA ipc 2011)"
-               "--main-search-ff" nil "use FF during main search (otherwise LAMA ipc 2011)"
-               "--use-ff" nil "both --preprocess-ff and --main-search-ff"
-               "--preprocess-marvin" nil "use MARVIN during preprocesssing (otherwise LAMA ipc 2011)"
-               "--main-search-marvin" nil "use MARVIN during main search (otherwise LAMA ipc 2011)"
-               "--use-marvin" nil "both --preprocess-marvin and --main-search-marvin")
-       (format *error-output* "~&DOMAIN is by default domain.pddl in the same directory"))
+               ~%~@{~4t~40<~(~a~)~;~{~a ~}~> : ~@(~a~)~%~}"
+               '-v nil "specify verbosity"
+               '--validation nil "run the validator after the planning"
+               '--debug-preprocessing nil "enable the verbosity of the preprocessing planner"
+               '--preprocess-only nil "stops immediately when preprocess finishes"
+               '--disable-filtering nil "disable ranking-based macro filtering"
+               '--use-grounded-actions nil "use non-parametric fully grounded macro actions"
+               '--preprocess-limit '(time) "specify the approximated sum of maxmimum preprocessing time in integer"
+               '--component-plan-limit '(time) "specify the time limit of component planning in integer"
+               '-t '(time) "time limit for the main search. NOT the total limit"
+               '-m '(memory) "memory limit for the main search. NOT the total limit"
+               '--------underlying-planner-options------ nil "-------------------------------"
+               '--main-search '(string string) "specify the additional options given to the underlying planner."
+               '--preprocessor '(string string) "specify the additional options given to the underlying planner."
+               '-----------------shortcuts-------------- nil "-------------------------------"
+               '--both-search '(string string) "specify the same config for --main-search and --preprocessor."
+               '--preprocess-ff nil "use FF during preprocesssing (otherwise LAMA ipc 2011)"
+               '--main-search-ff nil "use FF during main search (otherwise LAMA ipc 2011)"
+               '--use-ff nil "both --preprocess-ff and --main-search-ff"
+               '--preprocess-marvin nil "use MARVIN during preprocesssing (otherwise LAMA ipc 2011)"
+               '--main-search-marvin nil "use MARVIN during main search (otherwise LAMA ipc 2011)"
+               '--use-marvin nil "both --preprocess-marvin and --main-search-marvin")
+       (format *error-output* "~%DOMAIN is by default domain.pddl in the same directory~%"))
       (_
-       (format *error-output* "~&Invalid Arguments!")
+       (format *error-output* "~%Invalid Arguments!")
        (main nil)
        (error "~&Invalid Arguments!~2%")))))
 
