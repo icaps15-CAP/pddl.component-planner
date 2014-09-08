@@ -9,10 +9,10 @@ run(){
     rm -f $log $err
     ulimit -v 3000000 -t 1900
     time ./component-planner --dynamic-space-size 2000 \
-        --preprocess-ff \
+        --preprocessor "macroff-clean" \
         --use-grounded-actions \
         --disable-filtering \
-        --validation \
+        --validation -v \
         $1 2> $err | tee $log
     if [[ $(cat ${1%.*}.plan) != "" ]]
     then

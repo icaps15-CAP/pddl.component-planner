@@ -14,6 +14,9 @@
 (defparameter *lmcut-lazy-gbfs* (wrap-option "--search lazy_greedy(lmcut())"))
 (defparameter *lmcut-eager-gbfs* (wrap-option "--search eager_greedy(lmcut())"))
 
+(defvar *main-search* "fd-clean")
+(defvar *main-options* *lama-options*)
+
 (defun solve (ppath dpath)
   (multiple-value-bind (dname domain) (suppress (parse-file dpath nil t))
     (multiple-value-bind (pname problem) (suppress (parse-file ppath nil t))
@@ -22,10 +25,9 @@
       (print pname)
       (print problem)
       (let ((plans (solve-problem-enhancing problem
-                                            ;; :options *lmcut-lazy-gbfs* ; not effective
-                                            ;; :options *lmcut-eager-gbfs* ; not effective
-                                            ;; :options *opt-options*
                                             :time-limit 1 ; satisficing
+                                            :name *main-search*
+                                            :options *main-options*
                                             :verbose *verbose*)))
         (iter (for plan in plans)
               (for i from 1)
@@ -60,19 +62,10 @@
        (let ((*disable-filtering* t))
          (main rest)))
       ;; underlying planner
-      ((list* "--preprocess-ff" rest)
-       (let ((*preprocess-ff* t))
-         (main rest)))
-      ((list* "--main-search-ff" rest)
-       (let ((*main-search-ff* t))
-         (main rest)))
-      ((list* "--use-ff" rest)
-       (let ((*preprocess-ff* t)
-             (*main-search-ff* t))
-         (main rest)))
-      ((list* "--main-options" string rest)
-       (let ((*main-options* string))
-         (main rest)))
+      ((list* "--preprocessor" *preprocessor* rest) (main rest))
+      ((list* "--preprocessor-options" *preprocessor-options* rest) (main rest))
+      ((list* "--main-search" *main-search* rest) (main rest))
+      ((list* "--main-options" *main-options* rest) (main rest))
       ;; time limit and resource
       ((list* "--preprocess-limit" time rest)
        (let ((*preprocess-time-limit* (parse-integer time)))

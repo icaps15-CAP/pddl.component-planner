@@ -433,8 +433,6 @@
   (enhance-problem problem))
 
 (defvar *preprocess-only* nil)
-(defvar *main-search-ff* nil)
-(defvar *main-options* nil)
 (defvar *validation* nil)
 
 (defun solve-problem-enhancing (problem &rest test-problem-args)
@@ -446,20 +444,6 @@
          (enhancement-method problem))
       (format t "~&Enhancement finished on:~%   ~a~%-> ~a"
               (name problem) (name eproblem))
-      (format t "~&Added init:~%~:{~a ~a~%~}"
-              (mapcar (lambda (p)
-                        (match p
-                          ((pddl-predicate name parameters)
-                           (list name (mapcar #'name parameters)))))
-                      (set-difference (init eproblem) (init problem)
-                              :test #'eqname)))
-      (format t "~&Removed init:~%~:{~a ~a~%~}"
-              (mapcar (lambda (p)
-                        (match p
-                          ((pddl-predicate name parameters)
-                           (list name (mapcar #'name parameters)))))
-                      (set-difference (init problem) (init eproblem)
-                              :test #'eqname)))
       (format t "~&Solving the enhanced problem with FD.")
       (unless *preprocess-only*
         (let* ((dir (mktemp "enhanced"))
@@ -470,14 +454,10 @@
                                         (lambda (c)
                                           (invoke-restart
                                            (find-restart 'finish c)))))
-                          (let ((*ff-options* (or *main-options* *ff-options*))
-                                (*fd-options* (or *main-options* *fd-options*)))
-                            (apply (if *main-search-ff*
-                                       #'test-problem-ff
-                                       #'test-problem)
-                                   (write-pddl *problem* "eproblem.pddl" dir)
-                                   (write-pddl *domain* "edomain.pddl" dir)
-                                   test-problem-args))))))
+                          (apply #'test-problem-common
+                                 (write-pddl *problem* "eproblem.pddl" dir)
+                                 (write-pddl *domain* "edomain.pddl" dir)
+                                 test-problem-args)))))
           (when *validation*
             (dolist (p plans)
               (validate-plan (pathname (format nil "~a/edomain.pddl" dir))

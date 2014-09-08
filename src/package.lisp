@@ -25,14 +25,12 @@
            :add-cost-problem
            :*preprocess-only*
            :*component-plan-time-limit*
-           :*use-ff*
-           :*preprocess-ff*
            :*preprocess-time-limit*
-           :*main-search-ff*
-           :*main-options*
            :*validation*
            :*disable-filtering*
-           :*use-grounded-actions*)
+           :*use-grounded-actions*
+           :*preprocessor*
+           :*preprocessor-options*)
   (:shadowing-import-from :guicho-utilities
                           :permutations)
   (:shadowing-import-from :statistics
