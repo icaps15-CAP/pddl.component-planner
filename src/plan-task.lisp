@@ -12,6 +12,7 @@
 
 (defvar *preprocessor* "fd-clean")
 (defvar *preprocessor-options* *lama-options*)
+(defvar *debug-preprocessing* nil)
 (defvar *component-plan-time-limit* 40)
 (defcached plan-task (task)
   "Calls build-component-problem, make a plan with FD, then parse the results.
@@ -32,12 +33,9 @@ careful if you measure the elapsed time. When you measure the time, run
                    :time-limit 1
                    :hard-time-limit *component-plan-time-limit*
                    :memory *memory-limit*
-                   :verbose nil)
-        ((plans t-time p-time s-time
-                t-memory p-memory s-memory complete)
-         (signal 'evaluation-signal
-                 :usage (list t-time p-time s-time
-                              t-memory p-memory s-memory))
+                   :verbose *debug-preprocessing*)
+        ((plans time memory complete)
+         (signal 'evaluation-signal :usage (list time memory))
          (values
           (mapcar (let ((i 0))
                     (curry #'pddl-plan

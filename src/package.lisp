@@ -30,7 +30,8 @@
            :*disable-filtering*
            :*use-grounded-actions*
            :*preprocessor*
-           :*preprocessor-options*)
+           :*preprocessor-options*
+           :*debug-preprocessing*)
   (:shadowing-import-from :guicho-utilities
                           :permutations)
   (:shadowing-import-from :statistics
