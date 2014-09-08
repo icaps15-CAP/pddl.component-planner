@@ -4,7 +4,7 @@ large = 7500
 expdir = aaai15exp
 link = exp
 
-.PHONY: copy refresh clean
+.PHONY: copy refresh clean component-planner
 
 all: component-planner
 
