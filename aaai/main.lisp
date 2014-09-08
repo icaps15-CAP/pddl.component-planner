@@ -72,6 +72,9 @@
               *main-search*
               *main-options* rest) (main rest))
       ;; shortcuts
+      ((list* "--both-search"
+              (and *preprocessor* *main-search*)
+              (and *preprocessor-options* *main-options*) rest) (main rest))
       ((list* "--use-ff" rest)
        (main (list* "--preprocess-ff" "--main-search-ff" rest)))
       ((list* "--preprocess-ff" rest)
@@ -121,6 +124,7 @@
                "--main-search" '(string string) "specify the additional options given to the underlying planner."
                "--preprocessor" '(string string) "specify the additional options given to the underlying planner."
                "-----------------shortcuts--------------" nil "-------------------------------"
+               "--both-search" '(string string) "specify the same config for --main-search and --preprocessor."
                "--preprocess-ff" nil "use FF during preprocesssing (otherwise LAMA ipc 2011)"
                "--main-search-ff" nil "use FF during main search (otherwise LAMA ipc 2011)"
                "--use-ff" nil "both --preprocess-ff and --main-search-ff"
