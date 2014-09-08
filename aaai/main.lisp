@@ -65,10 +65,19 @@
        (let ((*disable-filtering* t))
          (main rest)))
       ;; underlying planner
-      ((list* "--preprocessor" *preprocessor* rest) (main rest))
-      ((list* "--preprocessor-options" *preprocessor-options* rest) (main rest))
-      ((list* "--main-search" *main-search* rest) (main rest))
-      ((list* "--main-options" *main-options* rest) (main rest))
+      ((list* "--preprocessor"
+              *preprocessor*
+              *preprocessor-options* rest) (main rest))
+      ((list* "--main-search"
+              *main-search*
+              *main-options* rest) (main rest))
+      ;; shortcuts
+      ((list* "--use-ff" rest)
+       (main (list* "--preprocess-ff" "--main-search-ff" rest)))
+      ((list* "--preprocess-ff" rest)
+       (main (list* "--preprocessor" "macroff-clean" "" rest)))
+      ((list* "--main-search-ff" rest)
+       (main (list* "--main-search" "macroff-clean" "" rest)))
       ;; time limit and resource
       ((list* "--preprocess-limit" time rest)
        (let ((*preprocess-time-limit* (parse-integer time)))
