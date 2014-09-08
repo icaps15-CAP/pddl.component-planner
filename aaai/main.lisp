@@ -14,9 +14,6 @@
 (defparameter *lmcut-lazy-gbfs* (wrap-option "--search lazy_greedy(lmcut())"))
 (defparameter *lmcut-eager-gbfs* (wrap-option "--search eager_greedy(lmcut())"))
 
-(defvar *main-search* "fd-clean")
-(defvar *main-options* *lama-options*)
-
 (defun solve (ppath dpath)
   (multiple-value-bind (dname domain) (suppress (parse-file dpath nil t))
     (multiple-value-bind (pname problem) (suppress (parse-file ppath nil t))

@@ -31,7 +31,9 @@
            :*use-grounded-actions*
            :*preprocessor*
            :*preprocessor-options*
-           :*debug-preprocessing*)
+           :*debug-preprocessing*
+           :*main-search*
+           :*main-options*)
   (:shadowing-import-from :guicho-utilities
                           :permutations)
   (:shadowing-import-from :statistics

@@ -81,7 +81,7 @@
 (defun component-plans (tasks-bag)
   (setf tasks-bag (sort tasks-bag #'> :key #'length)) ;; sort by c_i
   (format t "~&Categorizing TASKS by plan compatibility")
-  (format t "~&Calling the underlying STRIPS planner")
+  (format t "~&Calling the preprocessing planner ~a" *preprocessor*)
   (format t "~&Total Tasks /g/i/attr: ~a" (mapcar #'length tasks-bag))
   (setf tasks-bag (mappend #'categorize-by-compatibility tasks-bag))
   (format t "~&Finished the categorization based on plan compatibility.")
@@ -434,6 +434,8 @@
 
 (defvar *preprocess-only* nil)
 (defvar *validation* nil)
+(defvar *main-search* "fd-clean")
+(defvar *main-options* *lama-options*)
 
 (defun solve-problem-enhancing (problem &rest test-problem-args)
   (clear-plan-task-cache)
@@ -444,7 +446,8 @@
          (enhancement-method problem))
       (format t "~&Enhancement finished on:~%   ~a~%-> ~a"
               (name problem) (name eproblem))
-      (format t "~&Solving the enhanced problem with FD.")
+      (format t "~&Solving the enhanced problem with the main planner ~a."
+              *main-search*)
       (unless *preprocess-only*
         (let* ((dir (mktemp "enhanced"))
                (*domain* edomain)
