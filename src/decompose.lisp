@@ -458,6 +458,8 @@
   (clear-plan-task-cache)
   (format t "~&Enhancing the problem with macros.")
   (let ((*start* (get-universal-time)))
+    (format t "~&Start measuring the maximam preprocessing time ~a."
+            *preprocess-time-limit*)
     (multiple-value-bind (eproblem edomain macros)
         (time
          (enhancement-method problem))
