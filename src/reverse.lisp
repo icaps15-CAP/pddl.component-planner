@@ -54,11 +54,13 @@ then add it as another macro
 (defun reverse-macro (pair &optional
                              (*problem* *problem*)
                              (*domain* *domain*))
-  (multiple-value-bind (gms tasks)
-      (get-actions-grounded pair)
+  "deprecated. the precondition does not contain restriction --> bloat"
+  (multiple-value-bind (gms tasks) (get-actions-grounded pair)
     (when-let ((plan (%solve-rev
                       (reverse-problem (first gms) (first tasks))
                       *domain*)))
-      (component-macro/bpvector
-       (vector tasks plan)))))
-
+      ;; reuse this function
+      (match (component-macro/bpvector (vector tasks plan)) ;; -> (vector tasks macro)
+       ((and it (vector _ (macro-action (name (place name)))))
+        (setf name (symbolicate 'rev- name))
+        it)))))
