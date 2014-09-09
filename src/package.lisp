@@ -28,12 +28,17 @@
            :*preprocess-time-limit*
            :*validation*
            :*disable-filtering*
-           :*use-grounded-actions*
            :*preprocessor*
            :*preprocessor-options*
            :*debug-preprocessing*
            :*main-search*
-           :*main-options*)
+           :*main-options*
+           :reverse-problem
+           :get-actions-grounded
+           :solve-rev
+           :*use-grounded-macros*
+           :*use-reverse-macros*
+           :*use-grounded-reverse-macros*)
   (:shadowing-import-from :guicho-utilities
                           :permutations)
   (:shadowing-import-from :statistics

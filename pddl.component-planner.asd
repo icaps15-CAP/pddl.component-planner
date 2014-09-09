@@ -39,8 +39,10 @@
                  (:file :restoration)
                  (:file :plan-task)
                  (:file :task-equality)
+                 (:file :reverse)
                  (:file :decompose)
-                 (:file :delete-effect-minimization))
+                 ;; (:file :delete-effect-minimization)
+                 )
                 :serial t))
   :description ""
   :long-description

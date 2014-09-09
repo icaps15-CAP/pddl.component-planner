@@ -13,23 +13,23 @@
                                         ; binarized and the
                                         ; abstraction fails
 
-(test component-after-binarization
-  (let (tasks)
-    (finishes
-      (setf tasks
-            (abstract-tasks
-             (binarize assemblep assemble)
-             :product)))
-    (finishes
-      (ematch tasks
-        ((list t1 t2)
-         (is (task-plan-equal t1 t2)))))))
+;; (test component-after-binarization
+;;   (let (tasks)
+;;     (finishes
+;;       (setf tasks
+;;             (abstract-tasks
+;;              (binarize assemblep assemble)
+;;              :product)))
+;;     (finishes
+;;       (ematch tasks
+;;         ((list t1 t2)
+;;          (is (task-plan-equal t1 t2)))))))
 
 
-(test component-macro
-  (finishes
-    (print
-     (component-macro assemblep :product))))
+;; (test component-macro
+;;   (finishes
+;;     (print
+;;      (component-macro assemblep :product))))
 
 
 (test enhance-domain
@@ -46,10 +46,10 @@
         (is-true (validate-plan dp pp (first (first results))
                                 :verbose t))))))
 
-(test solve-problem-enhancing
-  (let* ((plan (solve-problem-enhancing assemblep :verbose t))
-         (dir (mktemp "validate" t))
-         (dp (write-pddl assemble "domain.pddl" dir t))
-         (pp (write-pddl assemblep "problem.pddl" dir t))
-         (plp (write-plan plan "decoded.plan" dir t)))
-    (is-true (validate-plan dp pp plp :verbose t))))
+;; (test solve-problem-enhancing
+;;   (let* ((plan (solve-problem-enhancing assemblep :verbose t))
+;;          (dir (mktemp "validate" t))
+;;          (dp (write-pddl assemble "domain.pddl" dir t))
+;;          (pp (write-pddl assemblep "problem.pddl" dir t))
+;;          (plp (write-plan plan "decoded.plan" dir t)))
+;;     (is-true (validate-plan dp pp plp :verbose t))))

@@ -375,7 +375,9 @@
 
 
 (defvar *disable-filtering* nil)
-(defvar *use-grounded-actions* nil)
+(defvar *use-grounded-macros* nil)
+(defvar *use-reverse-macros* nil)
+(defvar *use-grounded-reverse-macros* nil)
 
 (defun enhance-problem (problem
                         &key
@@ -399,7 +401,7 @@
        (setf macro-pairs
              (funcall (apply #'compose (reverse filters)) macro-pairs))
        (format t "~&~a macros after filtering." (length macro-pairs))
-       (setf macros (mappend (if *use-grounded-actions*
+       (setf macros (mappend (if *use-grounded-macros*
                                  #'get-actions-grounded
                                  #'get-actions)
                              macro-pairs))
@@ -407,6 +409,17 @@
        (iter (for pb-vector in macro-pairs)
              (match pb-vector
                ((vector _ m-action)
+       (when *use-reverse-macros*
+         (appendf macros
+                  (mappend (if *use-grounded-reverse-macros*
+                               #'get-actions-grounded
+                               #'get-actions)
+                           (funcall (compose #'remove-single-macros
+                                             #'remove-null-macros)
+                                    (mapcar (lambda (pair)
+                                              (reverse-macro
+                                               pair problem domain))
+                                            macro-pairs)))))
                 (format t "~%(~50@<~a~>:length ~a)"
                         (name m-action) (length (actions m-action))))))
        (appendf (actions *domain*) macros)
