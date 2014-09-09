@@ -31,13 +31,22 @@ function basically cannot negatively prove the compatibility.
           (some
            (let ((i 0))
              (lambda (plan1)
-               (validate-plan
-                domain-path
-                problem-path2
-                (write-plan
-                 (map-component-plan plan1 (mapping-between-tasks t1 t2))
-                 (prog1 (format nil "mapped.plan.~a" i) (incf i))
-                 dir))))
+               (ignore-errors ; returns nil
+                 (simulate-plan
+                  (pddl-environment
+                   :problem problem2
+                   :plan (map-component-plan plan1 (mapping-between-tasks t1 t2)))
+                  ;;(lambda (env goal?) (break+ (states env) goal?))
+                  ))
+               ;; slow because it writes file/invokes external process
+               ;; (validate-plan
+               ;;  domain-path
+               ;;  problem-path2
+               ;;  (write-plan
+               ;;   (map-component-plan plan1 (mapping-between-tasks t1 t2))
+               ;;   (prog1 (format nil "mapped.plan.~a" i) (incf i))
+               ;;   dir))
+               ))
            plans)
           :proven))
         ((and (null plans) complete)
