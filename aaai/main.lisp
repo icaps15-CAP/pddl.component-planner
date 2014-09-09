@@ -62,7 +62,8 @@
        (let ((*use-reverse-macros* t))
          (main rest)))
       ((list* "--use-grounded-reverse-macros" rest)
-       (let ((*use-grounded-reverse-macros* t))
+       (let ((*use-grounded-reverse-macros* t)
+             (*use-reverse-macros* t))
          (main rest)))
       ((list* "--disable-filtering" rest)
        (let ((*disable-filtering* t))
@@ -121,7 +122,7 @@
                '--disable-filtering nil "disable ranking-based macro filtering"
                '--use-grounded-macros nil "use non-parametric fully grounded macro actions"
                '--use-reverse-macros nil "use reverse macros"
-               '--use-grounded-reverse-macros nil "use non-parametric reverse macros"
+               '--use-grounded-reverse-macros nil "use non-parametric reverse macros. implies --use-reverse-macros."
                '--preprocess-limit '(time) "specify the approximated sum of maxmimum preprocessing time in integer"
                '--component-plan-limit '(time) "specify the time limit of component planning in integer"
                '-t '(time) "time limit for the main search. NOT the total limit"
