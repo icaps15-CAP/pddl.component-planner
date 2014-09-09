@@ -25,7 +25,7 @@ careful if you measure the elapsed time. When you measure the time, run
            (*domain* (domain *problem*))
            (dir (mktemp "plan-task" t)))
       (multiple-value-match
-          (with-open-file (s "/dev/null" :direction :output :if-exists :supercede)
+          (with-open-file (s "/dev/null" :direction :output :if-exists :supersede)
             (funcall #'test-problem-common
                      (write-pddl *problem* "problem.pddl" dir)
                      (write-pddl *domain* "domain.pddl" dir)
