@@ -162,7 +162,7 @@
                         a (mapcar #'ground-p (parameters a))))))
             (change-class
              (ground-a m)
-             'macro-action
+             'ground-macro-action
              :parameters nil
              :actions (mapcar #'ground-a (actions m))
              :name (gensym (symbol-name (name m)))
@@ -402,22 +402,9 @@
        (setf macro-pairs
              (funcall (apply #'compose (reverse filters)) macro-pairs))
        (format t "~&~a macros after filtering." (length macro-pairs))
-       (setf macros (mappend (if *use-grounded-macros*
-                                 #'get-actions-grounded
-                                 #'get-actions)
-                             macro-pairs))
-       (when *use-reverse-macros*
-         (appendf macros
-                  (mappend (if *use-grounded-reverse-macros*
-                               #'get-actions-grounded
-                               #'get-actions)
-                           (funcall (compose #'remove-single-macros
-                                             #'remove-null-macros)
-                                    (mapcar (lambda (pair)
-                                              (reverse-macro
-                                               pair problem domain))
-                                            macro-pairs)))))
-       ;; (setf macros (check-macro-sanity macros))
+       (format t "~&Instantiating cyclic macro.")
+       (let ((*domain* domain) (*problem* problem))
+         (setf macros (mappend #'cyclic-macro macro-pairs)))
        (iter (for m in macros)
              (format t "~%(~50@<~a~>:length ~a)"
                      (name m) (length (actions m))))

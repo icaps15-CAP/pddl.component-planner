@@ -21,12 +21,12 @@ then add it as another macro
                    :objects (objects/const *problem*)
                    :metric (metric *problem*)
                    :init (apply-ground-action gmacro (init *problem*))
-                   :goal `(and ,@goal
+                   :goal `(and ,@goal ;; maintain the previously achieved goal is true
                                ,@(set-difference
                                   (remove-if
                                    (rcurry #'typep 'pddl-function-state)
                                    (init *problem*))
-                                  init
+                                  init ;; remove the fluents regarding this task
                                   :test #'eqstate))))))
 
 (defun %solve-rev (*problem* *domain*)
@@ -64,3 +64,34 @@ then add it as another macro
        ((and it (vector _ (macro-action (name (place name)))))
         (setf name (symbolicate 'rev- name))
         it)))))
+
+
+(defun cyclic-macro (pair &optional (*problem* *problem*) (*domain* *domain*))
+  "grounded by default.
+ Assume *problem*,*domain* is the original problem/domain."
+  (multiple-value-bind (gms tasks) (get-actions-grounded pair)
+    (when-let ((plan (%solve-rev
+                      (reverse-problem (first gms) (first tasks))
+                      *domain*)))
+      ;; reuse this function
+      (let ((reverse-gms (get-actions-grounded
+                          (component-macro/bpvector (vector tasks plan)))))
+        (mapcar
+         (lambda (gm rgm)
+           (change-class
+            (merge-ground-actions gm rgm)
+            'ground-macro-action
+            :parameters nil
+            :actions (append (actions gm) (actions rgm))
+            :name
+            (let ((str (symbol-name
+                        (symbolicate
+                         'cycle- (symbol-name (name gm))))))
+              (if (< 30 (length str))
+                  (gensym (subseq str 0 29))
+                  (gensym str)))))
+         gms reverse-gms)))))
+
+
+
+

@@ -18,7 +18,7 @@
 (setf *pairs*
       (let ((*problem* pddl.component-planner-test::assemblep-resource)
             (*domain* pddl.component-planner-test::assemble-resource))
-        (pddl.component-planner::generate-macro-pairs *problem*)))
+        (pddl.component-planner::generate-macro-pairs *problem* *domain*)))
 
 ;; (defvar *x*)
 ;; (setf *x*
@@ -41,16 +41,23 @@
       (*domain* pddl.component-planner-test::assemble-resource))
   (get-actions-grounded (first *pairs*)))
 
-(defvar *reverse-problems*)
-(setf *reverse-problems*
-      (let ((*problem* pddl.component-planner-test::assemblep-resource)
-            (*domain* pddl.component-planner-test::assemble-resource))
-        (multiple-value-bind (gms tasks) 
-            (get-actions-grounded (first *pairs*))
-          (iter (for gm in gms)
-                (for task in tasks)
-                (collect (reverse-problem gm task))))))
-apply-ground-action
-(let ((*debug-preprocessing* t))
-  (solve-rev (first *reverse-problems*) assemble-resource))
+;; (defvar *reverse-problems*)
+;; (setf *reverse-problems*
+;;       (let ((*problem* pddl.component-planner-test::assemblep-resource)
+;;             (*domain* pddl.component-planner-test::assemble-resource))
+;;         (multiple-value-bind (gms tasks) 
+;;             (get-actions-grounded (first *pairs*))
+;;           (iter (for gm in gms)
+;;                 (for task in tasks)
+;;                 (collect (reverse-problem gm task))))))
+;; apply-ground-action
+;; (let ((*debug-preprocessing* t))
+;;   (solve-rev (first *reverse-problems*) assemble-resource))
 
+(let ((*problem* pddl.component-planner-test::assemblep-resource)
+      (*domain* pddl.component-planner-test::assemble-resource))
+  (mapcar #'reverse-macro *pairs*))
+
+(let ((*problem* pddl.component-planner-test::assemblep-resource)
+      (*domain* pddl.component-planner-test::assemble-resource))
+  (mapcar #'cyclic-macro *pairs*))

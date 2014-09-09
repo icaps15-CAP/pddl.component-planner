@@ -38,7 +38,9 @@
            :solve-rev
            :*use-grounded-macros*
            :*use-reverse-macros*
-           :*use-grounded-reverse-macros*)
+           :*use-grounded-reverse-macros*
+           :reverse-macro
+           :cyclic-macro)
   (:shadowing-import-from :guicho-utilities
                           :permutations)
   (:shadowing-import-from :statistics
