@@ -128,10 +128,10 @@
 ;;;; score, sort and filter macros
 
 ;; no grounding
-(defun get-actions (x)
-  (match x ((vector _ m) (list m))))
-(defun get-actions-grounded (x)
-  (match x
+(defun get-actions (bpvector)
+  (match bpvector ((vector _ m) (list m))))
+(defun get-actions-grounded (bpvector)
+  (match bpvector
     ((vector (and tasks (list* (abstract-component-task
                                 (ac (abstract-component
                                      (components components1)))) _))
