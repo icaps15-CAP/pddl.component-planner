@@ -10,7 +10,7 @@ run(){
     ulimit -v 3000000 -t 1900
     time ./component-planner --dynamic-space-size 2000 \
         --preprocess-ff \
-        --use-grounded-actions \
+        --use-grounded-macros \
         --disable-filtering \
         --validation -v \
         $1 2> $err | tee $log
