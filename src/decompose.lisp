@@ -116,9 +116,9 @@
 
 ;;;; generate-macro-pairs
 
-(defun generate-macro-pairs (problem)
-  (let* ((tasks-bag (iter (for seed in (types-in-goal problem))
-                          (appending (tasks-bag/aig/seed problem seed)))))
+(defun generate-macro-pairs (*problem*)
+  (let* ((tasks-bag (iter (for seed in (types-in-goal *problem*))
+                          (appending (tasks-bag/aig/seed *problem* seed)))))
     (mapcar #'component-macro/bpvector
             (component-plans tasks-bag))))
 
@@ -391,9 +391,7 @@
      (let* ((*domain*
              (shallow-copy domain :name (symbolicate name '-enhanced)))
             macro-pairs macros)
-       (setf macro-pairs
-             (let ((*problem* problem))
-               (generate-macro-pairs problem)))
+       (setf macro-pairs (generate-macro-pairs problem))
        (format t "~&~a macros found in total." (length macro-pairs))
        (setf macro-pairs
              (funcall (apply #'compose (reverse filters)) macro-pairs))
