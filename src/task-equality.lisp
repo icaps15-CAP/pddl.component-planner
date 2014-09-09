@@ -20,16 +20,18 @@ function basically cannot negatively prove the compatibility.
 "
   ;; (assert (abstract-component-task-strict= t1 t2))
   (signal 'comparison-signal)
-  (let* ((dir (mktemp "task-equal" t))
+  (let* (;; (dir (mktemp "task-equal" t))
          (problem2 (build-component-problem t2))
-         (problem-path2 (write-pddl problem2 "mapped-problem.pddl" dir))
-         (domain-path (write-pddl (domain problem2) "domain.pddl" dir)))
+         ;; (problem-path2 (write-pddl problem2 "mapped-problem.pddl" dir))
+         ;; (domain-path (write-pddl (domain problem2) "domain.pddl" dir))
+         )
     (multiple-value-bind (plans complete) (plan-task-with-retry t1)
       (cond
         (plans
          (values
           (some
-           (let ((i 0))
+           (let (;; (i 0)
+                 )
              (lambda (plan1)
                (ignore-errors ; returns nil
                  (simulate-plan
