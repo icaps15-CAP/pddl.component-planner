@@ -9,7 +9,7 @@ run(){
     rm -f $log $err
     ulimit -v 3000000 -t 1900
     time ./component-planner --dynamic-space-size 2000 \
-        --preprocessor "macroff-clean" \
+        --preprocess-ff \
         --use-grounded-actions \
         --disable-filtering \
         --validation -v \
