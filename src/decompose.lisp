@@ -5,32 +5,27 @@
 ;;; enhance domain and problem
 ;;;; binarize, extract and debinarize components
 
-(defun tasks-bag/aig/seed (problem seed &aux (domain (domain problem)))
+(defun tasks-bag/aig/seed (problem bproblem seed  &aux (domain (domain problem)))
   ;; -> (list (vector (list task) plan))
-  (format t "~&Binarizing domain ~a" domain)
-  (multiple-value-bind (bproblem bdomain) (binarize problem domain)
-    @ignorable bdomain
-    (let (tasks tasks-bag)
-      (format t "~2&Categorizing PROBLEM ~a with seed ~a" (name bproblem) seed)
-      (setf tasks (abstract-tasks-seed-only bproblem seed))
-      ;; remove tasks of the trivial component = components of single object
-      ;; (setf tasks (remove-if #'trivial-component-p tasks :key #'abstract-component-task-ac))
-      ;; remove tasks without goals
-      (format t "~&Tasks found : ~a" (length tasks))
-      (format t "~&Removing tasks w/o goals.")
-      (setf tasks (remove-if-not #'abstract-component-task-goal tasks))
-      (format t "~&Tasks : ~a" (length tasks))
-      ;; categorize tasks into buckets, based on init/goal/attribute.
-      (setf tasks-bag (coerce (categorize-tasks tasks) 'list))
-      ;; list pf bags. each bag contains tasks of the same structure
-      (format t "~&TASKS/g/i/attr : ~a" (mapcar #'length tasks-bag))
-      (format t "~&Debinarizing Tasks...")
-      (mapcar (curry #'mapcar (curry #'debinarize-task
-                                     bdomain bproblem domain problem))
-              tasks-bag))))
+  (let (tasks tasks-bag)
+    (format t "~2&Categorizing PROBLEM ~a with seed ~a" (name bproblem) seed)
+    (setf tasks (abstract-tasks-seed-only bproblem seed))
+    ;; remove tasks of the trivial component = components of single object
+    ;; (setf tasks (remove-if #'trivial-component-p tasks :key #'abstract-component-task-ac))
+    ;; remove tasks without goals
+    (format t "~&Tasks found : ~a" (length tasks))
+    (format t "~&Removing tasks w/o goals.")
+    (setf tasks (remove-if-not #'abstract-component-task-goal tasks))
+    (format t "~&Tasks : ~a" (length tasks))
+    ;; categorize tasks into buckets, based on init/goal/attribute.
+    (setf tasks-bag (coerce (categorize-tasks tasks) 'list))
+    ;; list pf bags. each bag contains tasks of the same structure
+    (format t "~&TASKS/g/i/attr : ~a" (mapcar #'length tasks-bag))
+    (format t "~&Debinarizing Tasks...")
+    (mapcar (curry #'mapcar (curry #'debinarize-task problem))
+            tasks-bag)))
 
-(defun debinarize-task (bdomain bproblem domain problem task)
-  (declare (ignorable bdomain bproblem domain problem))
+(defun debinarize-task (problem task)
   (ematch task
     ((abstract-component-task
       ;; problem
@@ -119,9 +114,13 @@
 
 ;;;; generate-macro-pairs
 
-(defun generate-macro-pairs (*problem*)
-  (let* ((tasks-bag (iter (for seed in (types-in-goal *problem*))
-                          (appending (tasks-bag/aig/seed *problem* seed)))))
+(defun generate-macro-pairs (*problem* domain)
+  (format t "~&Binarizing domain ~a" domain)
+  (let* ((bproblem (binarize *problem* domain))
+         (tasks-bag (iter (for seed in (types-in-goal *problem*))
+                          (appending
+                           (tasks-bag/aig/seed
+                            *problem* bproblem seed)))))
     (mapcar #'component-macro/bpvector
             (component-plans tasks-bag))))
 
@@ -398,7 +397,7 @@
      (let* ((*domain*
              (shallow-copy domain :name (symbolicate name '-enhanced)))
             macro-pairs macros)
-       (setf macro-pairs (generate-macro-pairs problem))
+       (setf macro-pairs (generate-macro-pairs problem domain))
        (format t "~&~a macros found in total." (length macro-pairs))
        (setf macro-pairs
              (funcall (apply #'compose (reverse filters)) macro-pairs))
