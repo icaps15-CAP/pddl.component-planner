@@ -133,49 +133,52 @@
                                 (ac (abstract-component
                                      (components components1)))) _))
              (and m (macro-action :alist alist)))
-     (mapcar
-      (lambda-match
-        ((abstract-component-task
-          (ac (abstract-component components)))
-         (labels ((ground-p (param)
-                    (handler-bind ((error (lambda (c)
-                                            (let ((*standard-output* *error-output*))
-                                              (break+ components1
-                                                      components
-                                                      param
-                                                      (rassoc param alist)
-                                                      alist)))))
-                      (ematch (rassoc param alist)
-                              ((cons _ (and enh (type pddl-constant)))
-                               enh)
-                              ((cons (and org (type pddl-constant)) (and (type pddl-variable)))
-                               org)
-                              ((cons (and org (type pddl-object)) (and (type pddl-variable)))
-                               (elt components (position org components1))))))
-                  (ground-a (a)
-                    (handler-bind ((warning #'muffle-warning)) 
-                      (ground-action
-                       a (mapcar #'ground-p (parameters a))))))
-           (change-class
-            (ground-a m)
-            'macro-action
-            :parameters nil
-            :actions (mapcar #'ground-a (actions m))
-            :name (gensym (symbol-name (name m)))
-            :alist (mapcar (lambda-match
-                             ;; of (object . variable) or (constant
-                             ;; . variable) if objects are not in the
-                             ;; ignore list, and (object . constant) or
-                             ;; (constant . constant) if they are in the
-                             ;; ignore list.
-                             ((cons (and const (type pddl-constant)) enh)
-                              (cons const enh))
-                             ((cons (and obj (type pddl-object)) enh)
-                              (if-let ((pos (position obj components1)))
-                                (cons (elt components pos) enh)
-                                (cons obj enh))))
-                          alist)))))
-                 ;; :alist do not matter now;
+     (values
+      (mapcar
+       (lambda-match
+         ((abstract-component-task
+           (ac (abstract-component components)))
+          (labels ((ground-p (param)
+                     (handler-bind ((error (lambda (c)
+                                             (declare (ignorable c))
+                                             (let ((*standard-output* *error-output*))
+                                               (break+ components1
+                                                       components
+                                                       param
+                                                       (rassoc param alist)
+                                                       alist)))))
+                       (ematch (rassoc param alist)
+                         ((cons _ (and enh (type pddl-constant)))
+                          enh)
+                         ((cons (and org (type pddl-constant)) (and (type pddl-variable)))
+                          org)
+                         ((cons (and org (type pddl-object)) (and (type pddl-variable)))
+                          (elt components (position org components1))))))
+                   (ground-a (a)
+                     (handler-bind ((warning #'muffle-warning)) 
+                       (ground-action
+                        a (mapcar #'ground-p (parameters a))))))
+            (change-class
+             (ground-a m)
+             'macro-action
+             :parameters nil
+             :actions (mapcar #'ground-a (actions m))
+             :name (gensym (symbol-name (name m)))
+             :alist (mapcar (lambda-match
+                              ;; of (object . variable) or (constant
+                              ;; . variable) if objects are not in the
+                              ;; ignore list, and (object . constant) or
+                              ;; (constant . constant) if they are in the
+                              ;; ignore list.
+                              ((cons (and const (type pddl-constant)) enh)
+                               (cons const enh))
+                              ((cons (and obj (type pddl-object)) enh)
+                               (if-let ((pos (position obj components1)))
+                                 (cons (elt components pos) enh)
+                                 (cons obj enh))))
+                            alist)))))
+       ;; :alist do not matter now;
+       tasks)
       tasks))))
 
 (defun remove-null-macros (pairs)
