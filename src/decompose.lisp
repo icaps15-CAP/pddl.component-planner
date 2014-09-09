@@ -34,29 +34,30 @@
   (ematch task
     ((abstract-component-task
       ;; problem
-      ;; init
-      goal
+      init goal
       (ac (abstract-component
-           seed ; facts
+           seed facts
            components attributes)))
      (make-abstract-component-task
-      ;; NOTE: slot `problem', `init', +`goal'+ are unbound.
-      ;; THIS IS INTENTIONAL. they are not used.
-      :goal (debinarize-goals goal)
+      :problem problem
+      ;; NOTE: these facts may contain environment objects
+      ;; when they are more than 3 arg predicates.
+      :init (debinarize-predicates init)
+      :goal (debinarize-predicates goal)
       :ac (make-abstract-component
-           ;; NOTE: slot `facts' is unbound. THIS IS INTENTIONAL.
            :seed seed
+           :facts (debinarize-predicates facts)
            :components components
            :attributes attributes)))))
 
-(defun debinarize-goals (bin-goals)
+(defun debinarize-predicates (predicates)
   (remove-duplicates
    (mapcar (lambda (g)
              (match g
                ((binarized-predicate binarization-origin)
                 binarization-origin)
                ((pddl-predicate) g)))
-           bin-goals)
+           predicates)
    :test #'eqstate))
   
           
