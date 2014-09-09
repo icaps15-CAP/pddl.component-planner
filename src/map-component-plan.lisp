@@ -6,7 +6,7 @@
 @export
 (defun map-component-plan (pddl-plan mapping)
   (ematch pddl-plan
-    ((pddl-plan actions problem)
+    ((pddl-plan actions problem domain)
      (let ((%mapping (%remove-nochange mapping)))
        (shallow-copy
         pddl-plan
@@ -14,12 +14,11 @@
         :name (concatenate-symbols 'MP (name problem))
         :actions
         (map 'vector
-             (lambda (action)
-               (ematch action
+             (lambda (ga)
+               (ematch ga
                  ((pddl-ground-action parameters)
-                  (shallow-copy
-                   action
-                   :parameters (%apply parameters %mapping)))))
+                  (ground-action (action domain (name ga))
+                                 (%apply parameters %mapping) ))))
              actions))))))
 
 (defun %apply (parameters mappings)
