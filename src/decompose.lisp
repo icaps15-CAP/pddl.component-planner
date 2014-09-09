@@ -382,12 +382,14 @@
 (defun enhance-problem (problem
                         &key
                           (filters
-                           (list* #'remove-null-macros
-                                  #'remove-single-macros
-                                  ;; #'sort-and-print-macros
-                                  ;; #'filter-macros-normdist
-                                  (unless *disable-filtering*
-                                    (list #'filter-macros-normalized))))
+                           (list #'remove-null-macros
+                                 #'remove-single-macros
+                                 ;; #'sort-and-print-macros
+                                 ;; #'filter-macros-normdist
+                                 (if *disable-filtering*
+                                     (lambda (x)
+                                       (format t "~&Rank-based filtering is disabled.") x)
+                                     #'filter-macros-normalized)))
                           (modify-domain-problem #'identity2)
                         &aux (domain (domain problem)))
   (format t "~&Enhancing domain ~a" domain)
@@ -405,10 +407,6 @@
                                  #'get-actions-grounded
                                  #'get-actions)
                              macro-pairs))
-       ;; (setf macros (check-macro-sanity macros))
-       (iter (for pb-vector in macro-pairs)
-             (match pb-vector
-               ((vector _ m-action)
        (when *use-reverse-macros*
          (appendf macros
                   (mappend (if *use-grounded-reverse-macros*
@@ -420,8 +418,10 @@
                                               (reverse-macro
                                                pair problem domain))
                                             macro-pairs)))))
-                (format t "~%(~50@<~a~>:length ~a)"
-                        (name m-action) (length (actions m-action))))))
+       ;; (setf macros (check-macro-sanity macros))
+       (iter (for m in macros)
+             (format t "~%(~50@<~a~>:length ~a)"
+                     (name m) (length (actions m))))
        (appendf (actions *domain*) macros)
        (appendf (constants *domain*) (objects/const problem))
        (let* ((*problem*
