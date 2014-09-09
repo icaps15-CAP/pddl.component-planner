@@ -25,15 +25,18 @@ careful if you measure the elapsed time. When you measure the time, run
            (*domain* (domain *problem*))
            (dir (mktemp "plan-task" t)))
       (multiple-value-match
-          (funcall #'test-problem-common
-                   (write-pddl *problem* "problem.pddl" dir)
-                   (write-pddl *domain* "domain.pddl" dir)
-                   :name *preprocessor*
-                   :options *preprocessor-options*
-                   :time-limit 1
-                   :hard-time-limit *component-plan-time-limit*
-                   :memory *memory-limit*
-                   :verbose *debug-preprocessing*)
+          (with-open-file (s "/dev/null" :direction :output :if-exists :supercede)
+            (funcall #'test-problem-common
+                     (write-pddl *problem* "problem.pddl" dir)
+                     (write-pddl *domain* "domain.pddl" dir)
+                     :name *preprocessor*
+                     :options *preprocessor-options*
+                     :time-limit 1
+                     :hard-time-limit *component-plan-time-limit*
+                     :memory *memory-limit*
+                     :stream (if *debug-preprocessing* *error-output* s)
+                     :error (if *debug-preprocessing* *error-output* s)
+                     :verbose *debug-preprocessing*))
         ((plans time memory complete)
          (signal 'evaluation-signal :usage (list time memory))
          (values
