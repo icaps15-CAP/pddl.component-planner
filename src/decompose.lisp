@@ -67,6 +67,7 @@
 
 ;;;; compute component-plans
 
+(let ((i 0))
 (defun categorize-by-compatibility (bag)
   (format t "~&Categorizing bag/g/i/attr of length ~a" (length bag))
   (coerce (categorize-by-equality
@@ -75,9 +76,11 @@
 
 (defun maybe-task-plan-equal (x y)
   (multiple-value-bind (result proven?) (task-plan-equal x y)
+    (incf i) (when (< 60 i) (setf i 0) (terpri))
     (if proven?
-        (progn (format t "~&Compatibility~@[ negatively~] proven" (not result)) result)
-        (progn (format t "~&Compatibility not proven, assuming true") t))))
+        (progn (format t "~:[F~;.~]" result) result)
+        (progn (format t "?") t))))
+)
 
 (defun component-plans (tasks-bag)
   (setf tasks-bag (sort tasks-bag #'> :key #'length)) ;; sort by c_i
