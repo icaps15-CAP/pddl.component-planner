@@ -162,7 +162,7 @@
                         a (mapcar #'ground-p (parameters a))))))
             (change-class
              (ground-a m)
-             'ground-macro-action
+             'macro-action
              :parameters nil
              :actions (mapcar #'ground-a (actions m))
              :name (gensym (symbol-name (name m)))

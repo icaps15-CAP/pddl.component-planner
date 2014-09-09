@@ -79,8 +79,10 @@ then add it as another macro
         (mapcar
          (lambda (gm rgm)
            (change-class
-            (merge-ground-actions gm rgm)
-            'ground-macro-action
+            (merge-ground-actions
+             (change-class gm 'ground-macro-action :problem *problem*)
+             (change-class rgm 'ground-macro-action :problem *problem*))
+            'macro-action
             :parameters nil
             :actions (append (actions gm) (actions rgm))
             :name

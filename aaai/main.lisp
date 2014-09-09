@@ -13,7 +13,7 @@
 
 (defparameter *lmcut-lazy-gbfs* (wrap-option "--search lazy_greedy(lmcut())"))
 (defparameter *lmcut-eager-gbfs* (wrap-option "--search eager_greedy(lmcut())"))
-
+(defvar *use-plain-planner* nil)
 (defun solve (ppath dpath)
   (multiple-value-bind (dname domain) (suppress (parse-file dpath nil t))
     (multiple-value-bind (pname problem) (suppress (parse-file ppath nil t))
@@ -21,11 +21,17 @@
       (print domain)
       (print pname)
       (print problem)
-      (let ((plans (solve-problem-enhancing problem
-                                            :time-limit 1 ; satisficing
-                                            :name *main-search*
-                                            :options *main-options*
-                                            :verbose *verbose*)))
+      (let ((plans
+             (if *use-plain-planner*
+                 (test-problem-common ppath dpath
+                                      :name *main-search*
+                                      :options *main-options*
+                                      :verbose *verbose*)
+                 (solve-problem-enhancing problem
+                                          :time-limit 1 ; satisficing
+                                          :name *main-search*
+                                          :options *main-options*
+                                          :verbose *verbose*))))
         (iter (for plan in plans)
               (for i from 1)
               (for plp =
@@ -38,6 +44,10 @@
               (when *validation*
                 (always
                  (validate-plan dpath ppath plp :verbose *verbose*))))))))
+
+(defun toplevel ()
+  (sb-ext:disable-debugger)
+  (main))
 
 (defun main (&optional (argv (cdr sb-ext:*posix-argv*)))
   (print argv)
@@ -69,6 +79,8 @@
        (let ((*disable-filtering* t))
          (main rest)))
       ;; underlying planner
+      ((list* "--plain" rest)
+       (let ((*use-plain-planner* t)) (main rest)))
       ((list* "--preprocessor"
               *preprocessor*
               *preprocessor-options* rest) (main rest))
@@ -91,6 +103,8 @@
        (main (list* "--preprocessor" "marvin-clean" "" rest)))
       ((list* "--main-search-marvin" rest)
        (main (list* "--main-search" "marvin-clean" "" rest)))
+      ((list* "--plain-ff" rest)
+       (main (list* "--plain" "--main-search-ff" rest)))
       ;; time limit and resource
       ((list* "--preprocess-limit" time rest)
        (let ((*preprocess-time-limit* (parse-integer time)))
@@ -128,9 +142,11 @@
                '-t '(time) "time limit for the main search. NOT the total limit"
                '-m '(memory) "memory limit for the main search. NOT the total limit"
                '--------underlying-planner-options------ nil "-------------------------------"
+               '--plain nil "Use the plain underlying planner specified by --main-search."
                '--main-search '(string string) "specify the additional options given to the underlying planner."
                '--preprocessor '(string string) "specify the additional options given to the underlying planner."
                '-----------------shortcuts-------------- nil "-------------------------------"
+               '--plain-ff nil "Use plain FF."
                '--both-search '(string string) "specify the same config for --main-search and --preprocessor."
                '--preprocess-ff nil "use FF during preprocesssing (otherwise LAMA ipc 2011)"
                '--main-search-ff nil "use FF during main search (otherwise LAMA ipc 2011)"
@@ -143,10 +159,6 @@
        (format *error-output* "~%Invalid Arguments!")
        (main nil)
        (error "~&Invalid Arguments!~2%")))))
-
-(defun toplevel ()
-  (sb-ext:disable-debugger)
-  (main))
 
 (defun save (name)
   (sb-ext:gc :full t)
