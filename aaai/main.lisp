@@ -263,6 +263,10 @@
   (clear-plan-task-cache)
   (main `(,@args "--validation" "-v" "-m" "2000000" "rovers/p04.pddl")))
 
+(defun test9-3 (&rest args)
+  (clear-plan-task-cache)
+  (main `(,@args "--validation" "-v" "-m" "2000000" "rovers/p41.pddl")))
+
 (defun test9-1* (&rest args)
   (clear-plan-task-cache)
   (main `(,@args "--validation" "-v" "-m" "2000000" "rovers/p01.pddl" "rovers/domain-fixed.pddl")))
