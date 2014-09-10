@@ -70,9 +70,9 @@ then add it as another macro
   "grounded by default.
  Assume *problem*,*domain* is the original problem/domain."
   (multiple-value-bind (gms tasks) (get-actions-grounded pair)
-    (when-let ((plan (%solve-rev
-                      (reverse-problem (first gms) (first tasks))
-                      *domain*)))
+    (if-let ((plan (%solve-rev
+                    (reverse-problem (first gms) (first tasks))
+                    *domain*)))
       ;; reuse this function
       (let ((reverse-gms (get-actions-grounded
                           (component-macro/bpvector (vector tasks plan)))))
@@ -92,7 +92,9 @@ then add it as another macro
               (if (< 30 (length str))
                   (gensym (subseq str 0 29))
                   (gensym str)))))
-         gms reverse-gms)))))
+         gms reverse-gms))
+      (progn (format t "~& No reverse macro found in this task. Grounding..")
+             (values gms tasks)))))
 
 
 
