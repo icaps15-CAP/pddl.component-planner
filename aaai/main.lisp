@@ -26,10 +26,12 @@
       (print problem)
       (let ((plans
              (if *use-plain-planner*
-                 (test-problem-common ppath dpath
-                                      :name *main-search*
-                                      :options *main-options*
-                                      :verbose *verbose*)
+                 (mapcar (curry #'pddl-plan
+                                :domain domain :problem problem :path)
+                         (test-problem-common ppath dpath
+                                              :name *main-search*
+                                              :options *main-options*
+                                              :verbose *verbose*))
                  (solve-problem-enhancing problem
                                           :time-limit 1 ; satisficing
                                           :name *main-search*
