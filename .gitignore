@@ -10,3 +10,6 @@
 /aaai/component-planner*
 
 /aaai/exp
+*.stat
+*.plan
+*.log
