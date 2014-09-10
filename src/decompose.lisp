@@ -157,7 +157,17 @@
                          ((cons (and org (type pddl-object)) (and (type pddl-variable)))
                           (elt components (position org components1))))))
                    (ground-a (a)
-                     (handler-bind ((warning #'muffle-warning)) 
+                     (handler-bind
+                         (;; (warning #'muffle-warning)
+                          (unspecified-parameter
+                           (lambda (c)
+                             (use-value
+                              (cdr (rassoc (parameter c) (alist m)))
+                              c)))
+                          (error
+                           (lambda (c)
+                             (print (mapcar #'ground-p (parameters a)))
+                             (print (parameters a)))))
                        (ground-action
                         a (mapcar #'ground-p (parameters a))))))
             (change-class
