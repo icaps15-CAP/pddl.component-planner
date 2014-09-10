@@ -18,6 +18,7 @@
 (defparameter *lmcut-eager-gbfs* (wrap-option "--search eager_greedy(lmcut())"))
 (defvar *use-plain-planner* nil)
 (defun solve (ppath dpath)
+  (format t "~%Build date : ~a~%" *build-date*)
   (multiple-value-bind (dname domain) (suppress (parse-file dpath nil t))
     (multiple-value-bind (pname problem) (suppress (parse-file ppath nil t))
       (print dname)
@@ -253,8 +254,10 @@
 (defun test7-1 (&rest args)
   (clear-plan-task-cache)
   (main `(,@args "--validation" "-v" "-m" "2000000" "woodworking-sat11-nocost/p01.pddl")))
-
 (defun test7-2 (&rest args)
+  (clear-plan-task-cache)
+  (main `(,@args "--validation" "-v" "-m" "2000000" "woodworking-sat11-nocost/p02.pddl")))
+(defun test7-3 (&rest args)
   (clear-plan-task-cache)
   (main `(,@args "--validation" "-v" "-m" "2000000" "woodworking-sat11-nocost/p04.pddl")))
 
