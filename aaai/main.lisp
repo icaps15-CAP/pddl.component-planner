@@ -10,6 +10,9 @@
      ,@body))
 
 (defvar *verbose* nil)
+(defvar *build-date*
+    (multiple-value-bind (second minute hour date month year) (get-decoded-time)
+      (format nil "~2,,,'0@a:~2,,,'0@a:~2,,,'0@a ~2,,,'0@a/~2,,,'0@a, ~a" hour minute second month date year)))
 
 (defparameter *lmcut-lazy-gbfs* (wrap-option "--search lazy_greedy(lmcut())"))
 (defparameter *lmcut-eager-gbfs* (wrap-option "--search eager_greedy(lmcut())"))
@@ -154,9 +157,10 @@
                '--preprocess-marvin nil "use MARVIN during preprocesssing (otherwise LAMA ipc 2011)"
                '--main-search-marvin nil "use MARVIN during main search (otherwise LAMA ipc 2011)"
                '--use-marvin nil "both --preprocess-marvin and --main-search-marvin")
-       (format *error-output* "~%DOMAIN is by default domain.pddl in the same directory~%"))
+       (format *error-output* "~%DOMAIN is by default domain.pddl in the same directory")
+       (format *error-output* "~%Build date : ~a~%" *build-date*))
       (_
-       (format *error-output* "~%Invalid Arguments!")
+       (format *error-output* "~%Invalid Arguments!~%")
        (main nil)
        (error "~&Invalid Arguments!~2%")))))
 
