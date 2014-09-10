@@ -48,7 +48,7 @@
 (defun debinarize-predicates (predicates)
   (remove-duplicates
    (mapcar (lambda (g)
-             (match g
+             (ematch g
                ((binarized-predicate binarization-origin)
                 binarization-origin)
                ((pddl-predicate) g)))
@@ -128,9 +128,9 @@
 
 ;; no grounding
 (defun get-actions (bpvector)
-  (match bpvector ((vector _ m) (list m))))
+  (ematch bpvector ((vector _ m) (list m))))
 (defun get-actions-grounded (bpvector)
-  (match bpvector
+  (ematch bpvector
     ((vector (and tasks (list* (abstract-component-task
                                 (ac (abstract-component
                                      (components components1)))) _))

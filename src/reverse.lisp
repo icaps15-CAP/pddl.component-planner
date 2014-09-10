@@ -60,10 +60,10 @@ then add it as another macro
                       (reverse-problem (first gms) (first tasks))
                       *domain*)))
       ;; reuse this function
-      (match (component-macro/bpvector (vector tasks plan)) ;; -> (vector tasks macro)
-       ((and it (vector _ (macro-action (name (place name)))))
-        (setf name (symbolicate 'rev- name))
-        it)))))
+      (ematch (component-macro/bpvector (vector tasks plan)) ;; -> (vector tasks macro)
+        ((and it (vector _ (macro-action (name (place name)))))
+         (setf name (symbolicate 'rev- name))
+         it)))))
 
 
 (defun cyclic-macro (pair &optional (*problem* *problem*) (*domain* *domain*))
