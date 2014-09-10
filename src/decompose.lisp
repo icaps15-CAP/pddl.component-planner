@@ -74,7 +74,7 @@
     (incf i) (when (< 60 i) (setf i 0) (terpri))
     (if proven?
         (progn (format t "~:[F~;.~]" result) result)
-        (progn (format t "?") t))))
+        (progn (format t "?") nil))))
 )
 
 (defun component-plans (tasks-bag)
