@@ -384,12 +384,6 @@
 ;;                (appending mm))
 ;;          (mapc #'print (mapcar #'name macros))))
 
-
-(defvar *disable-filtering* nil)
-(defvar *use-grounded-macros* nil)
-(defvar *use-reverse-macros* nil)
-(defvar *use-grounded-reverse-macros* nil)
-
 (defun enhance-problem (problem
                         &key
                           (filters

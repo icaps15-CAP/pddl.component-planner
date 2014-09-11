@@ -71,16 +71,6 @@
       ((list* "--debug-preprocessing" rest)
        (let ((*debug-preprocessing* t))
          (main rest)))
-      ((list* "--use-grounded-macros" rest)
-       (let ((*use-grounded-macros* t))
-         (main rest)))
-      ((list* "--use-reverse-macros" rest)
-       (let ((*use-reverse-macros* t))
-         (main rest)))
-      ((list* "--use-grounded-reverse-macros" rest)
-       (let ((*use-grounded-reverse-macros* t)
-             (*use-reverse-macros* t))
-         (main rest)))
       ((list* "--filtering-threashold" th rest)
        (let ((*threshold* (read-from-string th)))
          (if (numberp *threshold*)
@@ -148,10 +138,7 @@
                '--preprocess-only nil "stops immediately when preprocess finishes"
                '--filtering-threashold '(threashold)
                "set the threashold in macro filtering, 0.8 by default. Should be a number in [0,0.99)"
-               '--disable-filtering nil "Same as specifying --filtering-threashold 0."
-               '--use-grounded-macros nil "use non-parametric fully grounded macro actions"
-               '--use-reverse-macros nil "use reverse macros"
-               '--use-grounded-reverse-macros nil "use non-parametric reverse macros. implies --use-reverse-macros."
+               '--disable-filtering nil "Same as specifying --filtering-threashold 0 ."
                '--preprocess-limit '(time) "specify the approximated sum of maxmimum preprocessing time in integer"
                '--component-plan-limit '(time) "specify the time limit of component planning in integer"
                '-t '(time) "time limit for the main search. NOT the total limit"
