@@ -40,7 +40,8 @@
            :*use-reverse-macros*
            :*use-grounded-reverse-macros*
            :reverse-macro
-           :cyclic-macro)
+           :cyclic-macro
+           :*threshold*)
   (:shadowing-import-from :guicho-utilities
                           :permutations)
   (:shadowing-import-from :statistics

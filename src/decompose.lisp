@@ -265,7 +265,8 @@
            (ndata (normalize-data data))
            (scores (map 'vector #'score ndata))
            (threshold (+ (mean scores)
-                         (* (standard-deviation scores) *threshold*)))
+                         (* (standard-deviation scores)
+                             (z *threshold*))))
            (all (iter (for pair in pairs)
                       (for datum in-vector data)
                       (for ndatum in-vector ndata)
@@ -276,7 +277,8 @@
                      (curry #'< threshold) all
                      :key #'fourth)))
       (print-results all threshold)
-      (format t "~&Pruning threshold is ~a." threshold)
+      (format t "~&Pruning percentage is ~3,1f%." (* 100 *threshold*))
+      (format t "~&Score threshold is ~a." threshold)
       (when (< (length results) 2)
         (format t "~&This threshold value prunes too many macros. ~
                    ~&Recovering at least 2.")
@@ -342,7 +344,7 @@
             (length pairs)))
   (subseq pairs 0 (min 2 (length pairs))))
 
-(defvar *threshold* (z 0.8))
+(defvar *threshold* 0.8)
 
 (defun sort-and-print-macros (pairs)
   (format t "~&~a macros, status:" (length pairs))
@@ -395,10 +397,7 @@
                                  #'remove-single-macros
                                  ;; #'sort-and-print-macros
                                  ;; #'filter-macros-normdist
-                                 (if *disable-filtering*
-                                     (lambda (x)
-                                       (format t "~&Rank-based filtering is disabled.") x)
-                                     #'filter-macros-normalized)))
+                                 #'filter-macros-normalized))
                           (modify-domain-problem #'identity2)
                         &aux (domain (domain problem)))
   (format t "~&Enhancing domain ~a" domain)

@@ -81,8 +81,15 @@
        (let ((*use-grounded-reverse-macros* t)
              (*use-reverse-macros* t))
          (main rest)))
+      ((list* "--filtering-threashold" th rest)
+       (let ((*threshold* (read-from-string th)))
+         (if (numberp *threshold*)
+             (if (<= 0 *threshold* 0.99999995)
+                 (main rest)
+                 (error "--filtering-threashold should be 0 <= x < 0.99999995 ~~ 1-eps! "))
+             (error "--filtering-threashold should be a lisp-readable number! ex) 0, 0.0, 1/2, 0.5d0, 0.7"))))
       ((list* "--disable-filtering" rest)
-       (let ((*disable-filtering* t))
+       (let ((*threshold* 0))
          (main rest)))
       ;; underlying planner
       ((list* "--plain" rest)
@@ -139,7 +146,9 @@
                '--validation nil "run the validator after the planning"
                '--debug-preprocessing nil "enable the verbosity of the preprocessing planner"
                '--preprocess-only nil "stops immediately when preprocess finishes"
-               '--disable-filtering nil "disable ranking-based macro filtering"
+               '--filtering-threashold '(threashold)
+               "set the threashold in macro filtering, 0.8 by default. Should be a number in [0,0.99)"
+               '--disable-filtering nil "Same as specifying --filtering-threashold 0."
                '--use-grounded-macros nil "use non-parametric fully grounded macro actions"
                '--use-reverse-macros nil "use reverse macros"
                '--use-grounded-reverse-macros nil "use non-parametric reverse macros. implies --use-reverse-macros."
@@ -196,6 +205,19 @@
 (defun test1-4 (&rest args)
   (clear-plan-task-cache)
   (main `(,@args "--validation" "-v" "-m" "2000000" "elevators-sat11/p12.pddl")))
+
+(defun test1-1-hard (&rest args)
+  (clear-plan-task-cache)
+  (main `(,@args "--validation" "-v" "-m" "2000000" "elev-lessfloors/p01.pddl")))
+(defun test1-2-hard (&rest args)
+  (clear-plan-task-cache)
+  (main `(,@args "--validation" "-v" "-m" "2000000" "elev-lessfloors/p02.pddl")))
+(defun test1-3-hard (&rest args)
+  (clear-plan-task-cache)
+  (main `(,@args "--validation" "-v" "-m" "2000000" "elev-lessfloors/p03.pddl")))
+(defun test1-4-hard (&rest args)
+  (clear-plan-task-cache)
+  (main `(,@args "--validation" "-v" "-m" "2000000" "elev-lessfloors/p04.pddl")))
 
 ;;;; cell-assembly-noneg-nocost
 
