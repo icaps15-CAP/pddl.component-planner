@@ -13,7 +13,7 @@
 (defvar *preprocessor* "fd-clean")
 (defvar *preprocessor-options* *lama-options*)
 (defvar *debug-preprocessing* nil)
-(defvar *component-plan-time-limit* 40)
+(defvar *component-plan-time-limit* 30)
 (defcached plan-task (task)
   "Calls build-component-problem, make a plan with FD, then parse the results.
 returns a PDDL-PLAN. The call to this function is cached and memoized, so be
