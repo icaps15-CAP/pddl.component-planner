@@ -140,7 +140,7 @@
                "set the threashold in macro filtering, 0.8 by default. Should be a number in [0,0.99)"
                '--disable-filtering nil "Same as specifying --filtering-threashold 0 ."
                '--preprocess-limit '(time) "specify the approximated sum of maxmimum preprocessing time in integer"
-               '--component-plan-limit '(time) "specify the time limit of component planning in integer (default 30sec)
+               '--component-plan-limit '(time) "specify the time limit of component planning in integer (default 30sec)"
                '-t '(time) "time limit for the main search. NOT the total limit"
                '-m '(memory) "memory limit for the main search. NOT the total limit"
                '--------underlying-planner-options------ nil "-------------------------------"
