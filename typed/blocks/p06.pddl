@@ -1,0 +1,18 @@
+(DEFINE (PROBLEM BLOCKS-6-2)
+ (:DOMAIN BLOCKS)
+ (:OBJECTS E - OBJECT F - OBJECT B - OBJECT D - OBJECT C - OBJECT A - OBJECT)
+ (:INIT
+  (CLEAR A)
+  (ONTABLE C)
+  (ON A D)
+  (ON D B)
+  (ON B F)
+  (ON F E)
+  (ON E C)
+  (HANDEMPTY))
+ (:GOAL
+  (AND (ON E F)
+       (ON F A)
+       (ON A B)
+       (ON B C)
+       (ON C D))))

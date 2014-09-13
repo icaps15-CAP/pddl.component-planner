@@ -30,7 +30,7 @@ finalize(){
 }
 trap "finalize" SIGHUP SIGINT SIGQUIT
 pid=
-for problem in $(find -name "p01.pddl")
+for problem in $(ls */p10.pddl)
 do
     run $problem &
     pid=$!

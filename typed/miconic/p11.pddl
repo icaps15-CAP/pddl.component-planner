@@ -1,0 +1,39 @@
+(DEFINE (PROBLEM MIXED-F6-P3-U0-V0-G0-A0-N0-A0-B0-N0-F0-R4)
+ (:DOMAIN MICONIC)
+ (:OBJECTS P0 - PASSENGER
+           P1 - PASSENGER
+           P2 - PASSENGER
+           F0 - FLOOR
+           F1 - FLOOR
+           F2 - FLOOR
+           F3 - FLOOR
+           F4 - FLOOR
+           F5 - FLOOR)
+
+ (:INIT
+  (ABOVE F0 F1)
+  (ABOVE F0 F2)
+  (ABOVE F0 F3)
+  (ABOVE F0 F4)
+  (ABOVE F0 F5)
+  (ABOVE F1 F2)
+  (ABOVE F1 F3)
+  (ABOVE F1 F4)
+  (ABOVE F1 F5)
+  (ABOVE F2 F3)
+  (ABOVE F2 F4)
+  (ABOVE F2 F5)
+  (ABOVE F3 F4)
+  (ABOVE F3 F5)
+  (ABOVE F4 F5)
+  (ORIGIN P0 F3)
+  (DESTIN P0 F0)
+  (ORIGIN P1 F2)
+  (DESTIN P1 F0)
+  (ORIGIN P2 F0)
+  (DESTIN P2 F4)
+  (LIFT-AT F0))
+ (:GOAL
+  (AND (SERVED P0)
+       (SERVED P1)
+       (SERVED P2))))

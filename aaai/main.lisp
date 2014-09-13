@@ -122,9 +122,14 @@
        (let ((*memory-limit* (parse-integer memory)))
          (main rest)))
       ((list ppath)
-       (let ((ppath (merge-pathnames ppath)))
-         (main (list ppath (make-pathname :defaults ppath
-                                          :name "domain")))))
+       (let* ((ppath (merge-pathnames ppath))
+              (dpath (make-pathname :defaults ppath :name "domain")))
+         (if (probe-file dpath)
+             (main (list ppath dpath))
+             (let ((dpath (make-pathname
+                           :defaults ppath :name
+                           (format nil "~a-domain" (pathname-name ppath)))))
+               (main (list ppath dpath))))))
       ((list ppath dpath)
        (let ((ppath (merge-pathnames ppath))
              (dpath (merge-pathnames dpath)))

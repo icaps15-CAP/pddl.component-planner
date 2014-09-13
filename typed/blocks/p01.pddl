@@ -1,0 +1,14 @@
+(DEFINE (PROBLEM BLOCKS-4-1)
+ (:DOMAIN BLOCKS)
+ (:OBJECTS A - OBJECT C - OBJECT D - OBJECT B - OBJECT)
+ (:INIT
+  (CLEAR B)
+  (ONTABLE D)
+  (ON B C)
+  (ON C A)
+  (ON A D)
+  (HANDEMPTY))
+ (:GOAL
+  (AND (ON D C)
+       (ON C A)
+       (ON A B))))

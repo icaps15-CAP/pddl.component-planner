@@ -13,3 +13,18 @@ possible approaches:
 + write a generator for the typed depot
 + add types to depot manually
 
+TPP 1 macros
+AIRPORT_FIXED_STRUCTURE strips. 2 macros.
+TRANSPORT transport-sat11-strips.
+SOKOBAN-SEQUENTIAL ただし main search でエラー: action-cost 関連で(単純ミス)
+
+型づけによって対応できるもの
+
+driverlog
+gripper
+
+小さい問題ならmacroの存在するもの
+
+miconic
+mystery
+

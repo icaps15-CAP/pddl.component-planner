@@ -1,0 +1,53 @@
+(DEFINE (PROBLEM DLOG-2-2-3)
+ (:DOMAIN DRIVERLOG)
+ (:OBJECTS DRIVER1 - DRIVER
+           DRIVER2 - DRIVER
+           TRUCK1 - TRUCK
+           TRUCK2 - TRUCK
+           PACKAGE1 - OBJ
+           PACKAGE2 - OBJ
+           PACKAGE3 - OBJ
+           S0 - LOCATION
+           S1 - LOCATION
+           S2 - LOCATION
+           P0-1 - LOCATION
+           P0-2 - LOCATION
+           P1-0 - LOCATION
+           P2-1 - LOCATION)
+
+ (:INIT
+  (AT DRIVER1 S0)
+  (AT DRIVER2 S0)
+  (AT TRUCK1 S0)
+  (EMPTY TRUCK1)
+  (AT TRUCK2 S1)
+  (EMPTY TRUCK2)
+  (AT PACKAGE1 S2)
+  (AT PACKAGE2 S1)
+  (AT PACKAGE3 S1)
+  (PATH S0 P0-1)
+  (PATH P0-1 S0)
+  (PATH S1 P0-1)
+  (PATH P0-1 S1)
+  (PATH S0 P0-2)
+  (PATH P0-2 S0)
+  (PATH S2 P0-2)
+  (PATH P0-2 S2)
+  (PATH S2 P2-1)
+  (PATH P2-1 S2)
+  (PATH S1 P2-1)
+  (PATH P2-1 S1)
+  (LINK S0 S2)
+  (LINK S2 S0)
+  (LINK S1 S0)
+  (LINK S0 S1)
+  (LINK S1 S2)
+  (LINK S2 S1))
+ (:GOAL
+  (AND (AT DRIVER1 S1)
+       (AT DRIVER2 S1)
+       (AT TRUCK1 S2)
+       (AT TRUCK2 S0)
+       (AT PACKAGE1 S0)
+       (AT PACKAGE2 S2)
+       (AT PACKAGE3 S0))))

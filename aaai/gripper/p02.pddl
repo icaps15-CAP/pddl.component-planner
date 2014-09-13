@@ -1,0 +1,30 @@
+(DEFINE (PROBLEM STRIPS-GRIPPER-X-2)
+ (:DOMAIN GRIPPER-STRIPS)
+ (:OBJECTS ROOMA - ROOM
+           ROOMB - ROOM
+           BALL6 - BALL
+           BALL5 - BALL
+           BALL4 - BALL
+           BALL3 - BALL
+           BALL2 - BALL
+           BALL1 - BALL
+           LEFT - GRIPPER
+           RIGHT - GRIPPER)
+
+ (:INIT
+  (AT-ROBBY ROOMA)
+  (FREE LEFT)
+  (FREE RIGHT)
+  (AT BALL6 ROOMA)
+  (AT BALL5 ROOMA)
+  (AT BALL4 ROOMA)
+  (AT BALL3 ROOMA)
+  (AT BALL2 ROOMA)
+  (AT BALL1 ROOMA))
+ (:GOAL
+  (AND (AT BALL6 ROOMB)
+       (AT BALL5 ROOMB)
+       (AT BALL4 ROOMB)
+       (AT BALL3 ROOMB)
+       (AT BALL2 ROOMB)
+       (AT BALL1 ROOMB))))

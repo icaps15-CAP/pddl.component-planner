@@ -13,3 +13,4 @@
 *.stat
 *.plan
 *.log
+*.typed-pddl

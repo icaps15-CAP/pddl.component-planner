@@ -1,0 +1,108 @@
+(DEFINE (PROBLEM MIXED-F12-P6-U0-V0-G0-A0-N0-A0-B0-N0-F0-R1)
+ (:DOMAIN MICONIC)
+ (:OBJECTS P0 - PASSENGER
+           P1 - PASSENGER
+           P2 - PASSENGER
+           P3 - PASSENGER
+           P4 - PASSENGER
+           P5 - PASSENGER
+           F0 - FLOOR
+           F1 - FLOOR
+           F2 - FLOOR
+           F3 - FLOOR
+           F4 - FLOOR
+           F5 - FLOOR
+           F6 - FLOOR
+           F7 - FLOOR
+           F8 - FLOOR
+           F9 - FLOOR
+           F10 - FLOOR
+           F11 - FLOOR)
+
+ (:INIT
+  (ABOVE F0 F1)
+  (ABOVE F0 F2)
+  (ABOVE F0 F3)
+  (ABOVE F0 F4)
+  (ABOVE F0 F5)
+  (ABOVE F0 F6)
+  (ABOVE F0 F7)
+  (ABOVE F0 F8)
+  (ABOVE F0 F9)
+  (ABOVE F0 F10)
+  (ABOVE F0 F11)
+  (ABOVE F1 F2)
+  (ABOVE F1 F3)
+  (ABOVE F1 F4)
+  (ABOVE F1 F5)
+  (ABOVE F1 F6)
+  (ABOVE F1 F7)
+  (ABOVE F1 F8)
+  (ABOVE F1 F9)
+  (ABOVE F1 F10)
+  (ABOVE F1 F11)
+  (ABOVE F2 F3)
+  (ABOVE F2 F4)
+  (ABOVE F2 F5)
+  (ABOVE F2 F6)
+  (ABOVE F2 F7)
+  (ABOVE F2 F8)
+  (ABOVE F2 F9)
+  (ABOVE F2 F10)
+  (ABOVE F2 F11)
+  (ABOVE F3 F4)
+  (ABOVE F3 F5)
+  (ABOVE F3 F6)
+  (ABOVE F3 F7)
+  (ABOVE F3 F8)
+  (ABOVE F3 F9)
+  (ABOVE F3 F10)
+  (ABOVE F3 F11)
+  (ABOVE F4 F5)
+  (ABOVE F4 F6)
+  (ABOVE F4 F7)
+  (ABOVE F4 F8)
+  (ABOVE F4 F9)
+  (ABOVE F4 F10)
+  (ABOVE F4 F11)
+  (ABOVE F5 F6)
+  (ABOVE F5 F7)
+  (ABOVE F5 F8)
+  (ABOVE F5 F9)
+  (ABOVE F5 F10)
+  (ABOVE F5 F11)
+  (ABOVE F6 F7)
+  (ABOVE F6 F8)
+  (ABOVE F6 F9)
+  (ABOVE F6 F10)
+  (ABOVE F6 F11)
+  (ABOVE F7 F8)
+  (ABOVE F7 F9)
+  (ABOVE F7 F10)
+  (ABOVE F7 F11)
+  (ABOVE F8 F9)
+  (ABOVE F8 F10)
+  (ABOVE F8 F11)
+  (ABOVE F9 F10)
+  (ABOVE F9 F11)
+  (ABOVE F10 F11)
+  (ORIGIN P0 F8)
+  (DESTIN P0 F5)
+  (ORIGIN P1 F11)
+  (DESTIN P1 F8)
+  (ORIGIN P2 F4)
+  (DESTIN P2 F7)
+  (ORIGIN P3 F1)
+  (DESTIN P3 F10)
+  (ORIGIN P4 F1)
+  (DESTIN P4 F7)
+  (ORIGIN P5 F0)
+  (DESTIN P5 F4)
+  (LIFT-AT F0))
+ (:GOAL
+  (AND (SERVED P0)
+       (SERVED P1)
+       (SERVED P2)
+       (SERVED P3)
+       (SERVED P4)
+       (SERVED P5))))
