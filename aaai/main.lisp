@@ -71,6 +71,9 @@
       ((list* "--debug-preprocessing" rest)
        (let ((*debug-preprocessing* t))
          (main rest)))
+      ((list* "--compatibility-type" string rest)
+       (let ((*compatibility-type* (read-from-string string)))
+         (main rest)))
       ((list* "--filtering-threashold" th rest)
        (let ((*threshold* (read-from-string th)))
          (if (numberp *threshold*)
@@ -146,6 +149,7 @@
                '--disable-filtering nil "Same as specifying --filtering-threashold 0 ."
                '--preprocess-limit '(time) "specify the approximated sum of maxmimum preprocessing time in integer"
                '--component-plan-limit '(time) "specify the time limit of component planning in integer (default 30sec)"
+               '--compatibility-type '(symbol) "specify the result of combatibility when no component plan exists. One of: strict(default), loose, always-false(=disabling compat-check)."
                '-t '(time) "time limit for the main search. NOT the total limit"
                '-m '(memory) "memory limit for the main search. NOT the total limit"
                '--------underlying-planner-options------ nil "-------------------------------"

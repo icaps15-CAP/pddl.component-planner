@@ -41,7 +41,11 @@
            :*use-grounded-reverse-macros*
            :reverse-macro
            :cyclic-macro
-           :*threshold*)
+           :*threshold*
+           :*compatibility-type*
+           :strict
+           :always-false
+           :loose)
   (:shadowing-import-from :guicho-utilities
                           :permutations)
   (:shadowing-import-from :statistics
