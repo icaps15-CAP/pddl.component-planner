@@ -5,6 +5,7 @@
 ;;; enhance domain and problem
 ;;;; binarize, extract and debinarize components
 
+(defvar *disable-precategorization* nil)
 (defun tasks-bag/aig/seed (problem bproblem seed  &aux (domain (domain problem)))
   ;; -> (list (vector (list task) plan))
   (let (tasks tasks-bag)
@@ -14,11 +15,13 @@
     ;; (setf tasks (remove-if #'trivial-component-p tasks :key #'abstract-component-task-ac))
     ;; remove tasks without goals
     (format t "~&Tasks found : ~a" (length tasks))
-    (format t "~&Removing tasks w/o goals.")
     (setf tasks (remove-if-not #'abstract-component-task-goal tasks))
-    (format t "~&Tasks : ~a" (length tasks))
+    (format t "~&Removing tasks w/o goals : ~a" (length tasks))
     ;; categorize tasks into buckets, based on init/goal/attribute.
-    (setf tasks-bag (coerce (categorize-tasks tasks) 'list))
+    (setf tasks-bag
+          (if *disable-precategorization*
+              (list tasks)
+              (coerce (categorize-tasks tasks) 'list)))
     ;; list pf bags. each bag contains tasks of the same structure
     (format t "~&TASKS/g/i/attr : ~a" (mapcar #'length tasks-bag))
     (format t "~&Debinarizing Tasks...")
@@ -54,8 +57,6 @@
                ((pddl-predicate) g)))
            predicates)
    :test #'eqstate))
-  
-          
 
 ;; task: ac, init, goal
 ;; ac: seed, objects, facts, attr, attr-facts
@@ -85,9 +86,10 @@
 
 (defun component-plans (tasks-bag)
   (setf tasks-bag (sort tasks-bag #'> :key #'length)) ;; sort by c_i
-  (format t "~&Categorizing TASKS by plan compatibility")
+  (format t "~&Categorizing TASKS by plan compatibility.")
   (format t "~&Calling the preprocessing planner ~a" *preprocessor*)
-  (format t "~&Total Tasks /g/i/attr: ~a" (mapcar #'length tasks-bag))
+  (format t "~&Total Tasks /g/i/attr: ~a" (reduce #'+ (mapcar #'length tasks-bag)))
+  (format t "~&Task cardinalities: ~a" (mapcar #'length tasks-bag))
   (setf tasks-bag (mappend #'categorize-by-compatibility tasks-bag))
   (format t "~&Finished the categorization based on plan compatibility.")
   (format t "~&TASKS/plan : ~a" (mapcar #'length tasks-bag))
@@ -116,13 +118,14 @@
                             (abstract-component-task-ac task)))
           (collect o))))
 
-
-
 ;;;; generate-macro-pairs
 
+(defvar *disable-binarization* nil)
 (defun generate-macro-pairs (*problem* domain)
   (format t "~&Binarizing domain ~a" domain)
-  (let* ((bproblem (binarize *problem* domain))
+  (let* ((bproblem (if *disable-binarization*
+                       (binarize *problem* domain)
+                       *problem*))
          (tasks-bag (iter (for seed in (types-in-goal *problem*))
                           (appending
                            (tasks-bag/aig/seed
@@ -405,9 +408,15 @@
     ((pddl-domain name)
      (let* ((*domain*
              (shallow-copy domain :name (symbolicate name '-enhanced)))
-            macro-pairs macros)
-       (setf macro-pairs (generate-macro-pairs problem domain))
+            macro-pairs macros
+            (comparison-count 0)
+            (evaluation-count 0))
+       (handler-bind ((comparison-signal (lambda (c) (incf comparison-count)))
+                      (evaluation-signal (lambda (c) (incf evaluation-count))))
+         (setf macro-pairs (generate-macro-pairs problem domain)))
        (format t "~&~a macros found in total." (length macro-pairs))
+       (format t "~&Number of component plan evaluation: ~a" evaluation-count)
+       (format t "~&Number of comparison: ~a" comparison-count)
        (setf macro-pairs
              (funcall (apply #'compose (reverse filters)) macro-pairs))
        (format t "~&~a macros after filtering." (length macro-pairs))

@@ -45,7 +45,9 @@
            :*compatibility-type*
            :strict
            :always-false
-           :loose)
+           :loose
+           :*disable-precategorization*
+           :*disable-binarization*)
   (:shadowing-import-from :guicho-utilities
                           :permutations)
   (:shadowing-import-from :statistics

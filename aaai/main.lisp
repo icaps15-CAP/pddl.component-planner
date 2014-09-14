@@ -74,6 +74,12 @@
       ((list* "--compatibility-type" string rest)
        (let ((*compatibility-type* (read-from-string string)))
          (main rest)))
+      ((list* "--disable-precategorization" rest)
+       (let ((*disable-precategorization* t))
+         (main rest)))
+      ((list* "--disable-binarization" string rest)
+       (let ((*disable-binarization* t))
+         (main rest)))
       ((list* "--filtering-threashold" th rest)
        (let ((*threshold* (read-from-string th)))
          (if (numberp *threshold*)
@@ -147,6 +153,8 @@
                '--filtering-threashold '(threashold)
                "set the threashold in macro filtering, 0.8 by default. Should be a number in [0,0.99)"
                '--disable-filtering nil "Same as specifying --filtering-threashold 0 ."
+               '--disable-binarization nil "Do not use binarized domain for component abstraction."
+               '--disable-precategorization nil "Do not apply precategorization before compatibility checking."
                '--preprocess-limit '(time) "specify the approximated sum of maxmimum preprocessing time in integer"
                '--component-plan-limit '(time) "specify the time limit of component planning in integer (default 30sec)"
                '--compatibility-type '(symbol) "specify the result of combatibility when no component plan exists. One of: strict(default), loose, always-false(=disabling compat-check)."
