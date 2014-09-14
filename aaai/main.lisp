@@ -77,7 +77,7 @@
       ((list* "--disable-precategorization" rest)
        (let ((*disable-precategorization* t))
          (main rest)))
-      ((list* "--disable-binarization" string rest)
+      ((list* "--disable-binarization" rest)
        (let ((*disable-binarization* t))
          (main rest)))
       ((list* "--filtering-threashold" th rest)
