@@ -47,7 +47,8 @@
            :always-false
            :loose
            :*disable-precategorization*
-           :*disable-binarization*)
+           :*disable-binarization*
+           :*disable-cyclic-macros*)
   (:shadowing-import-from :guicho-utilities
                           :permutations)
   (:shadowing-import-from :statistics

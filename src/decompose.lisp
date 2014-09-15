@@ -393,6 +393,8 @@
 ;;                (appending mm))
 ;;          (mapc #'print (mapcar #'name macros))))
 
+
+(defvar *disable-cyclic-macros* nil)
 (defun enhance-problem (problem
                         &key
                           (filters
@@ -420,9 +422,15 @@
        (setf macro-pairs
              (funcall (apply #'compose (reverse filters)) macro-pairs))
        (format t "~&~a macros after filtering." (length macro-pairs))
-       (format t "~&Instantiating cyclic macro.")
        (let ((*domain* domain) (*problem* problem))
-         (setf macros (mappend #'cyclic-macro macro-pairs)))
+         (setf macros
+               (if *disable-cyclic-macros*
+                   (progn
+                     (format t "~&Instantiating ground forward macros.")
+                     (mappend #'get-actions-grounded macro-pairs))
+                   (progn
+                     (format t "~&Instantiating ground cyclic macros.")
+                     (mappend #'cyclic-macro macro-pairs)))))
        (iter (for m in macros)
              (format t "~%(~50@<~a~>:length ~a)"
                      (name m) (length (actions m))))

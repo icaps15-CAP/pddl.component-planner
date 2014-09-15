@@ -80,6 +80,9 @@
       ((list* "--disable-binarization" rest)
        (let ((*disable-binarization* t))
          (main rest)))
+      ((list* "--disable-cyclic-macros" rest)
+       (let ((*disable-cyclic-macros* t))
+         (main rest)))
       ((list* "--filtering-threashold" th rest)
        (let ((*threshold* (read-from-string th)))
          (if (numberp *threshold*)
@@ -154,6 +157,7 @@
                "set the threashold in macro filtering, 0.8 by default. Should be a number in [0,0.99)"
                '--disable-filtering nil "Same as specifying --filtering-threashold 0 ."
                '--disable-binarization nil "Do not use binarized domain for component abstraction."
+               '--disable-cyclic-macros nil "Disable computing cyclic macros, always use forward-macros"
                '--disable-precategorization nil "Do not apply precategorization before compatibility checking."
                '--preprocess-limit '(time) "specify the approximated sum of maxmimum preprocessing time in integer"
                '--component-plan-limit '(time) "specify the time limit of component planning in integer (default 30sec)"
