@@ -432,8 +432,11 @@
                      (format t "~&Instantiating ground cyclic macros.")
                      (mappend #'cyclic-macro macro-pairs)))))
        (iter (for m in macros)
-             (format t "~%(~50@<~a~>:length ~a)"
-                     (name m) (length (actions m))))
+             (for pair in macro-pairs)
+             (format t "~%(~50@<~a~>:length ~a :first-comp ~a)"
+                     (name m) (length (actions m))
+                     (first-comp (match pair
+                                   ((vector (list* task _) _) task)))))
        (appendf (actions *domain*) macros)
        (appendf (constants *domain*) (objects/const problem))
        (let* ((*problem*
@@ -445,6 +448,14 @@
          (multiple-value-bind (domain problem)
              (funcall modify-domain-problem *domain* *problem*)
            (values problem domain macros)))))))
+
+(defun first-comp (task)
+  (ematch task
+    ((abstract-component-task
+      (ac
+       (abstract-component
+        (components (list* o _)))))
+     (name o))))
 
 (defun types-in-goal (problem)
   (ematch problem
