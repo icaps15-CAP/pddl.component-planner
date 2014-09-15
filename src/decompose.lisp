@@ -102,14 +102,14 @@
 
 ;;;; creates macros from the obtained component-plans
 
-(defun component-macro/bpvector (v)
+(defun component-macro/bpvector (v) ;; bag plan vector
   (ematch v
-    ((vector bag (pddl-plan actions))
-     (let ((env-objs
-            (environment-objects
-             (objects *problem*) (first bag))))
-       (vector bag (macro-action actions env-objs)))))) ; macro-action might return nil
+    ((vector (and bag (list* t1 _)) (pddl-plan actions))
+     (handler-bind ((warning #'muffle-warning))
+       (vector bag (macro-action
+                    actions (mapcar #'car (mapping-between-tasks t1 t1))))))))
 
+#+nil
 (defun environment-objects (objs task)
   (iter (for o in objs)
         (when (filter-object
@@ -138,67 +138,30 @@
 ;; no grounding
 (defun get-actions (bpvector)
   (ematch bpvector ((vector _ m) (list m))))
-(defun get-actions-grounded (bpvector)
+
+(defun get-actions-grounded (bpvector) ;; now alwasy grounded, right?
   (ematch bpvector
-    ((vector (and tasks (list* (abstract-component-task
-                                (ac (abstract-component
-                                     (components components1)))) _))
-             (and m (macro-action :alist alist)))
+    ((vector (and tasks (list* t1 _))
+             (and m (macro-action ;; :alist alist
+                                  ))) ;; (original . variable)
      (values
       (mapcar
-       (lambda-match
-         ((abstract-component-task
-           (ac (abstract-component components)))
-          (labels ((ground-p (param)
-                     (handler-bind ((error (lambda (c)
-                                             (declare (ignorable c))
-                                             (let ((*standard-output* *error-output*))
-                                               (break+ components1
-                                                       components
-                                                       param
-                                                       (rassoc param alist)
-                                                       alist)))))
-                       (ematch (rassoc param alist)
-                         ((cons _ (and enh (type pddl-constant)))
-                          enh)
-                         ((cons (and org (type pddl-constant)) (and (type pddl-variable)))
-                          org)
-                         ((cons (and org (type pddl-object)) (and (type pddl-variable)))
-                          (elt components (position org components1))))))
-                   (ground-a (a)
-                     (handler-bind
-                         (;; (warning #'muffle-warning)
-                          (unspecified-parameter
+       (lambda (t2)
+         (let ((mapping (mapping-between-tasks t1 t2))) ;; (original1 . original2)
+           (handler-bind ((unspecified-parameter
                            (lambda (c)
-                             (use-value
-                              (cdr (rassoc (parameter c) (alist m)))
-                              c)))
-                          (error
-                           (lambda (c)
-                             (print (mapcar #'ground-p (parameters a)))
-                             (print (parameters a)))))
-                       (ground-action
-                        a (mapcar #'ground-p (parameters a))))))
-            (change-class
-             (ground-a m)
-             'macro-action
-             :parameters nil
-             :actions (mapcar #'ground-a (actions m))
-             :name (gensym (symbol-name (name m)))
-             :alist (mapcar (lambda-match
-                              ;; of (object . variable) or (constant
-                              ;; . variable) if objects are not in the
-                              ;; ignore list, and (object . constant) or
-                              ;; (constant . constant) if they are in the
-                              ;; ignore list.
-                              ((cons (and const (type pddl-constant)) enh)
-                               (cons const enh))
-                              ((cons (and obj (type pddl-object)) enh)
-                               (if-let ((pos (position obj components1)))
-                                 (cons (elt components pos) enh)
-                                 (cons obj enh))))
-                            alist)))))
-       ;; :alist do not matter now;
+                             ;; FIXME almost ignore it. is it correct?
+                             (use-value (parameter c))))
+                          (warning #'muffle-warning))
+             (change-class
+              (map-action m mapping)
+              'macro-action
+              :parameters nil
+              :actions (map 'vector (rcurry #'map-action mapping) (actions m))
+              :name (gensym (symbol-name (name m)))
+              :alist ;; (iter (for (o1 . o2) in mapping)
+                     ;;       (collect (cons o2 (cdr (assoc o1 alist)))))
+              (mapping-between-tasks t2 t2)))))
        tasks)
       tasks))))
 
@@ -466,9 +429,10 @@
 ;;; enhance and solve problems & domain
 
 (defun decode-plan-all (macros plan)
-  (reduce #'decode-plan macros
-          :from-end t
-          :initial-value (pddl-plan :path plan)))
+  (handler-bind ((warning #'muffle-warning))
+    (reduce #'decode-plan macros
+            :from-end t
+            :initial-value (pddl-plan :path plan))))
 
 (defun enhancement-method (problem)
   (enhance-problem problem))

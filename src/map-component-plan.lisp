@@ -6,64 +6,81 @@
 @export
 (defun map-component-plan (pddl-plan mapping)
   (ematch pddl-plan
-    ((pddl-plan actions problem domain)
-     (let ((%mapping (%remove-nochange mapping)))
-       (shallow-copy
-        pddl-plan
-        :problem problem
-        :name (concatenate-symbols 'MP (name problem))
-        :actions
-        (map 'vector
-             (lambda (ga)
-               (ematch ga
-                 ((pddl-ground-action parameters)
-                  (ground-action (action domain (name ga))
-                                 (%apply parameters %mapping) ))))
-             actions))))))
+    ((pddl-plan actions problem)
+     (shallow-copy
+      pddl-plan
+      :problem problem
+      :name (concatenate-symbols 'MP (name problem))
+      :actions (map-actions actions mapping)))))
 
-(defun %apply (parameters mappings)
-  (reduce (lambda (parameters mapping)
-            (ematch mapping
-              ((cons from to)
-               (substitute to from parameters))))
-          mappings :initial-value parameters))
+(defun map-actions (actions mapping)
+  (map 'vector
+       (rcurry #'map-action
+               (%remove-nochange mapping))
+       actions))
 
-(defun %remove-nochange (mapping)
-  (ematch mapping
-    ((list component-mapping init-mapping goal-mapping)
-     (flet ((fn (mapping)
-              (ematch mapping
-                ((cons from to)
-                 (eq from to)))))
-       (append component-mapping
-               (remove-if #'fn init-mapping)
-               (remove-if #'fn goal-mapping))))))
+(defun map-action (action alist)
+  (ematch action
+    ((pddl-action parameters)
+     (ground-action action (%apply parameters alist)))))
+
+(defun %apply (parameters mapping)
+  (mapcar
+   #'car
+   (reduce (lambda (parameters map1)
+             (ematch map1
+               ((cons from to)
+                (iter (for pair in parameters)
+                      (collecting
+                       (ematch pair
+                         ((cons (guard old (eqname old from)) nil)
+                          (cons to old))
+                         ((cons _ nil)
+                          pair)
+                         ((cons _ old)
+                          (if (eqname old from)
+                              (error "duplicated mapping!")
+                              pair))))))))
+           mapping :initial-value
+           (mapcar (lambda (p) (cons p nil)) parameters))))
+
+(defun %remove-nochange (alist)
+  (remove-if (lambda (cons)
+               (ematch cons
+                 ((cons from to)
+                  (eqname from to))))
+             alist))
 
 ;;;; mapping-between-tasks
 
 (defun mapping-between-tasks (t1 t2)
-  "Returns a list of 3 elements.
-The first element is a mapping between the objects in the tasks,
-assuming the given two tasks are of the same abstract-type.
+  "Returns an alist.
+The alist is a mapping between the objects in the tasks,
+assuming the given two tasks are of the same abstract-type/init-goal interface.
 e.g. if AC1 = (A B C) and AC2 = (D E F), it
-returns ((A . D) (B . E) (C . F)).
+contains ((A . D) (B . E) (C . F)).
+if the initial state of AC1 contains (pred A P) and AC2 contains (pred D Q),
+it also contains ((P . Q)). Same thing applies to the goal condition.
 
-The second and the third element is a mapping between the initial and the
-goal states, respectively.
+May contain duplicated mapping: e.g. (A . A).
 "
-  (list (two-list-mapping (abstract-component-components
-                           (abstract-component-task-ac t1))
-                          (abstract-component-components
-                           (abstract-component-task-ac t2)))
-        (two-list-mapping (init-object t1) (init-object t2))
-        (two-list-mapping (goal-object t1) (goal-object t2))))
+  (append (two-list-mapping (abstract-component-components
+                             (abstract-component-task-ac t1))
+                            (abstract-component-components
+                             (abstract-component-task-ac t2)))
+          (two-list-mapping (abstract-component-attributes
+                             (abstract-component-task-ac t1))
+                            (abstract-component-attributes
+                             (abstract-component-task-ac t2)))
+          (two-list-mapping (init-object t1) (init-object t2))
+          (two-list-mapping (goal-object t1) (goal-object t2))))
 
 ;;;; utilities for mapping-between-tasks
 
 (defun fluently-connected-objects (components attributes f)
   (let ((ps (parameters f)))
-    (setf ps (set-difference ps components))
-    (setf ps (set-difference ps attributes))
+    (setf ps (set-difference ps components :test #'eqname))
+    (setf ps (set-difference ps attributes :test #'eqname))
     ps))
 
 (defun goal-object (task)

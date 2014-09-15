@@ -20,35 +20,20 @@ function basically cannot negatively prove the compatibility.
 "
   ;; (assert (abstract-component-task-strict= t1 t2))
   (signal 'comparison-signal)
-  (let* (;; (dir (mktemp "task-equal" t))
-         (problem2 (build-component-problem t2))
-         ;; (problem-path2 (write-pddl problem2 "mapped-problem.pddl" dir))
-         ;; (domain-path (write-pddl (domain problem2) "domain.pddl" dir))
-         )
+  (let* ((problem2 (build-component-problem t2)))
     (multiple-value-bind (plans complete) (plan-task-with-retry t1)
       (cond
         (plans
          (values
           (some
-           (let (;; (i 0)
-                 )
-             (lambda (plan1)
-               (ignore-errors ; returns nil
-                 (simulate-plan
-                  (pddl-environment
-                   :problem problem2
-                   :plan (map-component-plan plan1 (mapping-between-tasks t1 t2)))
-                  ;;(lambda (env goal?) (break+ (states env) goal?))
-                  ))
-               ;; slow because it writes file/invokes external process
-               ;; (validate-plan
-               ;;  domain-path
-               ;;  problem-path2
-               ;;  (write-plan
-               ;;   (map-component-plan plan1 (mapping-between-tasks t1 t2))
-               ;;   (prog1 (format nil "mapped.plan.~a" i) (incf i))
-               ;;   dir))
-               ))
+           (lambda (plan1)
+             ;; (ignore-errors ; returns nil
+             (simulate-plan
+              (pddl-environment
+               :problem problem2
+               :plan (map-component-plan
+                      plan1
+                      (mapping-between-tasks t1 t2)))))
            plans)
           :proven))
         ((and (null plans) complete)
@@ -56,4 +41,33 @@ function basically cannot negatively prove the compatibility.
         ((and (null plans) (not complete))
          (values nil nil))))))
 
-
+#+nil
+(defun task-plan-equal (t1 t2)
+  ;; (assert (abstract-component-task-strict= t1 t2))
+  (signal 'comparison-signal)
+  (let* ((dir (mktemp "task-equal" t))
+         (problem2 (build-component-problem t2))
+         (problem-path2 (write-pddl problem2 "mapped-problem.pddl" dir))
+         (domain-path (write-pddl (domain problem2) "domain.pddl" dir))
+         )
+    (multiple-value-bind (plans complete) (plan-task-with-retry t1)
+      (cond
+        (plans
+         (values
+          (some
+           (let ((i 0))
+             (lambda (plan1)
+               ;; slow because it writes file/invokes external process
+               (validate-plan
+                domain-path
+                problem-path2
+                (write-plan
+                 (map-component-plan plan1 (mapping-between-tasks t1 t2))
+                 (prog1 (format nil "mapped.plan.~a" i) (incf i))
+                 dir))))
+           plans)
+          :proven))
+        ((and (null plans) complete)
+         (values nil :proven))
+        ((and (null plans) (not complete))
+         (values nil nil))))))
