@@ -147,7 +147,7 @@
      (values
       (mapcar
        (lambda (t2)
-         (let ((mapping (mapping-between-tasks t1 t2))) ;; (original1 . original2)
+         (let ((mapping (%remove-nochange (mapping-between-tasks t1 t2)))) ;; (original1 . original2)
            (handler-bind ((unspecified-parameter
                            (lambda (c)
                              ;; FIXME almost ignore it. is it correct?

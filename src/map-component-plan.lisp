@@ -38,9 +38,9 @@
                          ((cons _ nil)
                           pair)
                          ((cons _ old)
-                          (if (eqname old from)
-                              (error "duplicated mapping!")
-                              pair))))))))
+                          (when (eqname old from)
+                            (warn "Duplicated mapping! ~a ~a" parameters mapping))
+                          pair)))))))
            mapping :initial-value
            (mapcar (lambda (p) (cons p nil)) parameters))))
 
