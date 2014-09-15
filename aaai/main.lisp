@@ -201,129 +201,129 @@
 
 ;;;; elevators
 
+;; (defun test1-1 (&rest args)
+;;   (clear-plan-task-cache)
+;;   (main `(,@args  "-v" "--disable-filtering" "--preprocess-ff" "-m" "2000000" "elevators-sat11/p01.pddl")))
+;; (defun test1-2 (&rest args)
+;;   (clear-plan-task-cache)
+;;   (main `(,@args  "-v" "--disable-filtering" "--preprocess-ff" "-m" "2000000" "elevators-sat11/p04.pddl")))
+;; (defun test1-3 (&rest args)
+;;   (clear-plan-task-cache)
+;;   (main `(,@args  "-v" "--disable-filtering" "--preprocess-ff" "-m" "2000000" "elevators-sat11/p08.pddl")))
+;; (defun test1-4 (&rest args)
+;;   (clear-plan-task-cache)
+;;   (main `(,@args  "-v" "--disable-filtering" "--preprocess-ff" "-m" "2000000" "elevators-sat11/p12.pddl")))
+
 (defun test1-1 (&rest args)
   (clear-plan-task-cache)
-  (main `(,@args "--validation" "-v" "-m" "2000000" "elevators-sat11/p01.pddl")))
+  (main `(,@args  "-v" "--disable-filtering" "--preprocess-ff" "-m" "2000000" "elev-lessfloors/p01.pddl")))
 (defun test1-2 (&rest args)
   (clear-plan-task-cache)
-  (main `(,@args "--validation" "-v" "-m" "2000000" "elevators-sat11/p04.pddl")))
+  (main `(,@args  "-v" "--disable-filtering" "--preprocess-ff" "-m" "2000000" "elev-lessfloors/p02.pddl")))
 (defun test1-3 (&rest args)
   (clear-plan-task-cache)
-  (main `(,@args "--validation" "-v" "-m" "2000000" "elevators-sat11/p08.pddl")))
+  (main `(,@args  "-v" "--disable-filtering" "--preprocess-ff" "-m" "2000000" "elev-lessfloors/p03.pddl")))
 (defun test1-4 (&rest args)
   (clear-plan-task-cache)
-  (main `(,@args "--validation" "-v" "-m" "2000000" "elevators-sat11/p12.pddl")))
-
-(defun test1-1-hard (&rest args)
-  (clear-plan-task-cache)
-  (main `(,@args "--validation" "-v" "-m" "2000000" "elev-lessfloors/p01.pddl")))
-(defun test1-2-hard (&rest args)
-  (clear-plan-task-cache)
-  (main `(,@args "--validation" "-v" "-m" "2000000" "elev-lessfloors/p02.pddl")))
-(defun test1-3-hard (&rest args)
-  (clear-plan-task-cache)
-  (main `(,@args "--validation" "-v" "-m" "2000000" "elev-lessfloors/p03.pddl")))
-(defun test1-4-hard (&rest args)
-  (clear-plan-task-cache)
-  (main `(,@args "--validation" "-v" "-m" "2000000" "elev-lessfloors/p04.pddl")))
+  (main `(,@args  "-v" "--disable-filtering" "--preprocess-ff" "-m" "2000000" "elev-lessfloors/p04.pddl")))
 
 ;;;; cell-assembly-noneg-nocost
 
 (defun test2-1 (&rest args)
   (clear-plan-task-cache)
-  (main `(,@args "--validation" "-v" "-m" "2000000" "cell-assembly-noneg-nocost/p01.pddl")))
+  (main `(,@args  "-v" "--disable-filtering" "--preprocess-ff" "-m" "2000000" "cell-assembly-noneg-nocost/p01.pddl")))
 (defun test2-2 (&rest args)
   (clear-plan-task-cache)
-  (main `(,@args "--validation" "-v" "-m" "2000000" "cell-assembly-noneg-nocost/p04.pddl")))
+  (main `(,@args  "-v" "--disable-filtering" "--preprocess-ff" "-m" "2000000" "cell-assembly-noneg-nocost/p04.pddl")))
 (defun test2-3 (&rest args)
   (clear-plan-task-cache)
-  (main `(,@args "--validation" "-v" "-m" "2000000" "cell-assembly-noneg-nocost/p08.pddl")))
+  (main `(,@args  "-v" "--disable-filtering" "--preprocess-ff" "-m" "2000000" "cell-assembly-noneg-nocost/p08.pddl")))
 (defun test2-4 (&rest args)
   (clear-plan-task-cache)
-  (main `(,@args "--validation" "-v" "-m" "2000000" "cell-assembly-noneg-nocost/p12.pddl")))
+  (main `(,@args  "-v" "--disable-filtering" "--preprocess-ff" "-m" "2000000" "cell-assembly-noneg-nocost/p12.pddl")))
 
 ;;;; pipesworld
 (defun test3-1 (&rest args)
   (clear-plan-task-cache)
-  (main `(,@args "--validation" "-v" "-m" "2000000" "pipesworld-notankage/p01.pddl")))
+  (main `(,@args  "-v" "--disable-filtering" "--preprocess-ff" "-m" "2000000" "pipesworld-notankage/p01.pddl")))
 (defun test3-2 (&rest args)
   (clear-plan-task-cache)
-  (main `(,@args "--validation" "-v" "-m" "2000000" "pipesworld-notankage/p04.pddl")))
+  (main `(,@args  "-v" "--disable-filtering" "--preprocess-ff" "-m" "2000000" "pipesworld-notankage/p04.pddl")))
 
 (defun test4-1 (&rest args)
   (clear-plan-task-cache)
-  (main `(,@args "--validation" "-v" "-m" "2000000" "pipesworld-tankage/p01.pddl")))
+  (main `(,@args  "-v" "--disable-filtering" "--preprocess-ff" "-m" "2000000" "pipesworld-tankage/p01.pddl")))
 (defun test4-2 (&rest args)
   (clear-plan-task-cache)
-  (main `(,@args "--validation" "-v" "-m" "2000000" "pipesworld-tankage/p04.pddl")))
+  (main `(,@args  "-v" "--disable-filtering" "--preprocess-ff" "-m" "2000000" "pipesworld-tankage/p04.pddl")))
 
 ;;;; barman
 
 (defun test5-1 (&rest args)
   (clear-plan-task-cache) ;; かなり難しい
-  (main `(,@args "--validation" "-v" "-m" "2000000" "barman/p01.pddl")))
+  (main `(,@args  "-v" "--disable-filtering" "--preprocess-ff" "-m" "2000000" "barman/p01.pddl")))
 (defun test5-2 (&rest args)
   (clear-plan-task-cache)
-  (main `(,@args "--validation" "-v" "-m" "2000000" "barman/p04.pddl")))
+  (main `(,@args  "-v" "--disable-filtering" "--preprocess-ff" "-m" "2000000" "barman/p04.pddl")))
 (defun test5-3 (&rest args)
   (clear-plan-task-cache)
-  (main `(,@args "--validation" "-v" "-m" "2000000" "barman/p08.pddl")))
+  (main `(,@args  "-v" "--disable-filtering" "--preprocess-ff" "-m" "2000000" "barman/p08.pddl")))
 
 ;;;; childsnack
 
 (defun test6-1 (&rest args)
   (clear-plan-task-cache)
-  (main `(,@args "--validation" "-v" "-m" "2000000" "childsnack/p01.pddl")))
+  (main `(,@args  "-v" "--disable-filtering" "--preprocess-ff" "-m" "2000000" "childsnack/p01.pddl")))
 (defun test6-2 (&rest args)
   (clear-plan-task-cache)
-  (main `(,@args "--validation" "-v" "-m" "2000000" "childsnack/p04.pddl")))
+  (main `(,@args  "-v" "--disable-filtering" "--preprocess-ff" "-m" "2000000" "childsnack/p04.pddl")))
 
 
 ;;;; woodworking
 
 (defun test7-1 (&rest args)
   (clear-plan-task-cache)
-  (main `(,@args "--validation" "-v" "-m" "2000000" "woodworking-sat11-nocost/p01.pddl")))
+  (main `(,@args  "-v" "--disable-filtering" "--preprocess-ff" "-m" "2000000" "woodworking-sat11-nocost/p01.pddl")))
 (defun test7-2 (&rest args)
   (clear-plan-task-cache)
-  (main `(,@args "--validation" "-v" "-m" "2000000" "woodworking-sat11-nocost/p02.pddl")))
+  (main `(,@args  "-v" "--disable-filtering" "--preprocess-ff" "-m" "2000000" "woodworking-sat11-nocost/p02.pddl")))
 (defun test7-3 (&rest args)
   (clear-plan-task-cache)
-  (main `(,@args "--validation" "-v" "-m" "2000000" "woodworking-sat11-nocost/p04.pddl")))
+  (main `(,@args  "-v" "--disable-filtering" "--preprocess-ff" "-m" "2000000" "woodworking-sat11-nocost/p04.pddl")))
 
 ;;;; satellite
 
 (defun test8-1 (&rest args)
   (clear-plan-task-cache)
-  (main `(,@args "--validation" "-v" "-m" "2000000" "satellite-typed2/p01.pddl")))
+  (main `(,@args  "-v" "--disable-filtering" "--preprocess-ff" "-m" "2000000" "satellite-typed2/p01.pddl")))
 
 (defun test8-2 (&rest args)
   (clear-plan-task-cache)
-  (main `(,@args "--validation" "-v" "-m" "2000000" "satellite-typed2/p04.pddl")))
+  (main `(,@args  "-v" "--disable-filtering" "--preprocess-ff" "-m" "2000000" "satellite-typed2/p04.pddl")))
 
 (defun test8-3 (&rest args)
   (clear-plan-task-cache)
-  (main `(,@args "--validation" "-v" "-m" "2000000" "satellite-typed2/p01-hard.pddl")))
+  (main `(,@args  "-v" "--disable-filtering" "--preprocess-ff" "-m" "2000000" "satellite-typed2/p01-hard.pddl")))
 
 ;;;; rovers
 
 (defun test9-1 (&rest args)
   (clear-plan-task-cache)
-  (main `(,@args "--validation" "-v" "-m" "2000000" "rovers/p01.pddl")))
+  (main `(,@args  "-v" "--disable-filtering" "--preprocess-ff" "-m" "2000000" "rovers/p01.pddl")))
 
 (defun test9-2 (&rest args)
   (clear-plan-task-cache)
-  (main `(,@args "--validation" "-v" "-m" "2000000" "rovers/p04.pddl")))
+  (main `(,@args  "-v" "--disable-filtering" "--preprocess-ff" "-m" "2000000" "rovers/p04.pddl")))
 
 (defun test9-3 (&rest args)
   (clear-plan-task-cache)
-  (main `(,@args "--validation" "-v" "-m" "2000000" "rovers/p41.pddl")))
+  (main `(,@args  "-v" "--disable-filtering" "--preprocess-ff" "-m" "2000000" "rovers/p41.pddl")))
 
 (defun test9-1* (&rest args)
   (clear-plan-task-cache)
-  (main `(,@args "--validation" "-v" "-m" "2000000" "rovers/p01.pddl" "rovers/domain-fixed.pddl")))
+  (main `(,@args  "-v" "--disable-filtering" "--preprocess-ff" "-m" "2000000" "rovers/p01.pddl" "rovers/domain-fixed.pddl")))
 
 (defun test9-2* (&rest args)
   (clear-plan-task-cache)
-  (main `(,@args "--validation" "-v" "-m" "2000000" "rovers/p04.pddl" "rovers/domain-fixed.pddl")))
+  (main `(,@args  "-v" "--disable-filtering" "--preprocess-ff" "-m" "2000000" "rovers/p04.pddl" "rovers/domain-fixed.pddl")))
 
