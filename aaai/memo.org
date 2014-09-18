@@ -28,3 +28,4 @@ gripper
 miconic
 mystery
 
+openstacksはやはりだめ (9/18)
