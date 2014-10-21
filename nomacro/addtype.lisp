@@ -4,7 +4,7 @@
 ;;(sb-profile:profile "PDDL" "PDDL.COMPONENT-PLANNER" "PDDL.COMPONENT-ABSTRACTION" "GUICHO-UTILITIES" "EAZYLAZY")
 (in-package "PDDL.COMPONENT-PLANNER.EXPERIMENT")
 (swank:set-default-directory
- "/mnt/video/guicho/repos/lisp/pddl.component-planner/aaai/nomacro/")
+ "/mnt/video/guicho/repos/lisp/pddl.component-planner/nomacro/")
 
 (in-package :pddl.component-planner.experiment)
 

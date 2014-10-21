@@ -1,0 +1,33 @@
+(DEFINE (PROBLEM ZTRAVEL-1-3)
+ (:DOMAIN ZENO-TRAVEL)
+ (:OBJECTS PLANE1 - AIRCRAFT
+           PERSON1 - PERSON
+           PERSON2 - PERSON
+           PERSON3 - PERSON
+           CITY0 - CITY
+           CITY1 - CITY
+           CITY2 - CITY
+           FL0 - FLEVEL
+           FL1 - FLEVEL
+           FL2 - FLEVEL
+           FL3 - FLEVEL
+           FL4 - FLEVEL
+           FL5 - FLEVEL
+           FL6 - FLEVEL)
+
+ (:INIT
+  (AT PLANE1 CITY0)
+  (FUEL-LEVEL PLANE1 FL2)
+  (AT PERSON1 CITY2)
+  (AT PERSON2 CITY1)
+  (AT PERSON3 CITY2)
+  (NEXT FL0 FL1)
+  (NEXT FL1 FL2)
+  (NEXT FL2 FL3)
+  (NEXT FL3 FL4)
+  (NEXT FL4 FL5)
+  (NEXT FL5 FL6))
+ (:GOAL
+  (AND (AT PLANE1 CITY2)
+       (AT PERSON1 CITY1)
+       (AT PERSON3 CITY2))))
