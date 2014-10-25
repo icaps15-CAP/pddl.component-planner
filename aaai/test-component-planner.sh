@@ -10,6 +10,8 @@ run(){
     ulimit -v 3000000 -t 1900
     time ./component-planner --dynamic-space-size 2000 \
         --preprocess-ff \
+        --disable-filtering \
+        --preprocess-limit 4000 \
         --validation -v \
         $1 2> $err | tee $log
     if [[ $(cat ${1%.*}.plan) != "" ]]
