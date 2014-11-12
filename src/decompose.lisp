@@ -356,7 +356,7 @@
 ;;                (appending mm))
 ;;          (mapc #'print (mapcar #'name macros))))
 
-
+(defvar *pddl3.1-multiple-action-costs* nil)
 (defvar *disable-cyclic-macros* nil)
 (defun enhance-problem (problem
                         &key
@@ -393,7 +393,10 @@
                      (mappend #'get-actions-grounded macro-pairs))
                    (progn
                      (format t "~&Instantiating ground cyclic macros.")
-                     (mappend #'cyclic-macro macro-pairs)))))
+                     (mappend #'cyclic-macro macro-pairs))))
+         (unless *pddl3.1-multiple-action-costs*
+           (format t "~&Merging action costs.")
+           (setf macros (mapcar #'ground-cost macros))))
        (iter (for m in macros)
              (for pair in macro-pairs)
              (format t "~%(~50@<~a~>:length ~a :first-comp ~a)"
