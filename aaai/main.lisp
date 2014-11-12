@@ -12,7 +12,8 @@
 (defvar *verbose* nil)
 (defvar *build-date*
     (multiple-value-bind (second minute hour date month year) (get-decoded-time)
-      (format nil "~2,,,'0@a:~2,,,'0@a:~2,,,'0@a ~2,,,'0@a/~2,,,'0@a, ~a" hour minute second month date year)))
+      (format nil "~2,,,'0@a:~2,,,'0@a:~2,,,'0@a ~2,,,'0@a/~2,,,'0@a, ~a"
+              hour minute second month date year)))
 
 (defparameter *lmcut-lazy-gbfs* (wrap-option "--search lazy_greedy(lmcut())"))
 (defparameter *lmcut-eager-gbfs* (wrap-option "--search eager_greedy(lmcut())"))
@@ -108,10 +109,22 @@
       ((list* "--main-search"
               *main-search*
               *main-options* rest) (main rest))
-      ;; shortcuts
+      ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+      ;; aliases ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+      ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
       ((list* "--both-search"
               (and *preprocessor* *main-search*)
-              (and *preprocessor-options* *main-options*) rest) (main rest))
+              (and *preprocessor-options* *main-options*) rest)
+       (main rest))
+      ((list* "--default" rest)
+       (main (list* "--disable-filtering"
+                    "--preprocess-limit"
+                    (princ-to-string MOST-POSITIVE-FIXNUM)
+                    "-v"
+                    rest)))
+      ((list* "--fffd" rest)
+       (main (list* "--default" "--preprocess-ff" rest)))
+      ;;;; ff
       ((list* "--use-ff" rest)
        (main (list* "--preprocess-ff" "--main-search-ff" rest)))
       ((list* "--preprocess-ff" rest)
@@ -142,6 +155,7 @@
       ((list* "-m" memory rest)
        (let ((*memory-limit* (parse-integer memory)))
          (main rest)))
+      ;; prosessing the problem files
       ((list ppath)
        (let* ((ppath (merge-pathnames ppath))
               (dpath (make-pathname :defaults ppath :name "domain")))
