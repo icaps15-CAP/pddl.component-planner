@@ -34,8 +34,14 @@ then add it as another macro
     (when (within-time-limit)
       (multiple-value-match
           (funcall #'test-problem-common
-                   (write-pddl *problem* "problem.pddl" dir)
-                   (write-pddl *domain* "domain.pddl" dir)
+                   (write-pddl (if *remove-component-problem-cost*
+                                   (remove-costs *problem*)
+                                   *problem*)
+                               "problem.pddl" dir)
+                   (write-pddl (if *remove-component-problem-cost*
+                                   (remove-costs *domain*)
+                                   *domain*)
+                               "domain.pddl" dir)
                    :name *preprocessor*
                    :options *preprocessor-options*
                    :time-limit 1
