@@ -14,11 +14,25 @@
 (defvar *preprocessor-options* *lama-options*)
 (defvar *debug-preprocessing* nil)
 (defvar *component-plan-time-limit* 30)
+(defvar *remove-component-problem-cost* nil
+  "The problem and the domain solved by
+the external planner could be modified so that it does not have
+any :action-costs, so that any pure STRIPS-based planners can be used. It
+depends on the special variable.")
+
 (defcached plan-task (task)
   "Calls build-component-problem, make a plan with FD, then parse the results.
-returns a PDDL-PLAN. The call to this function is cached and memoized, so be
+returns a list of PDDL-PLAN. The call to this function is cached and memoized, so be
 careful if you measure the elapsed time. When you measure the time, run
- (clear-plan-task-cache) to clear the cache."
+ (clear-plan-task-cache) to clear the cache.
+
+The behavior of this function can be tweaked:
+`*remove-component-problem-cost*',
+`*preprocessor*',`*preprocessor-options*', `*debug-preprocessing*',
+`*component-plan-time-limit*'.
+
+It signals 'evaluation-signal each time in order to count the actual
+invocation of underlying planner easiy. "
   (when (and (abstract-component-task-goal task) ;; filter if the task has no goal
              (within-time-limit)) ;; do not compute plans when the time limit is reached
     (let* ((*problem* (build-component-problem task))
@@ -27,8 +41,14 @@ careful if you measure the elapsed time. When you measure the time, run
       (multiple-value-match
           (with-open-file (s "/dev/null" :direction :output :if-exists :overwrite)
             (funcall #'test-problem-common
-                     (write-pddl *problem* "problem.pddl" dir)
-                     (write-pddl *domain* "domain.pddl" dir)
+                     (write-pddl (if *remove-component-problem-cost*
+                                     (remove-costs *problem*)
+                                     *problem*)
+                                 "problem.pddl" dir)
+                     (write-pddl (if *remove-component-problem-cost*
+                                     (remove-costs *domain*)
+                                     *domain*)
+                                 "domain.pddl" dir)
                      :name *preprocessor*
                      :options *preprocessor-options*
                      :time-limit 1

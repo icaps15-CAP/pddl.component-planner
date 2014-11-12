@@ -441,6 +441,11 @@
 (defvar *validation* nil)
 (defvar *main-search* "fd-clean")
 (defvar *main-options* *lama-options*)
+(defvar *remove-main-problem-cost* nil
+  "The problem and the domain solved by
+the external planner could be modified so that it does not have
+any :action-costs, so that any pure STRIPS-based planners can be used. It
+depends on the special variable.")
 
 (defun solve-problem-enhancing (problem &rest test-problem-args)
   (clear-plan-task-cache)
@@ -465,8 +470,14 @@
                                           (invoke-restart
                                            (find-restart 'finish c)))))
                           (apply #'test-problem-common
-                                 (write-pddl *problem* "eproblem.pddl" dir)
-                                 (write-pddl *domain* "edomain.pddl" dir)
+                                 (write-pddl (if *remove-main-problem-cost*
+                                                 (remove-costs *problem*)
+                                                 *problem*)
+                                             "eproblem.pddl" dir)
+                                 (write-pddl (if *remove-main-problem-cost*
+                                                 (remove-costs *domain*)
+                                                 *domain*)
+                                             "edomain.pddl" dir)
                                  test-problem-args)))))
           (when *validation*
             (dolist (p plans)

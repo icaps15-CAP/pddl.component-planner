@@ -83,6 +83,12 @@
       ((list* "--disable-cyclic-macros" rest)
        (let ((*disable-cyclic-macros* t))
          (main rest)))
+      ((list* "--remove-component-problem-cost" rest)
+       (let ((*remove-component-problem-cost* t))
+         (main rest)))
+      ((list* "--remove-main-problem-cost" rest)
+       (let ((*remove-main-problem-cost* t))
+         (main rest)))
       ((list* "--filtering-threashold" th rest)
        (let ((*threshold* (read-from-string th)))
          (if (numberp *threshold*)
@@ -109,17 +115,20 @@
       ((list* "--use-ff" rest)
        (main (list* "--preprocess-ff" "--main-search-ff" rest)))
       ((list* "--preprocess-ff" rest)
-       (main (list* "--preprocessor" "ff-clean" "" rest)))
+       (main (list* "--remove-component-problem-cost"
+                    "--preprocessor" "ff-clean" "" rest)))
       ((list* "--main-search-ff" rest)
-       (main (list* "--main-search" "ff-clean" "" rest)))
+       (main (list* "--remove-main-problem-cost"
+                    "--main-search" "ff-clean" "" rest)))
+      ;;;; marvin
       ((list* "--use-marvin" rest)
        (main (list* "--preprocess-marvin" "--main-search-marvin" rest)))
       ((list* "--preprocess-marvin" rest)
-       (main (list* "--preprocessor" "marvin-clean" "" rest)))
+       (main (list* "--remove-component-problem-cost"
+                    "--preprocessor" "marvin-clean" "" rest)))
       ((list* "--main-search-marvin" rest)
-       (main (list* "--main-search" "marvin-clean" "" rest)))
-      ((list* "--plain-ff" rest)
-       (main (list* "--plain" "--main-search-ff" rest)))
+       (main (list* "--remove-main-problem-cost"
+                    "--main-search" "marvin-clean" "" rest)))
       ;; time limit and resource
       ((list* "--preprocess-limit" time rest)
        (let ((*preprocess-time-limit* (parse-integer time)))
@@ -155,6 +164,8 @@
                '--preprocess-only nil "stops immediately when preprocess finishes"
                '--filtering-threashold '(threashold)
                "set the threashold in macro filtering, 0.8 by default. Should be a number in [0,0.99)"
+               '--remove-component-problem-cost nil "Remove :action-costs during component planning"
+               '--remove-main-problem-cost nil "Remove :action-costs during main search"
                '--disable-filtering nil "Same as specifying --filtering-threashold 0 ."
                '--disable-binarization nil "Do not use binarized domain for component abstraction."
                '--disable-cyclic-macros nil "Disable computing cyclic macros, always use forward-macros"
