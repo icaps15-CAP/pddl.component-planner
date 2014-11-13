@@ -1,7 +1,7 @@
 
 (defpackage :pddl.component-planner.experiment
   (:use :cl :cl-rlimit :pddl :pddl.component-planner :optima
-        :alexandria :iterate)
+        :alexandria :iterate :guicho-utilities)
   (:shadowing-import-from :pddl :minimize :maximize))
 (in-package :pddl.component-planner.experiment)
 
@@ -28,12 +28,7 @@
       (print problem)
       (let ((plans
              (if *use-plain-planner*
-                 (mapcar (curry #'pddl-plan
-                                :domain domain :problem problem :path)
-                         (test-problem-common ppath dpath
-                                              :name *main-search*
-                                              :options *main-options*
-                                              :verbose *verbose*))
+                 (plan-plain domain problem)
                  (solve-problem-enhancing problem
                                           :time-limit 1 ; satisficing
                                           :name *main-search*
@@ -52,6 +47,24 @@
                 (always
                  (validate-plan dpath ppath plp :verbose *verbose*))))))))
 
+(defun plan-plain (*domain* *problem*)
+  (let ((dir (mktemp "plain")))
+    (mapcar (curry #'pddl-plan
+                   :domain *domain*
+                   :problem *problem* :path)
+            (test-problem-common
+             (write-pddl (if *remove-main-problem-cost*
+                             (remove-costs *problem*)
+                             *problem*)
+                         "problem.pddl" dir)
+             (write-pddl (if *remove-main-problem-cost*
+                             (remove-costs *domain*)
+                             *domain*)
+                         "domain.pddl" dir)
+             :name *main-search*
+             :options *main-options*
+             :verbose *verbose*))))
+
 (defun toplevel ()
   (sb-ext:disable-debugger)
   (main))
@@ -67,6 +80,8 @@
        (let ((*validation* t))
          (main rest)))
       ((list* "--preprocess-only" rest)
+       (format t "~&Preprocessing-only mode was activated")
+       (format t "~&CAP does not run the main planner.")
        (let ((*preprocess-only* t))
          (main rest)))
       ((list* "--debug-preprocessing" rest)
@@ -102,6 +117,7 @@
          (main rest)))
       ;; underlying planner
       ((list* "--plain" rest)
+       (format t "~&Plain mode was activated, CAP runs only the main planner.")
        (let ((*use-plain-planner* t)) (main rest)))
       ((list* "--preprocessor"
               *preprocessor*
@@ -125,6 +141,8 @@
       ((list* "--fffd" rest)
        (main (list* "--default" "--preprocess-ff" rest)))
       ;;;; ff
+      ((list* "--plain-ff" rest)
+       (main (list* "--plain" "--main-search-ff" rest)))
       ((list* "--use-ff" rest)
        (main (list* "--preprocess-ff" "--main-search-ff" rest)))
       ((list* "--preprocess-ff" rest)
@@ -133,15 +151,6 @@
       ((list* "--main-search-ff" rest)
        (main (list* "--remove-main-problem-cost"
                     "--main-search" "ff-clean" "" rest)))
-      ;;;; marvin
-      ((list* "--use-marvin" rest)
-       (main (list* "--preprocess-marvin" "--main-search-marvin" rest)))
-      ((list* "--preprocess-marvin" rest)
-       (main (list* "--remove-component-problem-cost"
-                    "--preprocessor" "marvin-clean" "" rest)))
-      ((list* "--main-search-marvin" rest)
-       (main (list* "--remove-main-problem-cost"
-                    "--main-search" "marvin-clean" "" rest)))
       ;; time limit and resource
       ((list* "--preprocess-limit" time rest)
        (let ((*preprocess-time-limit* (parse-integer time)))
@@ -180,7 +189,6 @@
                "set the threashold in macro filtering, 0.8 by default. Should be a number in [0,0.99)"
                '--remove-component-problem-cost nil "Remove :action-costs during component planning"
                '--remove-main-problem-cost nil "Remove :action-costs during main search"
-               '--disable-filtering nil "Same as specifying --filtering-threashold 0 ."
                '--disable-binarization nil "Do not use binarized domain for component abstraction."
                '--disable-cyclic-macros nil "Disable computing cyclic macros, always use forward-macros"
                '--disable-precategorization nil "Do not apply precategorization before compatibility checking."
@@ -193,15 +201,13 @@
                '--plain nil "Use the plain underlying planner specified by --main-search."
                '--main-search '(string string) "specify the additional options given to the underlying planner."
                '--preprocessor '(string string) "specify the additional options given to the underlying planner."
-               '-----------------shortcuts-------------- nil "-------------------------------"
+               '-------------shortcuts/aliases---------- nil "-------------------------------"
+               '--disable-filtering nil "Same as specifying --filtering-threashold 0 ."
                '--plain-ff nil "Use plain FF."
                '--both-search '(string string) "specify the same config for --main-search and --preprocessor."
                '--preprocess-ff nil "use FF during preprocesssing (otherwise LAMA ipc 2011)"
                '--main-search-ff nil "use FF during main search (otherwise LAMA ipc 2011)"
-               '--use-ff nil "both --preprocess-ff and --main-search-ff"
-               '--preprocess-marvin nil "use MARVIN during preprocesssing (otherwise LAMA ipc 2011)"
-               '--main-search-marvin nil "use MARVIN during main search (otherwise LAMA ipc 2011)"
-               '--use-marvin nil "both --preprocess-marvin and --main-search-marvin")
+               '--use-ff nil "both --preprocess-ff and --main-search-ff")
        (format *error-output* "~%DOMAIN is by default domain.pddl in the same directory")
        (format *error-output* "~%Build date : ~a~%" *build-date*))
       (_
