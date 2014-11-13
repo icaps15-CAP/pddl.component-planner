@@ -379,24 +379,29 @@
        (handler-bind ((comparison-signal (lambda (c) (incf comparison-count)))
                       (evaluation-signal (lambda (c) (incf evaluation-count))))
          (setf macro-pairs (generate-macro-pairs problem domain)))
+       (format t "~&Forward-macro computation: ~a sec"
+               (- (get-universal-time) *start*))
        (format t "~&~a macros found in total." (length macro-pairs))
        (format t "~&Number of component plan evaluation: ~a" evaluation-count)
        (format t "~&Number of comparison: ~a" comparison-count)
        (setf macro-pairs
              (funcall (apply #'compose (reverse filters)) macro-pairs))
        (format t "~&~a macros after filtering." (length macro-pairs))
-       (let ((*domain* domain) (*problem* problem))
-         (setf macros
-               (if *disable-cyclic-macros*
-                   (progn
-                     (format t "~&Instantiating ground forward macros.")
-                     (mappend #'get-actions-grounded macro-pairs))
-                   (progn
-                     (format t "~&Instantiating ground cyclic macros.")
-                     (mappend #'cyclic-macro macro-pairs))))
-         (unless *pddl3.1-multiple-action-costs*
-           (format t "~&Merging action costs.")
-           (setf macros (mapcar #'ground-cost macros))))
+       (unwind-protect
+           (let ((*domain* domain) (*problem* problem))
+             (setf macros
+                   (if *disable-cyclic-macros*
+                       (progn
+                         (format t "~&Instantiating ground forward macros.")
+                         (mappend #'get-actions-grounded macro-pairs))
+                       (progn
+                         (format t "~&Instantiating ground cyclic macros.")
+                         (mappend #'cyclic-macro macro-pairs))))
+             (unless *pddl3.1-multiple-action-costs*
+               (format t "~&Merging action costs.")
+               (setf macros (mapcar #'ground-cost macros))))
+         (format t "~&Cyclic-macro computation: ~a sec"
+                 (- (get-universal-time) *start*)))
        (iter (for m in macros)
              (for pair in macro-pairs)
              (format t "~%(~50@<~a~>:length ~a :first-comp ~a)"
@@ -453,42 +458,44 @@ depends on the special variable.")
 (defun solve-problem-enhancing (problem &rest test-problem-args)
   (clear-plan-task-cache)
   (format t "~&Enhancing the problem with macros.")
-  (let ((*start* (get-universal-time)))
-    (format t "~&Start measuring the maximam preprocessing time ~a."
-            *preprocess-time-limit*)
-    (multiple-value-bind (eproblem edomain macros)
-        (time
-         (enhancement-method problem))
-      (format t "~&Enhancement finished on:~%   ~a~%-> ~a"
-              (name problem) (name eproblem))
-      (format t "~&Solving the enhanced problem with the main planner ~a."
-              *main-search*)
-      (unless *preprocess-only*
-        (let* ((dir (mktemp "enhanced"))
-               (*domain* edomain)
-               (*problem* eproblem)
-               (plans (prog1
-                        (handler-bind ((unix-signal
-                                        (lambda (c)
-                                          (invoke-restart
-                                           (find-restart 'finish c)))))
-                          (apply #'test-problem-common
-                                 (write-pddl (if *remove-main-problem-cost*
-                                                 (remove-costs *problem*)
-                                                 *problem*)
-                                             "eproblem.pddl" dir)
-                                 (write-pddl (if *remove-main-problem-cost*
-                                                 (remove-costs *domain*)
-                                                 *domain*)
-                                             "edomain.pddl" dir)
-                                 test-problem-args)))))
-          (when *validation*
-            (dolist (p plans)
-              (validate-plan (pathname (format nil "~a/edomain.pddl" dir))
-                             (pathname (format nil "~a/eproblem.pddl" dir)) p
-                             :verbose t)))
-          (format t "~&~a plans found, decoding the result plan." (length plans))
-          (mapcar (curry #'decode-plan-all macros) plans))))))
+  (format t "~&Start measuring the maximam preprocessing time ~a at ~a"
+          *preprocess-time-limit* *start*)
+  (multiple-value-bind (eproblem edomain macros)
+      (unwind-protect
+          (enhancement-method problem)
+        (let ((preprocessing-end (get-universal-time)))
+          (format t "~&Preprocessing time: ~a sec"
+                  (- preprocessing-end *start*))))
+    (format t "~&Enhancement finished on:~%   ~a~%-> ~a"
+            (name problem) (name eproblem))
+    (format t "~&Solving the enhanced problem with the main planner ~a."
+            *main-search*)
+    (unless *preprocess-only*
+      (let* ((dir (mktemp "enhanced"))
+             (*domain* edomain)
+             (*problem* eproblem)
+             (plans (prog1
+                      (handler-bind ((unix-signal
+                                      (lambda (c)
+                                        (invoke-restart
+                                         (find-restart 'finish c)))))
+                        (apply #'test-problem-common
+                               (write-pddl (if *remove-main-problem-cost*
+                                               (remove-costs *problem*)
+                                               *problem*)
+                                           "eproblem.pddl" dir)
+                               (write-pddl (if *remove-main-problem-cost*
+                                               (remove-costs *domain*)
+                                               *domain*)
+                                           "edomain.pddl" dir)
+                               test-problem-args)))))
+        (when *validation*
+          (dolist (p plans)
+            (validate-plan (pathname (format nil "~a/edomain.pddl" dir))
+                           (pathname (format nil "~a/eproblem.pddl" dir)) p
+                           :verbose t)))
+        (format t "~&~a plans found, decoding the result plan." (length plans))
+        (mapcar (curry #'decode-plan-all macros) plans)))))
 
 ;; in order to set (domain/problem plan)
 ;; during the initialization

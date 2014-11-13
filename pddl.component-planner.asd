@@ -41,6 +41,7 @@
                  (:file :task-equality)
                  (:file :reverse)
                  (:file :decompose)
+                 (:file :plan)
                  ;; (:file :delete-effect-minimization)
                  )
                 :serial t))

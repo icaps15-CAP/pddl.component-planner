@@ -5,11 +5,6 @@
   (:shadowing-import-from :pddl :minimize :maximize))
 (in-package :pddl.component-planner.experiment)
 
-(defmacro suppress (&body body)
-  `(handler-bind ((warning #'muffle-warning))
-     ,@body))
-
-(defvar *verbose* nil)
 (defvar *build-date*
     (multiple-value-bind (second minute hour date month year) (get-decoded-time)
       (format nil "~2,,,'0@a:~2,,,'0@a:~2,,,'0@a ~2,,,'0@a/~2,,,'0@a, ~a"
@@ -17,53 +12,6 @@
 
 (defparameter *lmcut-lazy-gbfs* (wrap-option "--search lazy_greedy(lmcut())"))
 (defparameter *lmcut-eager-gbfs* (wrap-option "--search eager_greedy(lmcut())"))
-(defvar *use-plain-planner* nil)
-(defun solve (ppath dpath)
-  (format t "~%Build date : ~a~%" *build-date*)
-  (multiple-value-bind (dname domain) (suppress (parse-file dpath nil t))
-    (multiple-value-bind (pname problem) (suppress (parse-file ppath nil t))
-      (print dname)
-      (print domain)
-      (print pname)
-      (print problem)
-      (let ((plans
-             (if *use-plain-planner*
-                 (plan-plain domain problem)
-                 (solve-problem-enhancing problem
-                                          :time-limit 1 ; satisficing
-                                          :name *main-search*
-                                          :options *main-options*
-                                          :verbose *verbose*))))
-        (iter (for plan in plans)
-              (for i from 1)
-              (for plp =
-                   (merge-pathnames
-                    (format nil "~a.plan.~a"
-                            (pathname-name ppath) i)))
-              (when (probe-file plp) (delete-file plp))
-              (write-plan plan plp
-                          *default-pathname-defaults* t)
-              (when *validation*
-                (always
-                 (validate-plan dpath ppath plp :verbose *verbose*))))))))
-
-(defun plan-plain (*domain* *problem*)
-  (let ((dir (mktemp "plain")))
-    (mapcar (curry #'pddl-plan
-                   :domain *domain*
-                   :problem *problem* :path)
-            (test-problem-common
-             (write-pddl (if *remove-main-problem-cost*
-                             (remove-costs *problem*)
-                             *problem*)
-                         "problem.pddl" dir)
-             (write-pddl (if *remove-main-problem-cost*
-                             (remove-costs *domain*)
-                             *domain*)
-                         "domain.pddl" dir)
-             :name *main-search*
-             :options *main-options*
-             :verbose *verbose*))))
 
 (defun toplevel ()
   (sb-ext:disable-debugger)
@@ -177,6 +125,7 @@
       ((list ppath dpath)
        (let ((ppath (merge-pathnames ppath))
              (dpath (merge-pathnames dpath)))
+         (format t "~%Build date : ~a~%" *build-date*)
          (solve ppath dpath)))
       (nil
        (format *error-output* "~&Usage: component-planner PROBLEM [DOMAIN]~
