@@ -47,6 +47,9 @@
       ((list* "--disable-cyclic-macros" rest)
        (let ((*disable-cyclic-macros* t))
          (main rest)))
+      ((list* "--iterated" rest)
+       (let ((*iterated* t))
+         (main rest)))
       ((list* "--remove-component-problem-cost" rest)
        (let ((*remove-component-problem-cost* t))
          (main rest)))
@@ -144,6 +147,7 @@
                '--preprocess-limit '(time) "specify the approximated sum of maxmimum preprocessing time in integer"
                '--component-plan-limit '(time) "specify the time limit of component planning in integer (default 30sec)"
                '--compatibility-type '(symbol) "specify the result of combatibility when no component plan exists. One of: strict(default), loose, always-false(=disabling compat-check)."
+               '--iterated nil "Specify if the main search should run an iterated search (in case of FD/LAMA)."
                '-t '(time) "time limit for the main search. NOT the total limit"
                '-m '(memory) "memory limit for the main search. NOT the total limit"
                '--------underlying-planner-options------ nil "-------------------------------"

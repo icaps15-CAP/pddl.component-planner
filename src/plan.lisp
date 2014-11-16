@@ -8,6 +8,8 @@
 @export
 (defvar *verbose* nil)
 @export
+(defvar *iterated* nil)
+@export
 (defvar *use-plain-planner* nil)
 @export
 (defun solve (ppath dpath)
@@ -26,7 +28,8 @@
                                                 :time-limit 1 ; satisficing
                                                 :name *main-search*
                                                 :options *main-options*
-                                                :verbose *verbose*)))
+                                                :verbose *verbose*
+                                                :iterated *iterated*)))
                   (iter (for plan in plans)
                         (for i from 1)
                         (for plp =
@@ -55,7 +58,8 @@
                         "domain.pddl" dir)
             :name *main-search*
             :options *main-options*
-            :verbose *verbose*)))
+            :verbose *verbose*
+            :iterated *iterated*)))
       (iter (for path in plans)
             (for i from 1)
             (for new-path =
