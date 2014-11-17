@@ -498,12 +498,14 @@ depends on the special variable.")
         (format t "~&~a plans found, decoding the result plan." (length plans))
         (mapcar (lambda (plan i)
                   (terpri)
-                  (pprint-logical-block
-                      (*standard-output*
-                       nil
-                       :per-line-prefix
-                       (format nil "Plan ~a " i))
-                    (decode-plan-all macros plan)))
+                  (block nil
+                    (pprint-logical-block
+                        (*standard-output*
+                         nil
+                         :per-line-prefix
+                         (format nil "Plan ~a " i))
+                      (return 
+                        (decode-plan-all macros plan)))))
                 plans (iota (length plans)))))))
 
 ;; in order to set (domain/problem plan)
