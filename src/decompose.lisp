@@ -498,7 +498,7 @@ depends on the special variable.")
         (format t "~&~a plans found, decoding the result plan." (length plans))
         (mapcar (lambda (plan)
                   (pprint-logical-block
-                      (*standard-output* nil :per-line-prefix (namestring (path plan)))
+                      (*standard-output* nil :per-line-prefix (namestring plan))
                     (decode-plan-all macros plan)))
                 plans)))))
 
