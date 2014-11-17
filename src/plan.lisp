@@ -47,19 +47,24 @@
 (defun plan-plain (ppath *domain* *problem*)
   (let ((dir (mktemp "plain")))
     (let ((plans
-           (test-problem-common
-            (write-pddl (if *remove-main-problem-cost*
-                            (remove-costs *problem*)
-                            *problem*)
-                        "problem.pddl" dir)
-            (write-pddl (if *remove-main-problem-cost*
-                            (remove-costs *domain*)
-                            *domain*)
-                        "domain.pddl" dir)
-            :name *main-search*
-            :options *main-options*
-            :verbose *verbose*
-            :iterated *iterated*)))
+           (handler-bind ((pddl:unix-signal
+                           (lambda (c)
+                             (format t "~&main search terminated")
+                             (invoke-restart
+                              (find-restart 'pddl:finish c)))))
+             (test-problem-common
+              (write-pddl (if *remove-main-problem-cost*
+                              (remove-costs *problem*)
+                              *problem*)
+                          "problem.pddl" dir)
+              (write-pddl (if *remove-main-problem-cost*
+                              (remove-costs *domain*)
+                              *domain*)
+                          "domain.pddl" dir)
+              :name *main-search*
+              :options *main-options*
+              :verbose *verbose*
+              :iterated *iterated*))))
       (iter (for path in plans)
             (for i from 1)
             (for new-path =

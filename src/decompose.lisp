@@ -475,11 +475,11 @@ depends on the special variable.")
              (*domain* edomain)
              (*problem* eproblem)
              (plans (prog1
-                      (handler-bind ((unix-signal
+                      (handler-bind ((pddl:unix-signal
                                       (lambda (c)
                                         (format t "~&main search terminated")
                                         (invoke-restart
-                                         (find-restart 'finish c)))))
+                                         (find-restart 'pddl:finish c)))))
                         (apply #'test-problem-common
                                (write-pddl (if *remove-main-problem-cost*
                                                (remove-costs *problem*)
@@ -496,7 +496,11 @@ depends on the special variable.")
                            (pathname (format nil "~a/eproblem.pddl" dir)) p
                            :verbose t)))
         (format t "~&~a plans found, decoding the result plan." (length plans))
-        (mapcar (curry #'decode-plan-all macros) plans)))))
+        (mapcar (lambda (plan)
+                  (pprint-logical-block
+                      (*standard-output* nil :per-line-prefix (namestring (path plan)))
+                    (decode-plan-all macros plan)))
+                plans)))))
 
 ;; in order to set (domain/problem plan)
 ;; during the initialization
