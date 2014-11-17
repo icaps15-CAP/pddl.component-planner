@@ -477,6 +477,7 @@ depends on the special variable.")
              (plans (prog1
                       (handler-bind ((unix-signal
                                       (lambda (c)
+                                        (format t "~&main search terminated")
                                         (invoke-restart
                                          (find-restart 'finish c)))))
                         (apply #'test-problem-common
