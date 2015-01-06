@@ -45,7 +45,12 @@
       ((list "--reformat" path)
        (format t "~&; Loading the pddl file and reformatting the result to stdout")
        (reformat-pddl path))
-
+      ((list* "--training" path rest)
+       (format t "~&; Copy the training instances ~a (effective only under --plain)" path)
+       (let ((*training-instances*
+              (cons (pathname path) *training-instances*)))
+         (main rest)))
+      
       ;; time limit and resource
       ((list* "--preprocess-limit" time rest)
        (let ((*preprocess-time-limit* (parse-integer time)))

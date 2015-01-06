@@ -44,6 +44,9 @@
       (format t "~&Wall time: ~a sec"
               (- (get-universal-time) *start*)))))
 
+@export
+(defvar *training-instances* nil)
+
 (defun plan-plain (ppath *domain* *problem*)
   (let ((dir (mktemp "plain")))
     (let ((plans
@@ -52,6 +55,19 @@
                              (format t "~&main search terminated")
                              (invoke-restart
                               (find-restart 'pddl:finish c)))))
+             (when *training-instances*
+               (iter (for tppath in *training-instances*)
+                     (setf tppath (pathname tppath))
+                     (format t "~&Copying the training instance ~a " tppath)
+                     (unless (probe-file tppath)
+                       (format t "~&  ~a does not exist, ignored!" tppath)
+                       (next-iteration))
+                     (let ((tprob (nth-value 1 (suppress (parse-file tppath nil t)))))
+                       (write-pddl (if *remove-main-problem-cost*
+                                       (remove-costs tprob)
+                                       tprob)
+                                   (file-namestring tppath)
+                                   dir *verbose*))))
              (test-problem-common
               (write-pddl (if *remove-main-problem-cost*
                               (remove-costs *problem*)
