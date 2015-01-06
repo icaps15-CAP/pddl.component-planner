@@ -18,23 +18,49 @@
   (main))
 
 (defun main (&optional (argv (cdr sb-ext:*posix-argv*)))
-  (print argv)
+  (when *verbose*
+    (print argv))
   (let ((*package* (find-package :pddl.component-planner.experiment)))
     (match argv
+      ;; debug options
       ((list* "-v" rest)
        (let ((*verbose* t))
          (main rest)))
       ((list* "--validation" rest)
        (let ((*validation* t))
          (main rest)))
-      ((list* "--preprocess-only" rest)
-       (format t "~&Preprocessing-only mode was activated")
-       (format t "~&CAP does not run the main planner.")
-       (let ((*preprocess-only* t))
-         (main rest)))
       ((list* "--debug-preprocessing" rest)
        (let ((*debug-preprocessing* t))
          (main rest)))
+
+      ;; run mode options
+      ((list* "--preprocess-only" rest)
+       (format t "~&; Preprocessing-only mode was activated")
+       (format t "~&; CAP does not run the main planner.")
+       (let ((*preprocess-only* t))
+         (main rest)))
+      ((list* "--plain" rest)
+       (format t "~&; Plain mode was activated, CAP runs only the main planner.")
+       (let ((*use-plain-planner* t)) (main rest)))
+      ((list "--reformat" path)
+       (format t "~&; Loading the pddl file and reformatting the result to stdout")
+       (reformat-pddl path))
+
+      ;; time limit and resource
+      ((list* "--preprocess-limit" time rest)
+       (let ((*preprocess-time-limit* (parse-integer time)))
+         (main rest)))
+      ((list* "--component-plan-limit" time rest)
+       (let ((*component-plan-time-limit* (parse-integer time)))
+         (main rest)))
+      ((list* "-t" time rest)
+       (let ((*hard-time-limit* (parse-integer time)))
+         (main rest)))
+      ((list* "-m" memory rest)
+       (let ((*memory-limit* (parse-integer memory)))
+         (main rest)))
+
+      ;; CAP search options
       ((list* "--compatibility-type" string rest)
        (let ((*compatibility-type* (read-from-string string)))
          (main rest)))
@@ -66,19 +92,14 @@
       ((list* "--disable-filtering" rest)
        (let ((*threshold* 0))
          (main rest)))
-      ;; underlying planner
-      ((list* "--plain" rest)
-       (format t "~&Plain mode was activated, CAP runs only the main planner.")
-       (let ((*use-plain-planner* t)) (main rest)))
       ((list* "--preprocessor"
               *preprocessor*
               *preprocessor-options* rest) (main rest))
       ((list* "--main-search"
               *main-search*
               *main-options* rest) (main rest))
-      ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-      ;; aliases ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-      ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+      ;; aliases
       ((list* "--both-search"
               (and *preprocessor* *main-search*)
               (and *preprocessor-options* *main-options*) rest)
@@ -102,33 +123,15 @@
       ((list* "--main-search-ff" rest)
        (main (list* "--remove-main-problem-cost"
                     "--main-search" "ff-clean" "" rest)))
-      ;; time limit and resource
-      ((list* "--preprocess-limit" time rest)
-       (let ((*preprocess-time-limit* (parse-integer time)))
-         (main rest)))
-      ((list* "--component-plan-limit" time rest)
-       (let ((*component-plan-time-limit* (parse-integer time)))
-         (main rest)))
-      ((list* "-t" time rest)
-       (let ((*hard-time-limit* (parse-integer time)))
-         (main rest)))
-      ((list* "-m" memory rest)
-       (let ((*memory-limit* (parse-integer memory)))
-         (main rest)))
-      ;; prosessing the problem files
+
+      ;; find the problem files
       ((list ppath)
-       (let* ((ppath (merge-pathnames ppath))
-              (dpath (make-pathname :defaults ppath :name "domain")))
-         (if (probe-file dpath)
-             (main (list ppath dpath))
-             (let ((dpath (make-pathname
-                           :defaults ppath :name
-                           (format nil "~a-domain" (pathname-name ppath)))))
-               (main (list ppath dpath))))))
+       (let* ((ppath (merge-pathnames ppath)))
+         (main (list ppath (find-domain ppath)))))
       ((list ppath dpath)
        (let ((ppath (merge-pathnames ppath))
              (dpath (merge-pathnames dpath)))
-         (format t "~%Build date : ~a~%" *build-date*)
+         (format t "~%; Build date : ~a~%" *build-date*)
          (solve ppath dpath)))
       (nil
        (format *error-output* "~&Usage: component-planner PROBLEM [DOMAIN]~
@@ -182,6 +185,12 @@
   (clear-plan-task-cache)
   (test-problem "depot/p01.pddl" "depot/domain.pddl"
                 :verbose t))
+
+(defun reformat-test (&rest args)
+  (main `(,@args "--reformat" "transport-sat11-strips/domain.pddl"))
+  (main `(,@args "--reformat" "transport-sat11-strips/p01.pddl"))
+  (main `(,@args "--remove-main-problem-cost" "--reformat" "transport-sat11-strips/domain.pddl"))
+  (main `(,@args "--remove-main-problem-cost" "--reformat" "transport-sat11-strips/p01.pddl")))
 
 ;;;; elevators
 

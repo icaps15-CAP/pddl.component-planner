@@ -7,9 +7,12 @@ run(){
     log=${1%.*}.component-planner.log
     err=${1%.*}.component-planner.err
     rm -f $log $err
-    ulimit -v 3000000 -t 1900
+    ulimit -v 3000000 -t 60
     time ./component-planner --dynamic-space-size 2000 \
-        --fffd --validation \
+        --disable-filtering \
+        --default --fffd \
+        -t 1800 \
+        --iterated \
         $1 2> $err | tee $log
     if [[ $(cat ${1%.*}.plan) != "" ]]
     then
@@ -29,7 +32,7 @@ finalize(){
 }
 trap "finalize" SIGHUP SIGINT SIGQUIT
 pid=
-for problem in $(ls */p10.pddl)
+for problem in $(ls */p01.pddl)
 do
     run $problem &
     pid=$!

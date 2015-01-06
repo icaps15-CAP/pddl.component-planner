@@ -76,3 +76,40 @@
              "/bin/cp" (list (namestring path)
                              (namestring new-path)))))))
 
+@export
+(defun find-domain (problem-path)
+  (let ((dpath (make-pathname
+                :defaults problem-path :name "domain")))
+    (when (probe-file dpath) (return-from find-domain dpath)))
+  (let ((dpath (make-pathname
+                :defaults problem-path :name
+                (format nil "~a-domain" (pathname-name problem-path)))))
+    (when (probe-file dpath) (return-from find-domain dpath)))
+  (error "~& Failed to infer the domain file pathname!"))
+
+@export
+(defun reformat-pddl (path)
+  (unwind-protect
+       (print-pddl-object
+        (if *remove-main-problem-cost*
+            (remove-costs 
+             (%load-pddl-for-reformatting path))
+            (%load-pddl-for-reformatting path))
+        *standard-output*)
+    (terpri)))
+
+(defun %load-pddl-for-reformatting (path)
+  (unwind-protect
+       (handler-case
+           (%try-load-pddl-for-reformatting path)
+         (domain-not-found (c)
+           @ignore c
+           (format t "~&; loading the corresponding domain file...")
+           (suppress (parse-file (find-domain path) nil t))
+           (%try-load-pddl-for-reformatting path)))
+    (terpri)))
+
+(defun %try-load-pddl-for-reformatting (path)
+  (nth-value 1 (suppress (parse-file path nil t))))
+
+    
