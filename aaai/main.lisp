@@ -97,9 +97,15 @@
       ((list* "--disable-filtering" rest)
        (let ((*threshold* 0))
          (main rest)))
+      ((list* "--preprocessor" *preprocessor* "-" rest)
+       (let ((*preprocessor-options* ""))
+         (main rest)))
       ((list* "--preprocessor"
               *preprocessor*
               *preprocessor-options* rest) (main rest))
+      ((list* "--main-search" *main-search* "-" rest)
+       (let ((*main-options* ""))
+         (main rest)))
       ((list* "--main-search"
               *main-search*
               *main-options* rest) (main rest))
@@ -166,8 +172,8 @@
                '--compatibility-type '(symbol) "specify the result of combatibility when no component plan exists. One of: strict(default), loose, always-false(=disabling compat-check)."
                '--iterated nil "Specify if the main search should run an iterated search (in case of FD/LAMA)."
                '--------underlying-planner-options------ nil "-------------------------------"
-               '--main-search '(string string) "specify the additional options given to the underlying planner."
-               '--preprocessor '(string string) "specify the additional options given to the underlying planner."
+               '--main-search '(string string) "specify the options given to the MainPlanner. \"-\" means \"no options\"."
+               '--preprocessor '(string string) "specify the options given to the ComponentPlanner. \"-\" means \"no options\"."
                '-------------shortcuts/aliases---------- nil "-------------------------------"
                '--disable-filtering nil "Same as specifying --filtering-threashold 0 ."
                '--plain-ff nil "Use plain FF."
