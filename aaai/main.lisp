@@ -111,10 +111,9 @@
               *main-options* rest) (main rest))
 
       ;; aliases
-      ((list* "--both-search"
-              (and *preprocessor* *main-search*)
-              (and *preprocessor-options* *main-options*) rest)
-       (main rest))
+      ((list* "--both-search" searcher option rest)
+       (main (list* "--preprocessor" searcher option
+                    "--main-search" searcher option rest)))
       ((list* "--default" rest)
        (main (list* "--disable-filtering"
                     "--preprocess-limit"
