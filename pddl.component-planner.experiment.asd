@@ -7,8 +7,6 @@
   Author: guicho ()
 |#
 
-;; (require :sb-cltl2)
-
 (defsystem pddl.component-planner.experiment
   :version "0.1"
   :author "guicho"
