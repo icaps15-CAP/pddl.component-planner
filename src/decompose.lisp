@@ -447,8 +447,8 @@
 
 (defvar *preprocess-only* nil)
 (defvar *validation* nil)
-(defvar *main-search* "fd-clean")
-(defvar *main-options* *lama-options*)
+(defvar *main-search* "lama-clean")
+(defvar *main-options* "")
 (defvar *remove-main-problem-cost* nil
   "The problem and the domain solved by
 the external planner could be modified so that it does not have

@@ -10,8 +10,8 @@
   "Clear the cache for plan-task."
   (clear-cache *PLAN-TASK-CACHE*))
 
-(defvar *preprocessor* "fd-clean")
-(defvar *preprocessor-options* *lama-options*)
+(defvar *preprocessor* "lama-clean")
+(defvar *preprocessor-options* "")
 (defvar *debug-preprocessing* nil)
 (defvar *component-plan-time-limit* 30)
 (defvar *remove-component-problem-cost* nil
