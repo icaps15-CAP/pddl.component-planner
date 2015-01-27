@@ -98,14 +98,12 @@
        (let ((*threshold* 0))
          (main rest)))
       ((list* "--preprocessor" *preprocessor* "-" rest)
-       (let ((*preprocessor-options* ""))
-         (main rest)))
+       (main (list* "--preprocessor" *preprocessor* "" rest)))
       ((list* "--preprocessor"
               *preprocessor*
               *preprocessor-options* rest) (main rest))
       ((list* "--main-search" *main-search* "-" rest)
-       (let ((*main-options* ""))
-         (main rest)))
+       (main (list* "--main-search" *main-search* "" rest)))
       ((list* "--main-search"
               *main-search*
               *main-options* rest) (main rest))
