@@ -10,9 +10,6 @@
       (format nil "~2,,,'0@a:~2,,,'0@a:~2,,,'0@a ~2,,,'0@a/~2,,,'0@a, ~a"
               hour minute second month date year)))
 
-(defparameter *lmcut-lazy-gbfs* (wrap-option "--search lazy_greedy(lmcut())"))
-(defparameter *lmcut-eager-gbfs* (wrap-option "--search eager_greedy(lmcut())"))
-
 (defun toplevel ()
   (sb-ext:disable-debugger)
   (main))
