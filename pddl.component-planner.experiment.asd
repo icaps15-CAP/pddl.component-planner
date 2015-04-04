@@ -15,8 +15,5 @@
                :pddl.component-planner
                #+add-cost
                :pddl.component-planner.add-cost)
-  :components ((:module :aaai
-                :components
-                ((:file :main))
-                :serial t)))
+  :components ((:file :main)))
 
