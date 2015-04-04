@@ -11,6 +11,7 @@
         :iterate
         :alexandria
         :cl-annot
+        :trivial-signal
         :anaphora)
   (:export :resource-usage
            :categorize-problem

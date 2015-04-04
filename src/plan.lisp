@@ -50,7 +50,7 @@
 (defun plan-plain (ppath *domain* *problem*)
   (let ((dir (mktemp "plain")))
     (let ((plans
-           (handler-bind ((pddl:unix-signal
+           (handler-bind ((unix-signal
                            (lambda (c)
                              (format t "~&main search terminated")
                              (invoke-restart

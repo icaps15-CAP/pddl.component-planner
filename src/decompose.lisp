@@ -475,7 +475,7 @@ depends on the special variable.")
              (*domain* edomain)
              (*problem* eproblem)
              (plans (prog1
-                      (handler-bind ((pddl:unix-signal
+                      (handler-bind ((unix-signal
                                       (lambda (c)
                                         (format t "~&main search terminated")
                                         (invoke-restart

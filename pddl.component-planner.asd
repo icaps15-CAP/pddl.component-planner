@@ -23,6 +23,7 @@
                :guicho-utilities
                :pddl.component-abstraction
                :pddl.macro-action
+               :pddl.planner-scripts
                :pddl
                :iterate
                :alexandria
