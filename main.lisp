@@ -180,7 +180,7 @@
        (format *error-output* "~%DOMAIN is by default domain.pddl in the same directory")
        (format *error-output* "~%Build date : ~a" *build-date*)
        (format *error-output* "~%Foreign library directories : ~a" cffi:*foreign-library-directories*)
-       (terpri))
+       (terpri *error-output*))
       (_
        (format *error-output* "~%Invalid Arguments!~%")
        (main nil)
