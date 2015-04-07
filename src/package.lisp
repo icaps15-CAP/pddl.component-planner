@@ -48,7 +48,7 @@
            :always-false
            :loose
            :*binarization*
-           :*disable-cyclic-macros*
+           :*cyclic-macros*
            :*remove-component-problem-cost*
            :*remove-main-problem-cost*
            :*precategorization*)

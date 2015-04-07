@@ -73,8 +73,8 @@
       ((list* "--binarization" rest)
        (let ((*binarization* t))
          (main rest)))
-      ((list* "--disable-cyclic-macros" rest)
-       (let ((*disable-cyclic-macros* t))
+      ((list* "--cyclic-macros" rest)
+       (let ((*cyclic-macros* t))
          (main rest)))
       ((list* "--iterated" rest)
        (let ((*iterated* t))
@@ -162,7 +162,7 @@
                '--remove-component-problem-cost nil "Remove :action-costs during component planning"
                '--remove-main-problem-cost nil "Remove :action-costs during main search"
                '--binarization nil "Use binarized domain for component abstraction."
-               '--disable-cyclic-macros nil "Disable computing cyclic macros, always use forward-macros"
+               '--cyclic-macros nil "Use cyclic macros"
                ;; true by default 
                ;; '--precategorization nil "Do not apply precategorization before compatibility checking."
                '--compatibility-type '(symbol) "specify the result of combatibility when no component plan exists. One of: strict(default), loose, always-false(=disabling compat-check)."
