@@ -108,8 +108,7 @@
        (main (list* "--preprocessor" searcher option
                     "--main-search" searcher option rest)))
       ((list* "--default" rest)
-       (main (list* "-v"
-                    rest)))
+       (main (list* "-v" rest)))
       ((list* "--fffd" rest)
        (main (list* "--default" "--preprocess-ff" rest)))
       ;;;; ff
@@ -169,7 +168,7 @@
                '-------------shortcuts/aliases---------- nil "-------------------------------"
                '--plain-ff nil "Use plain FF."
                '--fffd nil "Use FF + LAMA combination."
-               '--default nil "same as -v"
+               '--default nil "same as -v. Remains only for compatibility"
                '--both-search '(string string) "specify the same config for --main-search and --preprocessor."
                '--preprocess-ff nil "use FF during preprocesssing (otherwise LAMA ipc 2011)"
                '--main-search-ff nil "use FF during main search (otherwise LAMA ipc 2011)"
