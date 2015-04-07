@@ -92,9 +92,6 @@
                  (main rest)
                  (error "--filtering-threashold should be 0 <= x < 0.99999995 ~~ 1-eps! "))
              (error "--filtering-threashold should be a lisp-readable number! ex) 0, 0.0, 1/2, 0.5d0, 0.7"))))
-      ((list* "--disable-filtering" rest)
-       (let ((*threshold* 0))
-         (main rest)))
       ((list* "--preprocessor" *preprocessor* "-" rest)
        (main (list* "--preprocessor" *preprocessor* "" rest)))
       ((list* "--preprocessor"
@@ -111,8 +108,7 @@
        (main (list* "--preprocessor" searcher option
                     "--main-search" searcher option rest)))
       ((list* "--default" rest)
-       (main (list* "--disable-filtering"
-                    "--preprocess-limit"
+       (main (list* "--preprocess-limit"
                     (princ-to-string MOST-POSITIVE-FIXNUM)
                     "-v"
                     rest)))
@@ -158,7 +154,7 @@
                '--component-plan-limit '(time) "specify the time limit of component planning in integer (default 30sec)"
                '----------------CAP-options------------- nil "-------------------------------"
                '--filtering-threashold '(threashold)
-               "set the threashold in macro filtering, 0.8 by default. Should be a number in [0,0.99)"
+               "set the threashold in macro filtering, 0 by default. Should be a number in [0,0.99)"
                '--remove-component-problem-cost nil "Remove :action-costs during component planning"
                '--remove-main-problem-cost nil "Remove :action-costs during main search"
                '--binarization nil "Use binarized domain for component abstraction."
@@ -173,10 +169,9 @@
                '--main-search '(string string) "specify the options given to the MainPlanner. \"-\" means \"no options\"."
                '--preprocessor '(string string) "specify the options given to the ComponentPlanner. \"-\" means \"no options\"."
                '-------------shortcuts/aliases---------- nil "-------------------------------"
-               '--disable-filtering nil "Same as specifying --filtering-threashold 0 ."
                '--plain-ff nil "Use plain FF."
                '--fffd nil "Use FF + LAMA combination."
-               '--default nil "same as --disable-filtering, --preprocess-limit MOST-POSITIVE-FIXNUM -v"
+               '--default nil "same as --preprocess-limit MOST-POSITIVE-FIXNUM -v"
                '--both-search '(string string) "specify the same config for --main-search and --preprocessor."
                '--preprocess-ff nil "use FF during preprocesssing (otherwise LAMA ipc 2011)"
                '--main-search-ff nil "use FF during main search (otherwise LAMA ipc 2011)"

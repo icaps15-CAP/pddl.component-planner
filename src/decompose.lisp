@@ -316,7 +316,7 @@
             (length pairs)))
   (subseq pairs 0 (min 2 (length pairs))))
 
-(defvar *threshold* 0.8)
+(defvar *threshold* 0)
 
 (defun sort-and-print-macros (pairs)
   (format t "~&~a macros, status:" (length pairs))
