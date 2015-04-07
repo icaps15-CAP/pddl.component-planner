@@ -63,7 +63,7 @@
 
 ;;;; compute component-plans
 
-(defvar *compatibility-type* 'strict)
+(defvar *compatibility* nil)
 (let ((i 0))
   (defun categorize-by-compatibility (bag)
     (format t "~&Categorizing bag/g/i/attr of length ~a" (length bag))
@@ -72,17 +72,15 @@
             'list))
 
   (defun maybe-task-plan-equal (x y)
-    (if (eq *compatibility-type* 'always-false)
-        nil
+    (when *compatibility*
         (multiple-value-bind (result proven?) (task-plan-equal x y)
           (incf i) (when (< 60 i) (setf i 0) (terpri))
           (if proven?
               (progn (format t "~:[F~;.~]" result) result)
               (progn (format t "?")
-                     (case *compatibility-type*
+                   (ecase *compatibility*
                        (strict nil)
-                       (loose t)
-                       (t nil))))))))
+                     (loose t))))))))
 
 (defun component-plans (tasks-bag)
   (setf tasks-bag (sort tasks-bag #'> :key #'length)) ;; sort by c_i

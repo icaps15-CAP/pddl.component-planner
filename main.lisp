@@ -63,8 +63,8 @@
          (main rest)))
 
       ;; CAP search options
-      ((list* "--compatibility-type" string rest)
-       (let ((*compatibility-type* (read-from-string string)))
+      ((list* "--compatibility" rest)
+       (let ((*compatibility* 'strict))
          (main rest)))
       #+nil
       ((list* "--precategorization" rest)
@@ -165,7 +165,9 @@
                '--cyclic-macros nil "Use cyclic macros"
                ;; true by default 
                ;; '--precategorization nil "Do not apply precategorization before compatibility checking."
-               '--compatibility-type '(symbol) "specify the result of combatibility when no component plan exists. One of: strict(default), loose, always-false(=disabling compat-check)."
+               ;; on/off only now
+               ;; '--compatibility-type '(symbol) "specify the result of combatibility when no component plan exists. One of: strict(default), loose, always-false(=disabling compat-check)."
+               '--compatibility nil "Enable compatibility-based pruning."
                '--iterated nil "Specify if the main search should run an iterated search (in case of FD/LAMA)."
                '--------underlying-planner-options------ nil "-------------------------------"
                '--main-search '(string string) "specify the options given to the MainPlanner. \"-\" means \"no options\"."

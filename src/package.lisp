@@ -43,9 +43,8 @@
            :reverse-macro
            :cyclic-macro
            :*threshold*
-           :*compatibility-type*
+           :*compatibility*
            :strict
-           :always-false
            :loose
            :*binarization*
            :*cyclic-macros*
