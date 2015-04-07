@@ -66,8 +66,9 @@
       ((list* "--compatibility-type" string rest)
        (let ((*compatibility-type* (read-from-string string)))
          (main rest)))
-      ((list* "--disable-precategorization" rest)
-       (let ((*disable-precategorization* t))
+      #+nil
+      ((list* "--precategorization" rest)
+       (let ((*precategorization* t))
          (main rest)))
       ((list* "--disable-binarization" rest)
        (let ((*disable-binarization* t))
@@ -162,7 +163,8 @@
                '--remove-main-problem-cost nil "Remove :action-costs during main search"
                '--disable-binarization nil "Do not use binarized domain for component abstraction."
                '--disable-cyclic-macros nil "Disable computing cyclic macros, always use forward-macros"
-               '--disable-precategorization nil "Do not apply precategorization before compatibility checking."
+               ;; true by default 
+               ;; '--precategorization nil "Do not apply precategorization before compatibility checking."
                '--compatibility-type '(symbol) "specify the result of combatibility when no component plan exists. One of: strict(default), loose, always-false(=disabling compat-check)."
                '--iterated nil "Specify if the main search should run an iterated search (in case of FD/LAMA)."
                '--------underlying-planner-options------ nil "-------------------------------"

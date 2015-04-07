@@ -5,7 +5,7 @@
 ;;; enhance domain and problem
 ;;;; binarize, extract and debinarize components
 
-(defvar *disable-precategorization* nil)
+(defvar *precategorization* t)
 (defun tasks-bag/aig/seed (problem bproblem seed  &aux (domain (domain problem)))
   ;; -> (list (vector (list task) plan))
   (let (tasks tasks-bag)
@@ -19,9 +19,9 @@
     (format t "~&Removing tasks w/o goals : ~a" (length tasks))
     ;; categorize tasks into buckets, based on init/goal/attribute.
     (setf tasks-bag
-          (if *disable-precategorization*
-              (list tasks)
-              (coerce (categorize-tasks tasks) 'list)))
+          (if *precategorization*
+              (coerce (categorize-tasks tasks) 'list)
+              (list tasks)))
     ;; list pf bags. each bag contains tasks of the same structure
     (format t "~&TASKS/g/i/attr : ~a" (mapcar #'length tasks-bag))
     (format t "~&Debinarizing Tasks...")

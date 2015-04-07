@@ -47,11 +47,11 @@
            :strict
            :always-false
            :loose
-           :*disable-precategorization*
            :*disable-binarization*
            :*disable-cyclic-macros*
            :*remove-component-problem-cost*
-           :*remove-main-problem-cost*)
+           :*remove-main-problem-cost*
+           :*precategorization*)
   (:shadowing-import-from :guicho-utilities
                           :permutations)
   (:shadowing-import-from :statistics
