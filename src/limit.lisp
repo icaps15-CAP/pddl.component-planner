@@ -1,7 +1,7 @@
 
 (in-package :pddl.component-planner)
 
-(defparameter *preprocess-time-limit* 300)
+(defparameter *preprocess-time-limit* MOST-POSITIVE-FIXNUM)
 (defparameter *start* nil)
 (defun within-time-limit ()
   (if (numberp *start*)

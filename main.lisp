@@ -108,9 +108,7 @@
        (main (list* "--preprocessor" searcher option
                     "--main-search" searcher option rest)))
       ((list* "--default" rest)
-       (main (list* "--preprocess-limit"
-                    (princ-to-string MOST-POSITIVE-FIXNUM)
-                    "-v"
+       (main (list* "-v"
                     rest)))
       ((list* "--fffd" rest)
        (main (list* "--default" "--preprocess-ff" rest)))
@@ -171,7 +169,7 @@
                '-------------shortcuts/aliases---------- nil "-------------------------------"
                '--plain-ff nil "Use plain FF."
                '--fffd nil "Use FF + LAMA combination."
-               '--default nil "same as --preprocess-limit MOST-POSITIVE-FIXNUM -v"
+               '--default nil "same as -v"
                '--both-search '(string string) "specify the same config for --main-search and --preprocessor."
                '--preprocess-ff nil "use FF during preprocesssing (otherwise LAMA ipc 2011)"
                '--main-search-ff nil "use FF during main search (otherwise LAMA ipc 2011)"
