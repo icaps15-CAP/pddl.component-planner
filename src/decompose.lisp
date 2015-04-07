@@ -64,23 +64,23 @@
 ;;;; compute component-plans
 
 (defvar *compatibility* nil)
-(let ((i 0))
-  (defun categorize-by-compatibility (bag)
-    (format t "~&Categorizing bag/g/i/attr of length ~a" (length bag))
-    (coerce (categorize-by-equality
-             bag #'maybe-task-plan-equal :transitive t)
-            'list))
 
-  (defun maybe-task-plan-equal (x y)
-    (when *compatibility*
-        (multiple-value-bind (result proven?) (task-plan-equal x y)
-          (incf i) (when (< 60 i) (setf i 0) (terpri))
-          (if proven?
-              (progn (format t "~:[F~;.~]" result) result)
-              (progn (format t "?")
-                   (ecase *compatibility*
-                       (strict nil)
-                     (loose t))))))))
+(defun categorize-by-compatibility (bag)
+  (format t "~&Categorizing bag/g/i/attr of length ~a~%" (length bag))
+  (coerce (categorize-by-equality
+           bag #'maybe-task-plan-equal :transitive t)
+          'list))
+
+(defun maybe-task-plan-equal (x y)
+  (when *compatibility*
+    (multiple-value-bind (result proven?) (task-plan-equal x y)
+      (if proven?
+          ;; using pprint-newline
+          (progn (format t "~:[F~;.~]~:_" result) result)
+          (progn (format t "?~:_")
+                 (ecase *compatibility*
+                   (strict nil)
+                   (loose t)))))))
 
 (defun component-plans (tasks-bag)
   (setf tasks-bag (sort tasks-bag #'> :key #'length)) ;; sort by c_i
@@ -88,7 +88,9 @@
   (format t "~&Calling the preprocessing planner ~a" *preprocessor*)
   (format t "~&Total Tasks /g/i/attr: ~a" (reduce #'+ (mapcar #'length tasks-bag)))
   (format t "~&Task cardinalities: ~a" (mapcar #'length tasks-bag))
-  (setf tasks-bag (mappend #'categorize-by-compatibility tasks-bag))
+  (let ((*print-pretty* t))
+    (pprint-logical-block (*standard-output* nil)
+      (setf tasks-bag (mappend #'categorize-by-compatibility tasks-bag))))
   (format t "~&Finished the categorization based on plan compatibility.")
   (format t "~&TASKS/plan : ~a" (mapcar #'length tasks-bag))
   ;; list of bags. each bag contains tasks whose plans are interchangeable
