@@ -85,6 +85,8 @@
       ((list* "--remove-main-problem-cost" rest)
        (let ((*remove-main-problem-cost* t))
          (main rest)))
+      ;; not used at all now
+      #+nil
       ((list* "--filtering-threashold" th rest)
        (let ((*threshold* (read-from-string th)))
          (if (numberp *threshold*)
@@ -150,8 +152,9 @@
                '--preprocess-limit '(time) "specify the approximated sum of maxmimum preprocessing time in integer"
                '--component-plan-limit '(time) "specify the time limit of component planning in integer (default 30sec)"
                '----------------CAP-options------------- nil "-------------------------------"
-               '--filtering-threashold '(threashold)
-               "set the threashold in macro filtering, 0 by default. Should be a number in [0,0.99)"
+               ;; not used at all now
+               ;; '--filtering-threashold '(threashold)
+               ;; "set the threashold in macro filtering, 0 by default. Should be a number in [0,0.99)"
                '--remove-component-problem-cost nil "Remove :action-costs during component planning"
                '--remove-main-problem-cost nil "Remove :action-costs during main search"
                '--binarization nil "Use binarized domain for component abstraction."
