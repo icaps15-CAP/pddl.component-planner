@@ -70,8 +70,8 @@
       ((list* "--precategorization" rest)
        (let ((*precategorization* t))
          (main rest)))
-      ((list* "--disable-binarization" rest)
-       (let ((*disable-binarization* t))
+      ((list* "--binarization" rest)
+       (let ((*binarization* t))
          (main rest)))
       ((list* "--disable-cyclic-macros" rest)
        (let ((*disable-cyclic-macros* t))
@@ -161,7 +161,7 @@
                "set the threashold in macro filtering, 0.8 by default. Should be a number in [0,0.99)"
                '--remove-component-problem-cost nil "Remove :action-costs during component planning"
                '--remove-main-problem-cost nil "Remove :action-costs during main search"
-               '--disable-binarization nil "Do not use binarized domain for component abstraction."
+               '--binarization nil "Use binarized domain for component abstraction."
                '--disable-cyclic-macros nil "Disable computing cyclic macros, always use forward-macros"
                ;; true by default 
                ;; '--precategorization nil "Do not apply precategorization before compatibility checking."

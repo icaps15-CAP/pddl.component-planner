@@ -120,10 +120,10 @@
 
 ;;;; generate-macro-pairs
 
-(defvar *disable-binarization* nil)
+(defvar *binarization* nil)
 (defun generate-macro-pairs (*problem* domain)
   (format t "~&Binarizing domain ~a" domain)
-  (let* ((bproblem (if *disable-binarization*
+  (let* ((bproblem (if *binarization*
                        (binarize *problem* domain)
                        *problem*))
          (tasks-bag (iter (for seed in (types-in-goal *problem*))

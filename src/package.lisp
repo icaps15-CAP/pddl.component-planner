@@ -47,7 +47,7 @@
            :strict
            :always-false
            :loose
-           :*disable-binarization*
+           :*binarization*
            :*disable-cyclic-macros*
            :*remove-component-problem-cost*
            :*remove-main-problem-cost*
