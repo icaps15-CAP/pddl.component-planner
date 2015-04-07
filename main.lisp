@@ -149,16 +149,16 @@
                '----------computational-resource-------- nil "-------------------------------"
                '-t '(time) "time limit for the main search. NOT the total limit"
                '-m '(memory) "memory limit for the main search. NOT the total limit"
-               '--preprocess-limit '(time) "specify the approximated sum of maxmimum preprocessing time in integer"
-               '--component-plan-limit '(time) "specify the time limit of component planning in integer (default 30sec)"
+               '--preprocess-limit '(sec) "Specify the maxmimum total preprocessing time in integer."
+               '--component-plan-limit '(sec) "Specify the time limit for solving each subproblem in integer (default: 30)"
                '----------------CAP-options------------- nil "-------------------------------"
                ;; not used at all now
                ;; '--filtering-threashold '(threashold)
                ;; "set the threashold in macro filtering, 0 by default. Should be a number in [0,0.99)"
                '--remove-component-problem-cost nil "Remove :action-costs during component planning"
                '--remove-main-problem-cost nil "Remove :action-costs during main search"
-               '--binarization nil "Use binarized domain for component abstraction."
-               '--cyclic-macros nil "Use cyclic macros"
+               '--binarization nil "Use the binarized domain for component abstraction."
+               '--cyclic-macros nil "Search/Use cyclic macros"
                ;; true by default 
                ;; '--precategorization nil "Do not apply precategorization before compatibility checking."
                ;; on/off only now
