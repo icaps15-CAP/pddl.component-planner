@@ -130,8 +130,11 @@
                           (appending
                            (tasks-bag/aig/seed
                             *problem* bproblem seed)))))
-    (mapcar #'component-macro/bpvector
-            (component-plans tasks-bag))))
+    (iter (for plan in (component-plans tasks-bag))
+          (handler-case
+              (collect (component-macro/bpvector plan))
+            (zero-length-plan ()
+              (format t "~&ignoring macros of length zero"))))))
 
 (defun types-in-goal (problem)
   (ematch problem
