@@ -77,33 +77,38 @@ then add it as another macro
  Assume *problem*,*domain* is the original problem/domain."
   (handler-bind ((warning #'muffle-warning))
     (multiple-value-bind (gms tasks) (get-actions-grounded pair)
-      (if-let ((plan (%solve-rev
-                      (reverse-problem (first gms) (first tasks))
-                      *domain*)))
-        ;; reuse this function
-        (let ((reverse-gms (get-actions-grounded
-                            (component-macro/bpvector (vector tasks plan)))))
-          (values
-           (mapcar
-            (lambda (gm rgm)
-              (change-class
-               (merge-ground-actions
-                (change-class gm 'ground-macro-action :problem *problem*)
-                (change-class rgm 'ground-macro-action :problem *problem*))
-               'macro-action
-               :parameters nil
-               :actions (concatenate 'vector (actions gm) (actions rgm))
-               :name
-               (let ((str (symbol-name
-                           (symbolicate
-                            'cycle- (symbol-name (name gm))))))
-                 (if (< 30 (length str))
-                     (gensym (subseq str 0 29))
-                     (gensym str)))))
-            gms reverse-gms)
-           tasks))
-        (progn (format t "~& No reverse macro found in this task. Grounding..")
-               (values gms tasks))))))
+      (restart-case
+          (if-let ((plan (%solve-rev
+                          (reverse-problem (first gms) (first tasks))
+                          *domain*)))
+            (handler-case
+                (let ((reverse-gms
+                       (get-actions-grounded
+                        (component-macro/bpvector (vector tasks plan)))))
+                  (values
+                   (mapcar
+                    (lambda (gm rgm)
+                      (change-class
+                       (merge-ground-actions
+                        (change-class gm 'ground-macro-action :problem *problem*)
+                        (change-class rgm 'ground-macro-action :problem *problem*))
+                       'macro-action
+                       :parameters nil
+                       :actions (concatenate 'vector (actions gm) (actions rgm))
+                       :name
+                       (let ((str (symbol-name
+                                   (symbolicate
+                                    'cycle- (symbol-name (name gm))))))
+                         (if (< 30 (length str))
+                             (gensym (subseq str 0 29))
+                             (gensym str)))))
+                    gms reverse-gms)
+                   tasks))
+              (zero-length-plan () (invoke-restart 'fail)))
+            (invoke-restart 'fail))
+        (fail ()
+          (format t "~& No reverse macro found in this task.")
+          (values gms tasks))))))
 
 
 

@@ -23,11 +23,12 @@
                :guicho-utilities
                :pddl.component-abstraction
                :pddl.macro-action
+               :pddl.planner-scripts
                :pddl
                :iterate
                :alexandria
                :cl-annot
-               :anaphora)
+               :arrow-macros)
   :components ((:module "src"
                 :components
                 ((:file :cl-statistics)

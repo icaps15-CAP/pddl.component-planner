@@ -58,6 +58,9 @@ invocation of underlying planner easiy. "
                      :error (if *debug-preprocessing* *error-output* s)
                      :verbose *debug-preprocessing*))
         ((plans time memory complete)
+         (when *debug-preprocessing*
+           (print plans) (print time) (print memory) (print complete)
+           (clear-output))
          (signal 'evaluation-signal :usage (list time memory))
          (values
           (mapcar (let ((i 0))

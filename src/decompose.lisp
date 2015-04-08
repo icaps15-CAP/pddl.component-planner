@@ -5,7 +5,7 @@
 ;;; enhance domain and problem
 ;;;; binarize, extract and debinarize components
 
-(defvar *disable-precategorization* nil)
+(defvar *precategorization* t)
 (defun tasks-bag/aig/seed (problem bproblem seed  &aux (domain (domain problem)))
   ;; -> (list (vector (list task) plan))
   (let (tasks tasks-bag)
@@ -19,9 +19,9 @@
     (format t "~&Removing tasks w/o goals : ~a" (length tasks))
     ;; categorize tasks into buckets, based on init/goal/attribute.
     (setf tasks-bag
-          (if *disable-precategorization*
-              (list tasks)
-              (coerce (categorize-tasks tasks) 'list)))
+          (if *precategorization*
+              (coerce (categorize-tasks tasks) 'list)
+              (list tasks)))
     ;; list pf bags. each bag contains tasks of the same structure
     (format t "~&TASKS/g/i/attr : ~a" (mapcar #'length tasks-bag))
     (format t "~&Debinarizing Tasks...")
@@ -63,26 +63,24 @@
 
 ;;;; compute component-plans
 
-(defvar *compatibility-type* 'strict)
-(let ((i 0))
-  (defun categorize-by-compatibility (bag)
-    (format t "~&Categorizing bag/g/i/attr of length ~a" (length bag))
-    (coerce (categorize-by-equality
-             bag #'maybe-task-plan-equal :transitive t)
-            'list))
+(defvar *compatibility* nil)
 
-  (defun maybe-task-plan-equal (x y)
-    (if (eq *compatibility-type* 'always-false)
-        nil
-        (multiple-value-bind (result proven?) (task-plan-equal x y)
-          (incf i) (when (< 60 i) (setf i 0) (terpri))
-          (if proven?
-              (progn (format t "~:[F~;.~]" result) result)
-              (progn (format t "?")
-                     (case *compatibility-type*
-                       (strict nil)
-                       (loose t)
-                       (t nil))))))))
+(defun categorize-by-compatibility (bag)
+  (format t "~&Categorizing bag/g/i/attr of length ~a~%" (length bag))
+  (coerce (categorize-by-equality
+           bag #'maybe-task-plan-equal :transitive t)
+          'list))
+
+(defun maybe-task-plan-equal (x y)
+  (when *compatibility*
+    (multiple-value-bind (result proven?) (task-plan-equal x y)
+      (if proven?
+          ;; using pprint-newline
+          (progn (format t "~:[F~;.~]~:_" result) result)
+          (progn (format t "?~:_")
+                 (ecase *compatibility*
+                   (strict nil)
+                   (loose t)))))))
 
 (defun component-plans (tasks-bag)
   (setf tasks-bag (sort tasks-bag #'> :key #'length)) ;; sort by c_i
@@ -90,7 +88,9 @@
   (format t "~&Calling the preprocessing planner ~a" *preprocessor*)
   (format t "~&Total Tasks /g/i/attr: ~a" (reduce #'+ (mapcar #'length tasks-bag)))
   (format t "~&Task cardinalities: ~a" (mapcar #'length tasks-bag))
-  (setf tasks-bag (mappend #'categorize-by-compatibility tasks-bag))
+  (let ((*print-pretty* t))
+    (pprint-logical-block (*standard-output* nil)
+      (setf tasks-bag (mappend #'categorize-by-compatibility tasks-bag))))
   (format t "~&Finished the categorization based on plan compatibility.")
   (format t "~&TASKS/plan : ~a" (mapcar #'length tasks-bag))
   ;; list of bags. each bag contains tasks whose plans are interchangeable
@@ -106,7 +106,7 @@
   (ematch v
     ((vector (and bag (list* t1 _)) (pddl-plan actions))
      (handler-bind ((warning #'muffle-warning))
-       (vector bag (macro-action
+       (vector bag (ground-macro-action
                     actions (mapcar #'car (mapping-between-tasks t1 t1))))))))
 
 #+nil
@@ -120,18 +120,27 @@
 
 ;;;; generate-macro-pairs
 
-(defvar *disable-binarization* nil)
+(defvar *binarization* nil)
 (defun generate-macro-pairs (*problem* domain)
   (format t "~&Binarizing domain ~a" domain)
-  (let* ((bproblem (if *disable-binarization*
+  (let* ((bproblem (if *binarization*
                        (binarize *problem* domain)
                        *problem*))
          (tasks-bag (iter (for seed in (types-in-goal *problem*))
                           (appending
                            (tasks-bag/aig/seed
                             *problem* bproblem seed)))))
-    (mapcar #'component-macro/bpvector
-            (component-plans tasks-bag))))
+    (iter (for plan in (component-plans tasks-bag))
+          (handler-case
+              (collect (component-macro/bpvector plan))
+            (zero-length-plan ()
+              (format t "~&ignoring macros of length zero"))))))
+
+(defun types-in-goal (problem)
+  (ematch problem
+    ((pddl-problem positive-goals)
+     (remove-duplicates
+      (mapcar #'type (mappend #'parameters positive-goals))))))
 
 ;;;; score, sort and filter macros
 
@@ -139,11 +148,10 @@
 (defun get-actions (bpvector)
   (ematch bpvector ((vector _ m) (list m))))
 
-(defun get-actions-grounded (bpvector) ;; now alwasy grounded, right?
+(defun get-actions-grounded (bpvector)
   (ematch bpvector
     ((vector (and tasks (list* t1 _))
-             (and m (macro-action ;; :alist alist
-                                  ))) ;; (original . variable)
+             (and m (ground-macro-action))) ;; (original . variable)
      (values
       (mapcar
        (lambda (t2)
@@ -155,7 +163,8 @@
                           (warning #'muffle-warning))
              (change-class
               (map-action m mapping)
-              'macro-action
+              'ground-macro-action
+              :problem *problem*
               :parameters nil
               :actions (map 'vector (rcurry #'map-action mapping) (actions m))
               :name (gensym (symbol-name (name m)))
@@ -316,7 +325,7 @@
             (length pairs)))
   (subseq pairs 0 (min 2 (length pairs))))
 
-(defvar *threshold* 0.8)
+(defvar *threshold* 0)
 
 (defun sort-and-print-macros (pairs)
   (format t "~&~a macros, status:" (length pairs))
@@ -339,6 +348,61 @@
       (format t "~&~a macros are filtered down to ~a." (length pairs) (length results))
       results)))
 
+
+;;;; process macros
+
+(defvar *pddl3.1-multiple-action-costs* nil)
+(defvar *cyclic-macros* nil)
+(defvar *ground-macros* t)
+(defun postprocess-macros (domain problem macro-pairs)
+  (-> (if *ground-macros*
+          (let ((*domain* domain) (*problem* problem))
+            (format t "~&Instantiating ~:[cyclic~;forward~] macros." *cyclic-macros*)
+            (-<>> macro-pairs
+              (mappend (if *cyclic-macros*
+                           #'cyclic-macro
+                           #'get-actions-grounded))
+              (mapcar (if *pddl3.1-multiple-action-costs*
+                          #'identity
+                          #'ground-cost))
+              ;; make them appropriate for printing as actions in a domain description
+              (mapcar (lambda (x) (change-class x 'macro-action)))))
+          (mappend #'get-actions macro-pairs))
+    (report-macros macro-pairs)))
+
+(defun report-macros (macros macro-pairs)
+  "report the current state of macros"
+  (iter (for m in macros)
+        (for pair in macro-pairs)
+        (format t "~%(~50@<~a~>:length ~a :first-comp ~a)"
+                (name m) (length (actions m))
+                (ematch pair
+                  ((vector (list* (abstract-component-task
+                                   (ac
+                                    (abstract-component
+                                     (components (list* o _))))) _) _)
+                   (name o)))))
+  macros)
+
+(defun compute-macros (domain problem filters)
+  (let ((comparison-count 0)
+        (evaluation-count 0))
+    (-<>>
+        (handler-bind
+            ((comparison-signal (lambda (c) (declare (ignore c)) (incf comparison-count)))
+             (evaluation-signal (lambda (c) (declare (ignore c)) (incf evaluation-count))))
+          (generate-macro-pairs problem domain))
+      (progn
+        (format t "~&Forward-macro computation: ~a sec" (elapsed-time))
+        (format t "~&~a macros found in total." (length <>))
+        (format t "~&Number of component plan evaluation: ~a" evaluation-count)
+        (format t "~&Number of comparison: ~a" comparison-count)
+        <>)
+      ;; macro filtering
+      (funcall (apply #'compose (reverse filters)))
+      (progn (format t "~&~a macros after filtering." (length <>)) <>)
+      (postprocess-macros domain problem))))
+
 ;;;; enhance the given problem
 
 (defun identity2 (x y) (values x y))
@@ -356,8 +420,6 @@
 ;;                (appending mm))
 ;;          (mapc #'print (mapcar #'name macros))))
 
-(defvar *pddl3.1-multiple-action-costs* nil)
-(defvar *disable-cyclic-macros* nil)
 (defun enhance-problem (problem
                         &key
                           (filters
@@ -371,43 +433,9 @@
   (format t "~&Enhancing domain ~a" domain)
   (ematch domain
     ((pddl-domain name)
-     (let* ((*domain*
-             (shallow-copy domain :name (symbolicate name '-enhanced)))
-            macro-pairs macros
-            (comparison-count 0)
-            (evaluation-count 0))
-       (handler-bind ((comparison-signal (lambda (c) (incf comparison-count)))
-                      (evaluation-signal (lambda (c) (incf evaluation-count))))
-         (setf macro-pairs (generate-macro-pairs problem domain)))
-       (format t "~&Forward-macro computation: ~a sec"
-               (- (get-universal-time) *start*))
-       (format t "~&~a macros found in total." (length macro-pairs))
-       (format t "~&Number of component plan evaluation: ~a" evaluation-count)
-       (format t "~&Number of comparison: ~a" comparison-count)
-       (setf macro-pairs
-             (funcall (apply #'compose (reverse filters)) macro-pairs))
-       (format t "~&~a macros after filtering." (length macro-pairs))
-       (unwind-protect
-           (let ((*domain* domain) (*problem* problem))
-             (setf macros
-                   (if *disable-cyclic-macros*
-                       (progn
-                         (format t "~&Instantiating ground forward macros.")
-                         (mappend #'get-actions-grounded macro-pairs))
-                       (progn
-                         (format t "~&Instantiating ground cyclic macros.")
-                         (mappend #'cyclic-macro macro-pairs))))
-             (unless *pddl3.1-multiple-action-costs*
-               (format t "~&Merging action costs.")
-               (setf macros (mapcar #'ground-cost macros))))
-         (format t "~&Cyclic-macro computation: ~a sec"
-                 (- (get-universal-time) *start*)))
-       (iter (for m in macros)
-             (for pair in macro-pairs)
-             (format t "~%(~50@<~a~>:length ~a :first-comp ~a)"
-                     (name m) (length (actions m))
-                     (first-comp (match pair
-                                   ((vector (list* task _) _) task)))))
+     (let* ((*domain* (shallow-copy domain :name (symbolicate name '-enhanced)))
+            (macros (compute-macros domain problem filters)))
+       (format t "~&Cyclic-macro computation: ~a sec" (elapsed-time))
        (appendf (actions *domain*) macros)
        (appendf (constants *domain*) (objects/const problem))
        (let* ((*problem*
@@ -420,19 +448,6 @@
              (funcall modify-domain-problem *domain* *problem*)
            (values problem domain macros)))))))
 
-(defun first-comp (task)
-  (ematch task
-    ((abstract-component-task
-      (ac
-       (abstract-component
-        (components (list* o _)))))
-     (name o))))
-
-(defun types-in-goal (problem)
-  (ematch problem
-    ((pddl-problem positive-goals)
-     (remove-duplicates
-      (mapcar #'type (mappend #'parameters positive-goals))))))
 
 ;;; enhance and solve problems & domain
 
@@ -475,7 +490,7 @@ depends on the special variable.")
              (*domain* edomain)
              (*problem* eproblem)
              (plans (prog1
-                      (handler-bind ((pddl:unix-signal
+                      (handler-bind ((unix-signal
                                       (lambda (c)
                                         (format t "~&main search terminated")
                                         (invoke-restart

@@ -11,7 +11,8 @@
         :iterate
         :alexandria
         :cl-annot
-        :anaphora)
+        :trivial-signal
+        :arrow-macros)
   (:export :resource-usage
            :categorize-problem
            :component-plans
@@ -42,15 +43,14 @@
            :reverse-macro
            :cyclic-macro
            :*threshold*
-           :*compatibility-type*
+           :*compatibility*
            :strict
-           :always-false
            :loose
-           :*disable-precategorization*
-           :*disable-binarization*
-           :*disable-cyclic-macros*
+           :*binarization*
+           :*cyclic-macros*
            :*remove-component-problem-cost*
-           :*remove-main-problem-cost*)
+           :*remove-main-problem-cost*
+           :*precategorization*)
   (:shadowing-import-from :guicho-utilities
                           :permutations)
   (:shadowing-import-from :statistics
