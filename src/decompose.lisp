@@ -133,6 +133,12 @@
     (mapcar #'component-macro/bpvector
             (component-plans tasks-bag))))
 
+(defun types-in-goal (problem)
+  (ematch problem
+    ((pddl-problem positive-goals)
+     (remove-duplicates
+      (mapcar #'type (mappend #'parameters positive-goals))))))
+
 ;;;; score, sort and filter macros
 
 ;; no grounding
@@ -427,12 +433,6 @@
        (abstract-component
         (components (list* o _)))))
      (name o))))
-
-(defun types-in-goal (problem)
-  (ematch problem
-    ((pddl-problem positive-goals)
-     (remove-duplicates
-      (mapcar #'type (mappend #'parameters positive-goals))))))
 
 ;;; enhance and solve problems & domain
 
