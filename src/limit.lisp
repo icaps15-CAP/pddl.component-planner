@@ -9,3 +9,5 @@
              *preprocess-time-limit*)
           (format t "~&Reached the time limit!"))
       t))
+(defun elapsed-time ()
+  (- (get-universal-time) *start*))
