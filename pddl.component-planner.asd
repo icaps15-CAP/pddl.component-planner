@@ -28,7 +28,7 @@
                :iterate
                :alexandria
                :cl-annot
-               :anaphora)
+               :arrow-macros)
   :components ((:module "src"
                 :components
                 ((:file :cl-statistics)

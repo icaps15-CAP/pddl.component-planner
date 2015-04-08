@@ -12,7 +12,7 @@
         :alexandria
         :cl-annot
         :trivial-signal
-        :anaphora)
+        :arrow-macros)
   (:export :resource-usage
            :categorize-problem
            :component-plans
