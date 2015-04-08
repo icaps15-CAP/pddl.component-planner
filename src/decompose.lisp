@@ -106,7 +106,7 @@
   (ematch v
     ((vector (and bag (list* t1 _)) (pddl-plan actions))
      (handler-bind ((warning #'muffle-warning))
-       (vector bag (macro-action
+       (vector bag (ground-macro-action
                     actions (mapcar #'car (mapping-between-tasks t1 t1))))))))
 
 #+nil
@@ -145,11 +145,10 @@
 (defun get-actions (bpvector)
   (ematch bpvector ((vector _ m) (list m))))
 
-(defun get-actions-grounded (bpvector) ;; now alwasy grounded, right?
+(defun get-actions-grounded (bpvector)
   (ematch bpvector
     ((vector (and tasks (list* t1 _))
-             (and m (macro-action ;; :alist alist
-                                  ))) ;; (original . variable)
+             (and m (ground-macro-action))) ;; (original . variable)
      (values
       (mapcar
        (lambda (t2)
@@ -161,7 +160,8 @@
                           (warning #'muffle-warning))
              (change-class
               (map-action m mapping)
-              'macro-action
+              'ground-macro-action
+              :problem *problem*
               :parameters nil
               :actions (map 'vector (rcurry #'map-action mapping) (actions m))
               :name (gensym (symbol-name (name m)))
@@ -345,6 +345,61 @@
       (format t "~&~a macros are filtered down to ~a." (length pairs) (length results))
       results)))
 
+
+;;;; process macros
+
+(defvar *pddl3.1-multiple-action-costs* nil)
+(defvar *cyclic-macros* nil)
+(defvar *ground-macros* t)
+(defun postprocess-macros (domain problem macro-pairs)
+  (-> (if *ground-macros*
+          (let ((*domain* domain) (*problem* problem))
+            (format t "~&Instantiating ~:[cyclic~;forward~] macros." *cyclic-macros*)
+            (-<>> macro-pairs
+              (mappend (if *cyclic-macros*
+                           #'cyclic-macro
+                           #'get-actions-grounded))
+              (mapcar (if *pddl3.1-multiple-action-costs*
+                          #'identity
+                          #'ground-cost))
+              ;; make them appropriate for printing as actions in a domain description
+              (mapcar (lambda (x) (change-class x 'macro-action)))))
+          (mappend #'get-actions macro-pairs))
+    (report-macros macro-pairs)))
+
+(defun report-macros (macros macro-pairs)
+  "report the current state of macros"
+  (iter (for m in macros)
+        (for pair in macro-pairs)
+        (format t "~%(~50@<~a~>:length ~a :first-comp ~a)"
+                (name m) (length (actions m))
+                (ematch pair
+                  ((vector (list* (abstract-component-task
+                                   (ac
+                                    (abstract-component
+                                     (components (list* o _))))) _) _)
+                   (name o)))))
+  macros)
+
+(defun compute-macros (domain problem filters)
+  (let ((comparison-count 0)
+        (evaluation-count 0))
+    (-<>>
+        (handler-bind
+            ((comparison-signal (lambda (c) (declare (ignore c)) (incf comparison-count)))
+             (evaluation-signal (lambda (c) (declare (ignore c)) (incf evaluation-count))))
+          (generate-macro-pairs problem domain))
+      (progn
+        (format t "~&Forward-macro computation: ~a sec" (elapsed-time))
+        (format t "~&~a macros found in total." (length <>))
+        (format t "~&Number of component plan evaluation: ~a" evaluation-count)
+        (format t "~&Number of comparison: ~a" comparison-count)
+        <>)
+      ;; macro filtering
+      (funcall (apply #'compose (reverse filters)))
+      (progn (format t "~&~a macros after filtering." (length <>)) <>)
+      (postprocess-macros domain problem))))
+
 ;;;; enhance the given problem
 
 (defun identity2 (x y) (values x y))
@@ -362,8 +417,6 @@
 ;;                (appending mm))
 ;;          (mapc #'print (mapcar #'name macros))))
 
-(defvar *pddl3.1-multiple-action-costs* nil)
-(defvar *cyclic-macros* nil)
 (defun enhance-problem (problem
                         &key
                           (filters
@@ -377,43 +430,9 @@
   (format t "~&Enhancing domain ~a" domain)
   (ematch domain
     ((pddl-domain name)
-     (let* ((*domain*
-             (shallow-copy domain :name (symbolicate name '-enhanced)))
-            macro-pairs macros
-            (comparison-count 0)
-            (evaluation-count 0))
-       (handler-bind ((comparison-signal (lambda (c) (incf comparison-count)))
-                      (evaluation-signal (lambda (c) (incf evaluation-count))))
-         (setf macro-pairs (generate-macro-pairs problem domain)))
-       (format t "~&Forward-macro computation: ~a sec"
-               (- (get-universal-time) *start*))
-       (format t "~&~a macros found in total." (length macro-pairs))
-       (format t "~&Number of component plan evaluation: ~a" evaluation-count)
-       (format t "~&Number of comparison: ~a" comparison-count)
-       (setf macro-pairs
-             (funcall (apply #'compose (reverse filters)) macro-pairs))
-       (format t "~&~a macros after filtering." (length macro-pairs))
-       (unwind-protect
-           (let ((*domain* domain) (*problem* problem))
-             (setf macros
-                   (if *cyclic-macros*
-                       (progn
-                         (format t "~&Instantiating ground cyclic macros.")
-                         (mappend #'cyclic-macro macro-pairs))
-                       (progn
-                         (format t "~&Instantiating ground forward macros.")
-                         (mappend #'get-actions-grounded macro-pairs))))
-             (unless *pddl3.1-multiple-action-costs*
-               (format t "~&Merging action costs.")
-               (setf macros (mapcar #'ground-cost macros))))
-         (format t "~&Cyclic-macro computation: ~a sec"
-                 (- (get-universal-time) *start*)))
-       (iter (for m in macros)
-             (for pair in macro-pairs)
-             (format t "~%(~50@<~a~>:length ~a :first-comp ~a)"
-                     (name m) (length (actions m))
-                     (first-comp (match pair
-                                   ((vector (list* task _) _) task)))))
+     (let* ((*domain* (shallow-copy domain :name (symbolicate name '-enhanced)))
+            (macros (compute-macros domain problem filters)))
+       (format t "~&Cyclic-macro computation: ~a sec" (elapsed-time))
        (appendf (actions *domain*) macros)
        (appendf (constants *domain*) (objects/const problem))
        (let* ((*problem*
@@ -426,13 +445,6 @@
              (funcall modify-domain-problem *domain* *problem*)
            (values problem domain macros)))))))
 
-(defun first-comp (task)
-  (ematch task
-    ((abstract-component-task
-      (ac
-       (abstract-component
-        (components (list* o _)))))
-     (name o))))
 
 ;;; enhance and solve problems & domain
 
