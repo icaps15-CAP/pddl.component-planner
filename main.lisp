@@ -66,6 +66,9 @@
       ((list* "--compatibility" rest)
        (let ((*compatibility* 'strict))
          (main rest)))
+      ((list* "--force-lifted" rest)
+       (let ((*ground-macros* nil))
+         (main rest)))
       #+nil
       ((list* "--precategorization" rest)
        (let ((*precategorization* t))
@@ -159,6 +162,7 @@
                '--remove-main-problem-cost nil "Remove :action-costs during main search"
                '--binarization nil "Use the binarized domain for component abstraction."
                '--cyclic-macros nil "Search/Use cyclic macros"
+               '--force-lifted nil "Disable the macro-action grounding. This harms the planner performance a lot."
                ;; true by default 
                ;; '--precategorization nil "Do not apply precategorization before compatibility checking."
                ;; on/off only now
