@@ -79,8 +79,8 @@
           (progn (format t "~:[F~;.~]~:_" result) result)
           (progn (format t "?~:_")
                  (ecase *compatibility*
-                   (strict nil)
-                   (loose t)))))))
+                   (:strict nil)
+                   (:loose t)))))))
 
 (defun component-plans (tasks-bag)
   (setf tasks-bag (sort tasks-bag #'> :key #'length)) ;; sort by c_i

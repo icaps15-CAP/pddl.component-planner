@@ -64,7 +64,7 @@
 
       ;; CAP search options
       ((list* "--compatibility" rest)
-       (let ((*compatibility* 'strict))
+       (let ((*compatibility* :strict))
          (main rest)))
       ((list* "--force-lifted" rest)
        (let ((*ground-macros* nil))

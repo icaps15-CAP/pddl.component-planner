@@ -26,8 +26,6 @@
            :*main-options*
            :*threshold*
            :*compatibility*
-           :strict
-           :loose
            :*binarization*
            :*cyclic-macros*
            :*ground-macros*
