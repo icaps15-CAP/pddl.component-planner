@@ -6,11 +6,14 @@
 ;;;; binarize, extract and debinarize components
 
 (defvar *precategorization* t)
+(defvar *single-node-components* nil)
 (defun tasks-bag/aig/seed (problem bproblem seed  &aux (domain (domain problem)))
   ;; -> (list (vector (list task) plan))
   (let (tasks tasks-bag)
     (format t "~2&Categorizing PROBLEM ~a with seed ~a" (name bproblem) seed)
-    (setf tasks (abstract-tasks-seed-only bproblem seed))
+    (setf tasks (if *single-node-components*
+                    (abstract-tasks-seed-only bproblem seed)
+                    (abstract-tasks-single-node bproblem seed)))
     ;; remove tasks of the trivial component = components of single object
     ;; (setf tasks (remove-if #'trivial-component-p tasks :key #'abstract-component-task-ac))
     ;; remove tasks without goals

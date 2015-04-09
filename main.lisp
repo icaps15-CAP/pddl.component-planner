@@ -76,6 +76,9 @@
       ((list* "--binarization" rest)
        (let ((*binarization* t))
          (main rest)))
+      ((list* "--force-single-node-components" rest)
+       (let ((*single-node-components* t))
+         (main rest)))
       ((list* "--cyclic-macros" rest)
        (let ((*cyclic-macros* t))
          (main rest)))
@@ -161,6 +164,7 @@
                '--remove-component-problem-cost nil "Remove :action-costs during component planning"
                '--remove-main-problem-cost nil "Remove :action-costs during main search"
                '--binarization nil "Use the binarized domain for component abstraction."
+               '--force-single-node-components nil "Do not extend the components; This harms the planner performance."
                '--cyclic-macros nil "Search/Use cyclic macros"
                '--force-lifted nil "Disable the macro-action grounding. This harms the planner performance a lot."
                ;; true by default 

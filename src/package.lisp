@@ -31,7 +31,8 @@
            :*ground-macros*
            :*remove-component-problem-cost*
            :*remove-main-problem-cost*
-           :*precategorization*)
+           :*precategorization*
+           :*single-node-components*)
   (:shadowing-import-from :guicho-utilities
                           :permutations)
   (:shadowing-import-from :statistics
