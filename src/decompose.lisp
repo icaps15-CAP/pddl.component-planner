@@ -477,7 +477,11 @@ depends on the special variable.")
           *preprocess-time-limit* *start*)
   (multiple-value-bind (eproblem edomain macros)
       (unwind-protect
-          (enhancement-method problem)
+          (handler-bind ((unix-signal
+                          (lambda (c)
+                            (format t "~&Reached the limit during preprocessing")
+                            (return-from solve-problem-enhancing))))
+            (enhancement-method problem))
         (let ((preprocessing-end (get-universal-time)))
           (format t "~&Preprocessing time: ~a sec"
                   (- preprocessing-end *start*))))
