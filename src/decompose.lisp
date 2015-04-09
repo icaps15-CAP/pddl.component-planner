@@ -357,7 +357,7 @@
 (defun postprocess-macros (domain problem macro-pairs)
   (-> (if *ground-macros*
           (let ((*domain* domain) (*problem* problem))
-            (format t "~&Instantiating ~:[cyclic~;forward~] macros." *cyclic-macros*)
+            (format t "~&Instantiating ~:[forward~;cyclic~] macros." *cyclic-macros*)
             (-<>> macro-pairs
               (mappend (if *cyclic-macros*
                            #'cyclic-macro
