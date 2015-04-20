@@ -12,8 +12,8 @@
   (let (tasks tasks-bag)
     (format t "~2&Categorizing PROBLEM ~a with seed ~a" (name bproblem) seed)
     (setf tasks (if *single-node-components*
-                    (abstract-tasks-seed-only bproblem seed)
-                    (abstract-tasks-single-node bproblem seed)))
+                    (abstract-tasks-single-node bproblem seed)
+                    (abstract-tasks-seed-only bproblem seed)))
     ;; remove tasks of the trivial component = components of single object
     ;; (setf tasks (remove-if #'trivial-component-p tasks :key #'abstract-component-task-ac))
     ;; remove tasks without goals
