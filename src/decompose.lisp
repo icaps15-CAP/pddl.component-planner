@@ -169,7 +169,8 @@
               'ground-macro-action
               :problem *problem*
               :parameters nil
-              :actions (map 'vector (rcurry #'map-action mapping) (actions m))
+              :actions (map 'vector (rcurry #'map-action mapping)
+                            (actions m))
               :name (gensym (symbol-name (name m)))
               :alist ;; (iter (for (o1 . o2) in mapping)
                      ;;       (collect (cons o2 (cdr (assoc o1 alist)))))
