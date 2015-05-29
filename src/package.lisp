@@ -29,6 +29,7 @@
            :*binarization*
            :*cyclic-macros*
            :*ground-macros*
+           :*add-macro-cost*
            :*remove-component-problem-cost*
            :*remove-main-problem-cost*
            :*precategorization*

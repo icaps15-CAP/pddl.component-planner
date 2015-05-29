@@ -36,15 +36,18 @@
                                  ,(parse-numeric-effect
                                    `(increase (total-cost) 1)))))))
 
-(defun add-cost (*domain* *problem*)
+(defun add-macro-cost (*domain* *problem*)
+  "Add the action costs to the domain if it is a unit-cost domain.
+Primitive actions are given a cost of 1. Macro actions are given a cost same as its length."
   (unless (member :action-costs (requirements *domain*))
+    ;; domain
     (push :action-costs (requirements *domain*))
     (push (pddl-function :name 'total-cost
                          :parameters nil)
           (functions *domain*))
     (setf (actions *domain*)
           (mapcar #'add-numeric-effect (actions *domain*)))
-    ;(break+ (mapcar #'assign-ops (actions *domain*)))
+    ;; problem
     (push (ground-function (query-function *domain* 'total-cost)
                            nil 0 *problem*)
           (init *problem*))
@@ -52,6 +55,16 @@
           (parse-metric-body '(minimize (total-cost)))))
   (values *domain* *problem*))
 
-(defun enhancement-method (problem)
-  (enhance-problem problem
-                   :modify-domain-problem #'add-cost))
+(defvar *add-macro-cost* nil
+  "Add the action costs to the domain if it is a unit-cost domain.
+Primitive actions are given a cost of 1. Macro actions are given a cost same as its length.")
+
+(defun remove-cost (*domain* *problem*)
+  (values (remove-costs *domain*) (remove-costs *problem*)))
+
+(defvar *remove-main-problem-cost* nil
+  "The problem and the domain solved by
+the external planner could be modified so that it does not have
+any :action-costs, so that any pure STRIPS-based planners can be used. It
+depends on the special variable.")
+

@@ -11,9 +11,6 @@
   :version "0.1"
   :author "guicho"
   :license "LLGPL"
-  :depends-on (#-add-cost
-               :pddl.component-planner
-               #+add-cost
-               :pddl.component-planner.add-cost)
+  :depends-on (:pddl.component-planner)
   :components ((:file :main)))
 

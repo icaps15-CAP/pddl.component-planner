@@ -85,12 +85,18 @@
       ((list* "--iterated" rest)
        (let ((*iterated* t))
          (main rest)))
-      ((list* "--remove-component-problem-cost" rest)
-       (let ((*remove-component-problem-cost* t))
+
+      ;; cost options
+      ((list* "--add-macro-cost" rest)
+       (let ((*add-macro-cost* t))
          (main rest)))
       ((list* "--remove-main-problem-cost" rest)
        (let ((*remove-main-problem-cost* t))
          (main rest)))
+      ((list* "--remove-component-problem-cost" rest)
+       (let ((*remove-component-problem-cost* t))
+         (main rest)))
+
       ;; not used at all now
       #+nil
       ((list* "--filtering-threashold" th rest)
@@ -161,8 +167,9 @@
                ;; not used at all now
                ;; '--filtering-threashold '(threashold)
                ;; "set the threashold in macro filtering, 0 by default. Should be a number in [0,0.99)"
-               '--remove-component-problem-cost nil "Remove :action-costs during component planning"
-               '--remove-main-problem-cost nil "Remove :action-costs during main search"
+               '--add-macro-cost nil "Unit-cost domains are converted into action-cost domains. In those domains macro actions are then given a cost same as its length."
+               '--remove-component-problem-cost nil "Remove :action-costs during component planning."
+               '--remove-main-problem-cost nil "Remove :action-costs during main search. This option supersedes --add-macro-cost."
                '--binarization nil "Use the binarized domain for component abstraction."
                '--force-single-node-components nil "Do not extend the components; This harms the planner performance."
                '--cyclic-macros nil "Search/Use cyclic macros"

@@ -409,21 +409,6 @@
 
 ;;;; enhance the given problem
 
-(defun identity2 (x y) (values x y))
-
-;; This function is not used anymore since the action name is made by
-;; gensym now
-;; (defun check-macro-sanity (macros)
-;;   ;; ensure the name of the macros are unique
-;;   ;; (mapc #'print (mapcar #'name macros))
-;;   (prog1 (iter (for (name mm) in-hashtable (categorize macros :test #'eq :key #'name))
-;;                (when (<= 2 (length mm))
-;;                  (iter (for m in mm)
-;;                        (for i from 0)
-;;                        (setf (name m) (symbolicate name '_ (princ-to-string i)))))
-;;                (appending mm))
-;;          (mapc #'print (mapcar #'name macros))))
-
 (defun enhance-problem (problem
                         &key
                           (filters
@@ -432,7 +417,6 @@
                                  ;; #'sort-and-print-macros
                                  ;; #'filter-macros-normdist
                                  #'filter-macros-normalized))
-                          (modify-domain-problem #'identity2)
                         &aux (domain (domain problem)))
   (format t "~&Enhancing domain ~a" domain)
   (ematch domain
@@ -449,7 +433,16 @@
                 :domain *domain*
                 :objects nil)))
          (multiple-value-bind (domain problem)
-             (funcall modify-domain-problem *domain* *problem*)
+             (if *remove-main-problem-cost*
+                 (remove-cost *domain* *problem*)
+                 (if *add-macro-cost*
+                     (add-macro-cost *domain* *problem*)
+                     (values *domain* *problem*)))
+           #+nil
+           (ematch* (*add-macro-cost* *remove-main-problem-cost*)
+             ((_ t)   (remove-cost *domain* *problem*))
+             ((t nil) (add-macro-cost *domain* *problem*))
+             ((_ _)   (values *domain* *problem*)))
            (values problem domain macros)))))))
 
 
@@ -461,18 +454,11 @@
             :from-end t
             :initial-value (pddl-plan :path plan))))
 
-(defun enhancement-method (problem)
-  (enhance-problem problem))
 
 (defvar *preprocess-only* nil)
 (defvar *validation* nil)
 (defvar *main-search* "lama-clean")
 (defvar *main-options* "")
-(defvar *remove-main-problem-cost* nil
-  "The problem and the domain solved by
-the external planner could be modified so that it does not have
-any :action-costs, so that any pure STRIPS-based planners can be used. It
-depends on the special variable.")
 
 (defun solve-problem-enhancing (problem &rest test-problem-args)
   (clear-plan-task-cache)
@@ -485,7 +471,7 @@ depends on the special variable.")
                           (lambda (c)
                             (format t "~&Reached the limit during preprocessing")
                             (return-from solve-problem-enhancing))))
-            (enhancement-method problem))
+            (enhance-problem problem))
         (let ((preprocessing-end (get-universal-time)))
           (format t "~&Preprocessing time: ~a sec"
                   (- preprocessing-end *start*))))
@@ -504,14 +490,8 @@ depends on the special variable.")
                                         (invoke-restart
                                          (find-restart 'pddl:finish c)))))
                         (apply #'test-problem-common
-                               (write-pddl (if *remove-main-problem-cost*
-                                               (remove-costs *problem*)
-                                               *problem*)
-                                           "eproblem.pddl" dir)
-                               (write-pddl (if *remove-main-problem-cost*
-                                               (remove-costs *domain*)
-                                               *domain*)
-                                           "edomain.pddl" dir)
+                               (write-pddl *problem* "eproblem.pddl" dir)
+                               (write-pddl *domain* "edomain.pddl" dir)
                                test-problem-args)))))
         (when *validation*
           (dolist (p plans)
