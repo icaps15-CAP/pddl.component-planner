@@ -38,6 +38,10 @@ invocation of underlying planner easiy. "
     (let* ((*problem* (build-component-problem task))
            (*domain* (domain *problem*))
            (dir (mktemp "plan-task" t)))
+      (when *debug-preprocessing*
+        (let ((*package* (find-package :pddl)))
+          (terpri)
+          (print-pddl-object *problem* *standard-output*)))
       (multiple-value-match
           (with-open-file (s "/dev/null" :direction :output :if-exists :overwrite)
             (funcall #'test-problem-common

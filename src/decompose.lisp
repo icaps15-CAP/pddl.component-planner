@@ -480,6 +480,10 @@
     (format t "~&Solving the enhanced problem with the main planner ~a."
             *main-search*)
     (unless *preprocess-only*
+      (when *debug-preprocessing*
+        (let ((*package* (find-package :pddl)))
+          (print-pddl-object edomain *standard-output*)
+          (print-pddl-object eproblem *standard-output*)))
       (let* ((dir (mktemp "enhanced"))
              (*domain* edomain)
              (*problem* eproblem)
