@@ -59,6 +59,11 @@ Primitive actions are given a cost of 1. Macro actions are given a cost same as 
   "Add the action costs to the domain if it is a unit-cost domain.
 Primitive actions are given a cost of 1. Macro actions are given a cost same as its length.")
 
+#+nil
+(defvar *action-cost-plusone* nil
+  "Count the cost of each action in a macro plus one. This is a similar
+  behavior to that of FD's strategy.")
+
 (defun remove-cost (*domain* *problem*)
   (values (remove-costs *domain*) (remove-costs *problem*)))
 
