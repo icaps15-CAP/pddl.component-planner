@@ -42,6 +42,7 @@
                  (:file :task-equality)
                  (:file :reverse)
                  (:file :modifiers)
+                 (:file :filter)
                  (:file :decompose)
                  (:file :plan)
                  ;; (:file :delete-effect-minimization)
