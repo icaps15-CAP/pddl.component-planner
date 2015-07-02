@@ -141,12 +141,13 @@ Returns itself if numeric-fluents are given."
 
 ;;; debinarize
 
+(defun debinarize-predicate (pred)
+  (ematch pred
+    ((binarized-predicate binarization-origin)
+     binarization-origin)
+    ((pddl-predicate) pred)))
+
 (defun debinarize-predicates (predicates)
   (remove-duplicates
-   (mapcar (lambda (g)
-             (ematch g
-               ((binarized-predicate binarization-origin)
-                binarization-origin)
-               ((pddl-predicate) g)))
-           predicates)
+   (mapcar #'debinarize-predicate predicates)
    :test #'eqstate))

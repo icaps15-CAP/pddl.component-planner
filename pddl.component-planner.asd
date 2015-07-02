@@ -33,6 +33,7 @@
                 :components
                 ((:file :cl-statistics)
                  (:file :package)
+                 (:file :utilities)
                  (:file :limit)
                  (:file :binarization)
                  (:file :map-component-plan)
@@ -43,6 +44,8 @@
                  (:file :reverse)
                  (:file :modifiers)
                  (:file :filter)
+                 (:file :component-factoring)
+                 (:file :variable-factoring)
                  (:file :decompose)
                  (:file :plan)
                  ;; (:file :delete-effect-minimization)

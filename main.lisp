@@ -79,6 +79,9 @@
       ((list* "--force-single-node-components" rest)
        (let ((*single-node-components* t))
          (main rest)))
+      ((list* "--force-variable-factoring" rest)
+       (let ((*variable-factoring* t))
+         (main rest)))
       ((list* "--cyclic-macros" rest)
        (let ((*cyclic-macros* t))
          (main rest)))
@@ -172,6 +175,7 @@
                '--remove-main-problem-cost nil "Remove :action-costs during main search. This option supersedes --add-macro-cost."
                '--binarization nil "Use the binarized domain for component abstraction."
                '--force-single-node-components nil "Do not extend the components; This harms the planner performance."
+               '--force-variable-factoring nil "Emulates Domshrak's Factor=Variable method"
                '--cyclic-macros nil "Search/Use cyclic macros"
                '--force-lifted nil "Disable the macro-action grounding. This harms the planner performance a lot."
                ;; true by default 

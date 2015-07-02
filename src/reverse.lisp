@@ -57,26 +57,26 @@ then add it as another macro
             :path (first plans))))))))
 
 #+nil
-(defun reverse-macro (pair &optional
+(defun reverse-macro (bmvector &optional
                              (*problem* *problem*)
                              (*domain* *domain*))
   "deprecated. the precondition does not contain restriction --> bloat"
-  (multiple-value-bind (gms tasks) (get-actions-grounded pair)
+  (multiple-value-bind (gms tasks) (get-actions-grounded bmvector)
     (when-let ((plan (%solve-rev
                       (reverse-problem (first gms) (first tasks))
                       *domain*)))
       ;; reuse this function
-      (ematch (component-macro/bpvector (vector tasks plan)) ;; -> (vector tasks macro)
+      (ematch (bmvector (vector tasks plan)) ;; -> (vector tasks macro)
         ((and it (vector _ (macro-action (name (place name)))))
          (setf name (symbolicate 'rev- name))
          it)))))
 
 
-(defun cyclic-macro (pair &optional (*problem* *problem*) (*domain* *domain*))
+(defun cyclic-macro (bmvector &optional (*problem* *problem*) (*domain* *domain*))
   "grounded by default.
  Assume *problem*,*domain* is the original problem/domain."
   (handler-bind ((warning #'muffle-warning))
-    (multiple-value-bind (gms tasks) (get-actions-grounded pair)
+    (multiple-value-bind (gms tasks) (get-actions-grounded bmvector)
       (restart-case
           (if-let ((plan (%solve-rev
                           (reverse-problem (first gms) (first tasks))
@@ -84,7 +84,7 @@ then add it as another macro
             (handler-case
                 (let ((reverse-gms
                        (get-actions-grounded
-                        (component-macro/bpvector (vector tasks plan)))))
+                        (bmvector (vector tasks plan)))))
                   (values
                    (mapcar
                     (lambda (gm rgm)

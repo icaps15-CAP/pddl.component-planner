@@ -33,7 +33,8 @@
            :*remove-component-problem-cost*
            :*remove-main-problem-cost*
            :*precategorization*
-           :*single-node-components*)
+           :*single-node-components*
+           :*variable-factoring*)
   (:shadowing-import-from :guicho-utilities
                           :permutations)
   (:shadowing-import-from :statistics

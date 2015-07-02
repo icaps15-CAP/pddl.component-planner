@@ -108,7 +108,11 @@
              bag components actions
              ;; nbag ncomponents nactions
              score
-             (name (type seed))))))
+             (handler-case
+                 (name (type seed))
+               ;; added for variable-factoring mode: no seed type
+               ;; because seed is nil
+               (error () :no-type))))))
 
 ;;; old implementation of fixed and normdist filtering
 

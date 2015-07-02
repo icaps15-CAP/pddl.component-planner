@@ -47,28 +47,28 @@ and the objects in the target component itself."))
 
 ;;; full restoration strategy -- proposed in KEPS14
 
-(defclass full-restoration-strategy (filtering-strategy)
-  ((obj-restored :type boolean :initform nil :accessor obj-restored)
-   (init-restored :type boolean :initform nil :accessor init-restored))
-  (:documentation
-   "Same as filtering-strategy, but it returns a full list of objects
-when it is called more than twice."))
-
-(defmethod filter-objects
-    ((strategy full-restoration-strategy) &key objs)
-  (if (obj-restored strategy)
-      (values objs nil)
-      (prog1
-          (call-next-method)
-        (setf (obj-restored strategy) t))))
-
-(defmethod filter-inits ((strategy full-restoration-strategy)
-                         &rest keys &key init)
-  (if (init-restored strategy)
-      (values init nil)
-      (prog1
-          (call-next-method)
-        (setf (init-restored strategy) t))))
+;; (defclass full-restoration-strategy (filtering-strategy)
+;;   ((obj-restored :type boolean :initform nil :accessor obj-restored)
+;;    (init-restored :type boolean :initform nil :accessor init-restored))
+;;   (:documentation
+;;    "Same as filtering-strategy, but it returns a full list of objects
+;; when it is called more than twice."))
+;; 
+;; (defmethod filter-objects
+;;     ((strategy full-restoration-strategy) &key objs)
+;;   (if (obj-restored strategy)
+;;       (values objs nil)
+;;       (prog1
+;;           (call-next-method)
+;;         (setf (obj-restored strategy) t))))
+;; 
+;; (defmethod filter-inits ((strategy full-restoration-strategy)
+;;                          &rest keys &key init)
+;;   (if (init-restored strategy)
+;;       (values init nil)
+;;       (prog1
+;;           (call-next-method)
+;;         (setf (init-restored strategy) t))))
 
 ;;; gradual restoration strategy
 

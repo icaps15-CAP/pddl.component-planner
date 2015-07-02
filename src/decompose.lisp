@@ -1,137 +1,28 @@
 
 (in-package :pddl.component-planner)
 (cl-syntax:use-syntax :annot)
-
-;;; enhance domain and problem
-;;;; binarize, extract and debinarize components
-
-(defvar *precategorization* t)
-(defvar *single-node-components* nil)
-(defun tasks-bag/aig/seed (problem bproblem seed  &aux (domain (domain problem)))
-  ;; -> (list (vector (list task) plan))
-  (let (tasks tasks-bag)
-    (format t "~2&Categorizing PROBLEM ~a with seed ~a" (name bproblem) seed)
-    (setf tasks (if *single-node-components*
-                    (abstract-tasks-single-node bproblem seed)
-                    (abstract-tasks-seed-only bproblem seed)))
-    ;; remove tasks of the trivial component = components of single object
-    ;; (setf tasks (remove-if #'trivial-component-p tasks :key #'abstract-component-task-ac))
-    ;; remove tasks without goals
-    (format t "~&Tasks found : ~a" (length tasks))
-    (setf tasks (remove-if-not #'abstract-component-task-goal tasks))
-    (format t "~&Removing tasks w/o goals : ~a" (length tasks))
-    ;; categorize tasks into buckets, based on init/goal/attribute.
-    (setf tasks-bag
-          (if *precategorization*
-              (coerce (categorize-tasks tasks) 'list)
-              (list tasks)))
-    ;; list pf bags. each bag contains tasks of the same structure
-    (format t "~&TASKS/g/i/attr : ~a" (mapcar #'length tasks-bag))
-    (format t "~&Debinarizing Tasks...")
-    (mapcar (curry #'mapcar (curry #'debinarize-task problem))
-            tasks-bag)))
-
-;; task: ac, init, goal
-;; ac: seed, objects, facts, attr, attr-facts
-
-(defun debinarize-task (problem task)
-  (ematch task
-    ((abstract-component-task
-      ;; problem
-      init goal
-      (ac (abstract-component
-           seed facts
-           components attributes)))
-     (make-abstract-component-task
-      :problem problem
-      ;; NOTE: these facts may contain environment objects
-      ;; when they are more than 3 arg predicates.
-      :init (debinarize-predicates init)
-      :goal (debinarize-predicates goal)
-      :ac (make-abstract-component
-           :seed seed
-           :facts (debinarize-predicates facts)
-           :components components
-           :attributes attributes)))))
-
-;;;; compute component-plans
-
-(defvar *compatibility* nil)
-
-(defun categorize-by-compatibility (bag)
-  (format t "~&Categorizing bag/g/i/attr of length ~a~%" (length bag))
-  (coerce (categorize-by-equality
-           bag #'maybe-task-plan-equal :transitive t)
-          'list))
-
-(defun maybe-task-plan-equal (x y)
-  (when *compatibility*
-    (multiple-value-bind (result proven?) (task-plan-equal x y)
-      (if proven?
-          ;; using pprint-newline
-          (progn (format t "~:[F~;.~]~:_" result) result)
-          (progn (format t "?~:_")
-                 (ecase *compatibility*
-                   (:strict nil)
-                   (:loose t)))))))
-
-(defun component-plans (tasks-bag)
-  (setf tasks-bag (sort tasks-bag #'> :key #'length)) ;; sort by c_i
-  (format t "~&Categorizing TASKS by plan compatibility.")
-  (format t "~&Calling the preprocessing planner ~a" *preprocessor*)
-  (format t "~&Total Tasks /g/i/attr: ~a" (reduce #'+ (mapcar #'length tasks-bag)))
-  (format t "~&Task cardinalities: ~a" (mapcar #'length tasks-bag))
-  (let ((*print-pretty* t))
-    (pprint-logical-block (*standard-output* nil)
-      (setf tasks-bag (mappend #'categorize-by-compatibility tasks-bag))))
-  (format t "~&Finished the categorization based on plan compatibility.")
-  (format t "~&TASKS/plan : ~a" (mapcar #'length tasks-bag))
-  ;; list of bags. each bag contains tasks whose plans are interchangeable
-  (iter (for bag in tasks-bag)
-        ;; assume the cached value of plan-task
-        (when-let ((plans-for-a-task (some #'plan-task bag)))
-          (collect ; TODO: what if the component-plan does not exists?
-              (vector bag (first plans-for-a-task))))))
-
-;;;; creates macros from the obtained component-plans
-
-(defun component-macro/bpvector (v) ;; bag plan vector
-  (ematch v
-    ((vector (and bag (list* t1 _)) (pddl-plan actions))
-     (handler-bind ((warning #'muffle-warning))
-       (vector bag (ground-macro-action
-                    actions (mapcar #'car (mapping-between-tasks t1 t1))))))))
-
-;;;; generate-macro-pairs
-
+;;; factoring-bmvectors
 (defvar *binarization* nil)
-(defun generate-macro-pairs (*problem* domain)
-  (format t "~&Binarizing domain ~a" domain)
-  (let* ((bproblem (if *binarization*
-                       (binarize *problem* domain)
-                       *problem*))
-         (tasks-bag (iter (for seed in (types-in-goal *problem*))
-                          (appending
-                           (tasks-bag/aig/seed
-                            *problem* bproblem seed)))))
-    (iter (for plan in (component-plans tasks-bag))
-          (handler-case
-              (collect (component-macro/bpvector plan))
-            (zero-length-plan ()
-              (format t "~&ignoring macros of length zero"))))))
+(defvar *variable-factoring* nil)
+(defun factoring-bmvectors (*problem* domain)
+  (let ((bproblem (if *binarization*
+                      (progn
+                        (format t "~&Binarizing domain ~a" domain)
+                        (binarize *problem* domain))
+                      *problem*)))
+    (-<>>
+        (if *variable-factoring*
+            (variable-factoring-bpvectors bproblem *problem* domain)
+            (component-factoring-bpvectors bproblem *problem* domain))
+      (mapcar #'bmvector)
+      (remove nil))))
 
-(defun types-in-goal (problem)
-  (ematch problem
-    ((pddl-problem positive-goals)
-     (remove-duplicates
-      (mapcar #'type (mappend #'parameters positive-goals))))))
+;;;; bmvector -> macro action instances
+(defun get-actions (bmvector)
+  (ematch bmvector ((vector _ m) (list m))))
 
-;;;; bpvector -> macro action instances
-(defun get-actions (bpvector)
-  (ematch bpvector ((vector _ m) (list m))))
-
-(defun get-actions-grounded (bpvector)
-  (ematch bpvector
+(defun get-actions-grounded (bmvector)
+  (ematch bmvector
     ((vector (and tasks (list* t1 _))
              (and m (ground-macro-action))) ;; (original . variable)
      (values
@@ -162,11 +53,11 @@
 (defvar *pddl3.1-multiple-action-costs* nil)
 (defvar *cyclic-macros* nil)
 (defvar *ground-macros* t)
-(defun postprocess-macros (domain problem macro-pairs)
+(defun postprocess-macros (domain problem bmvectors)
   (-> (if *ground-macros*
           (let ((*domain* domain) (*problem* problem))
             (format t "~&Instantiating ~:[forward~;cyclic~] macros." *cyclic-macros*)
-            (-<>> macro-pairs
+            (-<>> bmvectors
               (mappend (if *cyclic-macros*
                            #'cyclic-macro
                            #'get-actions-grounded))
@@ -175,21 +66,27 @@
                           #'ground-cost))
               ;; make them appropriate for printing as actions in a domain description
               (mapcar (lambda (x) (change-class x 'macro-action)))))
-          (mappend #'get-actions macro-pairs))
-    (report-macros macro-pairs)))
+          (mappend #'get-actions bmvectors))
+    (report-macros bmvectors)))
 
-(defun report-macros (macros macro-pairs)
+(defun report-macros (macros bmvectors)
   "report the current state of macros"
   (iter (for m in macros)
-        (for pair in macro-pairs)
+        (for bmvector in bmvectors)
         (format t "~%(~50@<~a~>:length ~a :first-comp ~a)"
                 (name m) (length (actions m))
-                (ematch pair
+                (ematch bmvector
                   ((vector (list* (abstract-component-task
                                    (ac
                                     (abstract-component
                                      (components (list* o _))))) _) _)
-                   (name o)))))
+                   (name o))
+                  ;; for factor=variable method
+                  ((vector (list* (abstract-component-task
+                                   (ac
+                                    (abstract-component
+                                     (components nil)))) _) _)
+                   :no-component))))
   macros)
 
 (defun compute-macros (domain problem filters)
@@ -199,17 +96,15 @@
         (handler-bind
             ((comparison-signal (lambda (c) (declare (ignore c)) (incf comparison-count)))
              (evaluation-signal (lambda (c) (declare (ignore c)) (incf evaluation-count))))
-          (generate-macro-pairs problem domain))
-      (progn
-        (format t "~&Forward-macro computation: ~a sec" (elapsed-time))
-        (format t "~&~a macros found in total." (length <>))
-        (format t "~&Number of component plan evaluation: ~a" evaluation-count)
-        (format t "~&Number of comparison: ~a" comparison-count)
-        <>)
+          (factoring-bmvectors problem domain))
+      (format<> t "~&Forward-macro computation: ~a sec" (elapsed-time))
+      (format<> t "~&~a macros found in total." (length <>))
+      (format<> t "~&Number of component plan evaluation: ~a" evaluation-count)
+      (format<> t "~&Number of comparison: ~a" comparison-count)
       ;; macro filtering
       (funcall (apply #'compose (reverse filters)))
-      (progn (format t "~&~a macros after filtering." (length <>)) <>)
-      (postprocess-macros domain problem))))
+      (format<> t "~&~a macros after filtering." (length <>))
+      (postprocess-macros domain problem <>))))
 
 ;;; enhance the given problem
 
