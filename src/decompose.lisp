@@ -102,15 +102,6 @@
        (vector bag (ground-macro-action
                     actions (mapcar #'car (mapping-between-tasks t1 t1))))))))
 
-#+nil
-(defun environment-objects (objs task)
-  (iter (for o in objs)
-        (when (filter-object
-               (make-instance 'filtering-strategy) o
-               :components (abstract-component-components
-                            (abstract-component-task-ac task)))
-          (collect o))))
-
 ;;;; generate-macro-pairs
 
 (defvar *binarization* nil)
@@ -166,7 +157,7 @@
        tasks)
       tasks))))
 
-;;;; process macros
+;;; process macros
 
 (defvar *pddl3.1-multiple-action-costs* nil)
 (defvar *cyclic-macros* nil)
@@ -220,7 +211,7 @@
       (progn (format t "~&~a macros after filtering." (length <>)) <>)
       (postprocess-macros domain problem))))
 
-;;;; enhance the given problem
+;;; enhance the given problem
 
 (defun enhance-problem (problem
                         &key
@@ -260,13 +251,6 @@
 
 
 ;;; enhance and solve problems & domain
-
-(defun decode-plan-all (macros plan)
-  (handler-bind ((warning #'muffle-warning))
-    (reduce #'decode-plan macros
-            :from-end t
-            :initial-value (pddl-plan :path plan))))
-
 
 (defvar *preprocess-only* nil)
 (defvar *validation* nil)
@@ -328,7 +312,8 @@
                         (decode-plan-all macros plan)))))
                 plans (iota (length plans)))))))
 
-;; in order to set (domain/problem plan)
-;; during the initialization
-  
-
+(defun decode-plan-all (macros plan)
+  (handler-bind ((warning #'muffle-warning))
+    (reduce #'decode-plan macros
+            :from-end t
+            :initial-value (pddl-plan :path plan))))
