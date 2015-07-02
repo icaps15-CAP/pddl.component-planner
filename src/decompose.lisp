@@ -31,6 +31,9 @@
     (mapcar (curry #'mapcar (curry #'debinarize-task problem))
             tasks-bag)))
 
+;; task: ac, init, goal
+;; ac: seed, objects, facts, attr, attr-facts
+
 (defun debinarize-task (problem task)
   (ematch task
     ((abstract-component-task
@@ -50,19 +53,6 @@
            :facts (debinarize-predicates facts)
            :components components
            :attributes attributes)))))
-
-(defun debinarize-predicates (predicates)
-  (remove-duplicates
-   (mapcar (lambda (g)
-             (ematch g
-               ((binarized-predicate binarization-origin)
-                binarization-origin)
-               ((pddl-predicate) g)))
-           predicates)
-   :test #'eqstate))
-
-;; task: ac, init, goal
-;; ac: seed, objects, facts, attr, attr-facts
 
 ;;;; compute component-plans
 

@@ -138,3 +138,15 @@ Returns itself if numeric-fluents are given."
 ;; (defun binarize-assign-ops (assign-ops)
 ;;   (iter (for op in assign-ops)
         
+
+;;; debinarize
+
+(defun debinarize-predicates (predicates)
+  (remove-duplicates
+   (mapcar (lambda (g)
+             (ematch g
+               ((binarized-predicate binarization-origin)
+                binarization-origin)
+               ((pddl-predicate) g)))
+           predicates)
+   :test #'eqstate))
