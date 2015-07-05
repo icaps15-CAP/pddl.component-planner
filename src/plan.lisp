@@ -13,8 +13,6 @@
 (defvar *use-plain-planner* nil)
 @export
 (defun solve (ppath dpath)
-  (uiop:quit
-   ((lambda (x) (if x 0 1))
     (let ((*start* (get-universal-time)))
       (unwind-protect
           (multiple-value-bind (dname domain) (suppress (parse-file dpath nil t))
@@ -44,7 +42,7 @@
                             (always
                              (validate-plan dpath ppath plp :verbose *verbose*))))))))
         (format t "~&Wall time: ~a sec~%"
-                (- (get-universal-time) *start*)))))))
+              (- (get-universal-time) *start*)))))
 
 @export
 (defvar *training-instances* nil)

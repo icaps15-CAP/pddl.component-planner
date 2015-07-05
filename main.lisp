@@ -12,7 +12,8 @@
 
 (defun toplevel ()
   (sb-ext:disable-debugger)
-  (main))
+  (uiop:quit
+   (if (main) 0 1)))
 
 (defun main (&optional (argv (cdr sb-ext:*posix-argv*)))
   (when *verbose*
