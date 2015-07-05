@@ -9,7 +9,11 @@
       (if *variable-factoring*
           (variable-factoring-bpvectors problem)
           (component-factoring-bpvectors problem)) 
-    (mapcar #'bmvector)
+    (mapcar (lambda (bpvector)
+              (handler-case
+                  (bmvector bpvector)
+                (zero-length-plan ()
+                  (format t "~&ignoring macros of length zero")))))
     (remove nil)))
 
 ;;;; bmvector -> macro action instances

@@ -89,10 +89,7 @@
   (ematch bpvector
     ((vector (and bag (list* t1 _)) (pddl-plan actions))
      (handler-bind ((warning #'muffle-warning))
-       (handler-case
-           (vector bag (ground-macro-action
-                        actions (mapcar #'car (mapping-between-tasks t1 t1))))
-         (zero-length-plan ()
-           (format t "~&ignoring macros of length zero")))))))
+       (vector bag (ground-macro-action
+                    actions (mapcar #'car (mapping-between-tasks t1 t1))))))))
 
 
