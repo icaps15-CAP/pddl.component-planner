@@ -1,8 +1,11 @@
 
 (defpackage :pddl.component-planner.experiment
+  (:nicknames :experiment)
   (:use :cl :cl-rlimit :pddl :pddl.component-planner :optima
         :alexandria :iterate :guicho-utilities)
-  (:shadowing-import-from :pddl :minimize :maximize))
+  (:shadowing-import-from :pddl :minimize :maximize)
+  (:export
+   #:main))
 (in-package :pddl.component-planner.experiment)
 
 (defvar *build-date*
