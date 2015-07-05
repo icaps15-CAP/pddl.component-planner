@@ -24,7 +24,7 @@
               (print pname)
               (print problem)
               (if *use-plain-planner*
-                  (plan-plain ppath domain problem)
+                (plan-plain dpath ppath domain problem)
                   (let ((plans
                          (solve-problem-enhancing problem
                                                   :time-limit 1 ; satisficing
@@ -49,7 +49,7 @@
 @export
 (defvar *training-instances* nil)
 
-(defun plan-plain (ppath *domain* *problem*)
+(defun plan-plain (dpath ppath *domain* *problem*)
   (let ((dir (mktemp "plain")))
     (let ((plans
            (handler-bind ((unix-signal
@@ -92,7 +92,10 @@
             (when (probe-file new-path) (delete-file new-path))
             (sb-ext:run-program
              "/bin/cp" (list (namestring path)
-                             (namestring new-path)))))))
+                             (namestring new-path)))
+            (when *validation*
+              (always
+               (validate-plan dpath ppath new-path :verbose *verbose*)))))))
 
 @export
 (defun find-domain (problem-path)
