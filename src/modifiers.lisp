@@ -3,6 +3,8 @@
 (cl-syntax:use-syntax :annot)
 
 (defmethod pddl::%add-costs ((a macro-action))
+  (if (member :action-costs (requirements (domain a)))
+      a
   (shallow-copy
    a
    :domain *domain*
@@ -13,7 +15,7 @@
                    `(increase (total-cost) ,(length (actions a)))))
    'add-list +unbound+
    'delete-list +unbound+
-   'assign-ops +unbound+))
+       'assign-ops +unbound+)))
 
 (defmethod pddl::%remove-costs ((a macro-action))
   (shallow-copy

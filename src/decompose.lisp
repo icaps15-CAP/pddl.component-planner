@@ -8,7 +8,7 @@
   (-<>>
       (if *variable-factoring*
           (variable-factoring-bpvectors problem)
-          (component-factoring-bpvectors problem)) 
+          (component-factoring-bpvectors problem))
     (mapcar (lambda (bpvector)
               (handler-case
                   (bmvector bpvector)
