@@ -18,6 +18,15 @@
   (uiop:quit
    (if (main) 0 1)))
 
+(defun consume-until-hyphen (list next)
+  (labels ((rec (acc list)
+             (ematch list
+               ((list* "-" rest)
+                (funcall next (format nil "~{~a~^ ~}" (nreverse acc)) rest))
+               ((list* string rest)
+                (rec (cons string acc) rest)))))
+    (rec nil list)))
+
 (defun main (&optional (argv (cdr sb-ext:*posix-argv*)))
   (when *verbose*
     (print argv))
@@ -113,21 +122,28 @@
                  (main rest)
                  (error "--filtering-threashold should be 0 <= x < 0.99999995 ~~ 1-eps! "))
              (error "--filtering-threashold should be a lisp-readable number! ex) 0, 0.0, 1/2, 0.5d0, 0.7"))))
-      ((list* "--preprocessor" *preprocessor* "-" rest)
-       (main (list* "--preprocessor" *preprocessor* "" rest)))
-      ((list* "--preprocessor"
-              *preprocessor*
-              *preprocessor-options* rest) (main rest))
-      ((list* "--main-search" *main-search* "-" rest)
-       (main (list* "--main-search" *main-search* "" rest)))
-      ((list* "--main-search"
-              *main-search*
-              *main-options* rest) (main rest))
+
+      ((list* "--preprocessor" *preprocessor* rest)
+       (consume-until-hyphen
+        rest
+        (lambda (*preprocessor-options* rest)
+          (main rest))))
+      ((list* "--main-search" *main-search* rest)
+       (consume-until-hyphen
+        rest
+        (lambda (*main-options* rest)
+          (main rest))))
 
       ;; aliases
-      ((list* "--both-search" searcher option rest)
-       (main (list* "--preprocessor" searcher option
-                    "--main-search" searcher option rest)))
+      ((list* "--both-search" searcher rest)
+       (consume-until-hyphen
+        rest
+        (lambda (options rest)
+          (let ((*main-search* searcher)
+                (*preprocessor* searcher)
+                (*main-options* options)
+                (*preprocessor-options* options))
+            (main rest)))))
       ((list* "--default" rest)
        (main (list* "-v" rest)))
       ((list* "--fffd" rest)
