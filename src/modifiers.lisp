@@ -2,70 +2,50 @@
 (in-package :pddl.component-planner)
 (cl-syntax:use-syntax :annot)
 
-;; (union '(:action-cost) requirements)
+(defmethod pddl::%add-costs ((a macro-action))
+  (shallow-copy
+   a
+   :domain *domain*
+   :actions (map 'vector #'remove-costs (actions a))
+   :effect `(and ,@(add-list a)
+                 ,@(mapcar (lambda (x) `(not ,x)) (delete-list a))
+                 ,(parse-numeric-effect
+                   `(increase (total-cost) ,(length (actions a)))))
+   'add-list +unbound+
+   'delete-list +unbound+
+   'assign-ops +unbound+))
 
-;; (defun add-numeric-effect/pair (pairs)
-;;   (mapcar (lambda (pair)
-;;             (ematch pair
-;;               ((vector bag m)
-;;                (vector
-;;                 bag (%add-numeric-effect/macro m)))))
-;;           pairs))
+(defmethod pddl::%remove-costs ((a macro-action))
+  (shallow-copy
+   a
+   :domain *domain*
+   :actions (map 'vector #'remove-costs (actions a))
+   :effect `(and ,@(add-list a)
+                 ,@(mapcar (lambda (x) `(not ,x)) (delete-list a)))
+   'assign-ops +unbound+
+   'add-list +unbound+
+   'delete-list +unbound+))
 
-(defun add-numeric-effect (a)
-  (ematch a
-    ((macro-action add-list delete-list actions)
-     (shallow-copy a
-                   :domain *domain*
-                   'add-list +unbound+
-                   'delete-list +unbound+
-                   'assign-ops +unbound+
-                   :effect `(and ,@add-list
-                                 ,@(mapcar (lambda (x) `(not ,x)) delete-list)
-                                 ,(parse-numeric-effect
-                                   `(increase (total-cost) ,(length actions))))))
-    ((pddl-action add-list delete-list)
-     (shallow-copy a  ; it might be a binarized-action, so it should be a
-                      ; shallow copy
-                   :domain *domain*
-                   'add-list +unbound+
-                   'delete-list +unbound+
-                   'assign-ops +unbound+
-                   :effect `(and ,@add-list
-                                 ,@(mapcar (lambda (x) `(not ,x)) delete-list)
-                                 ,(parse-numeric-effect
-                                   `(increase (total-cost) 1)))))))
 
-(defun add-macro-cost (*domain* *problem*)
+(defun add-macro-cost (domain problem macros)
   "Add the action costs to the domain if it is a unit-cost domain.
 Primitive actions are given a cost of 1. Macro actions are given a cost same as its length."
-  (unless (member :action-costs (requirements *domain*))
-    ;; domain
-    (push :action-costs (requirements *domain*))
-    (push (pddl-function :name 'total-cost
-                         :parameters nil)
-          (functions *domain*))
-    (setf (actions *domain*)
-          (mapcar #'add-numeric-effect (actions *domain*)))
-    ;; problem
-    (push (ground-function (query-function *domain* 'total-cost)
-                           nil 0 *problem*)
-          (init *problem*))
-    (setf (metric *problem*)
-          (parse-metric-body '(minimize (total-cost)))))
-  (values *domain* *problem*))
+  (let ((*domain* (add-costs domain))
+        (*problem* (add-costs problem)))
+    (values *domain* *problem*
+            ;; FIXME: due to caching, evaluation order is important... 
+            (mapcar #'add-costs macros))))
 
 (defvar *add-macro-cost* nil
   "Add the action costs to the domain if it is a unit-cost domain.
 Primitive actions are given a cost of 1. Macro actions are given a cost same as its length.")
 
-#+nil
-(defvar *action-cost-plusone* nil
-  "Count the cost of each action in a macro plus one. This is a similar
-  behavior to that of FD's strategy.")
-
-(defun remove-cost (*domain* *problem*)
-  (values (remove-costs *domain*) (remove-costs *problem*)))
+(defun remove-cost (domain problem macros)
+  (let ((*domain* (remove-costs domain))
+        (*problem* (remove-costs problem)))
+    (values *domain* *problem*
+            ;; FIXME: due to caching, evaluation order is important... 
+            (mapcar #'remove-costs macros))))
 
 (defvar *remove-main-problem-cost* nil
   "The problem and the domain solved by
@@ -73,3 +53,7 @@ the external planner could be modified so that it does not have
 any :action-costs, so that any pure STRIPS-based planners can be used. It
 depends on the special variable.")
 
+#+nil
+(defvar *action-cost-plusone* nil
+  "Count the cost of each action in a macro plus one. This is a similar
+  behavior to that of FD's strategy.")

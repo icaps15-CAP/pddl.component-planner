@@ -151,3 +151,24 @@ Returns itself if numeric-fluents are given."
   (remove-duplicates
    (mapcar #'debinarize-predicate predicates)
    :test #'eqstate))
+
+(defun debinarize-task (problem task)
+  (ematch task
+    ((abstract-component-task
+      ;; problem
+      init goal
+      (ac (abstract-component
+           seed facts
+           components attributes)))
+     (make-abstract-component-task
+      :problem problem
+      ;; NOTE: these facts may contain environment objects
+      ;; when they are more than 3 arg predicates.
+      :init (debinarize-predicates init)
+      :goal (debinarize-predicates goal)
+      :ac (make-abstract-component
+           :problem problem
+           :seed seed
+           :facts (debinarize-predicates facts)
+           :components components
+           :attributes attributes)))))

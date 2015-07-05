@@ -2,12 +2,11 @@
 (in-package :pddl.component-planner)
 (cl-syntax:use-syntax :annot)
 
-(defun component-factoring-bpvectors (bproblem *problem* domain)
-  (declare (ignorable domain))
+(defun component-factoring-bpvectors (problem)
   (-<>>
-      (iter (for seed in (types-in-goal *problem*))
+      (iter (for seed in (types-in-goal problem))
             (appending
-             (task-bags *problem* bproblem seed)))
+             (task-bags problem seed)))
     (sort <> #'> :key #'length)
     (format<> t "~&Categorizing TASKS by plan compatibility.")
     (format<> t "~&Calling the preprocessing planner ~a" *preprocessor*)
@@ -35,14 +34,20 @@
 
 (defvar *precategorization* t)
 (defvar *single-node-components* nil)
-(defun task-bags (problem bproblem seed &aux (domain (domain problem)))
-  ;; -> (list (vector (list task) plan))
-  (declare (ignorable domain))
-  (format t "~2&Categorizing PROBLEM ~a with seed ~a" (name bproblem) seed)
+(defun task-bags (problem seed)
+  (format t "~2&Categorizing PROBLEM ~a with seed ~a" (name problem) seed)
   (-<>>
-      (if *single-node-components*
-          (abstract-tasks-single-node bproblem seed)
-          (abstract-tasks-seed-only bproblem seed))
+      (let ((bproblem (if *binarization*
+                          (progn
+                            (format t "~&Binarizing ~a" problem)
+                            (binarize problem (domain problem)))
+                          problem)))
+        (-<>>
+            (if *single-node-components*
+                (abstract-tasks-single-node bproblem seed)
+                (abstract-tasks-seed-only bproblem seed))
+          (format<> t "~&Debinarizing Tasks...")
+          (mapcar (curry #'debinarize-task problem))))
     ;; remove tasks of the trivial component = components of single object
     ;; (remove-if #'trivial-component-p <> :key #'abstract-component-task-ac)
     ;; remove tasks without goals
@@ -53,31 +58,7 @@
     (if *precategorization*
         (coerce (categorize-tasks <>) 'list)
         (list <>))
-    (format<> t "~&TASKS/g/i/attr : ~a" (mapcar #'length <>))
-    (format<> t "~&Debinarizing Tasks...")
-    (mapcar (curry #'mapcar (curry #'debinarize-task problem)) <>)))
-
-;;; debinarize
-
-(defun debinarize-task (problem task)
-  (ematch task
-    ((abstract-component-task
-      ;; problem
-      init goal
-      (ac (abstract-component
-           seed facts
-           components attributes)))
-     (make-abstract-component-task
-      :problem problem
-      ;; NOTE: these facts may contain environment objects
-      ;; when they are more than 3 arg predicates.
-      :init (debinarize-predicates init)
-      :goal (debinarize-predicates goal)
-      :ac (make-abstract-component
-           :seed seed
-           :facts (debinarize-predicates facts)
-           :components components
-           :attributes attributes)))))
+    (format<> t "~&TASKS/g/i/attr : ~a" (mapcar #'length <>))))
 
 ;;; plan-level categorization
 

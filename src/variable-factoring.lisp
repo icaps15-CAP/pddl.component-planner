@@ -3,9 +3,8 @@
 
 ;; variable factoring
 
-(defun variable-factoring-bpvectors (bproblem *problem* domain)
-  (declare (ignorable domain))
-  (ematch *problem*
+(defun variable-factoring-bpvectors (problem)
+  (ematch problem
     ((pddl-problem positive-goals)
      ;; same reporter as in task-bags
      (format t "~&Using Factor=Variable strategy")
@@ -14,12 +13,13 @@
      (format t "~&TASKS/g/i/attr : ~a" (mapcar (constantly 1) positive-goals))
      (iter (for goal in positive-goals)
            (for task = (make-abstract-component-task
-                        :problem bproblem
+                        :problem problem
                         ;; NOTE: these facts may contain environment objects
                         ;; when they are more than 3 arg predicates.
                         :init nil
                         :goal (list (debinarize-predicate goal))
                         :ac (make-abstract-component
+                             :problem problem
                              :seed nil
                              :facts nil
                              :components nil

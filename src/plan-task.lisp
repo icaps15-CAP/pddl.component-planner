@@ -35,14 +35,14 @@ It signals 'evaluation-signal each time in order to count the actual
 invocation of underlying planner easiy. "
   (when (and (abstract-component-task-goal task) ;; filter if the task has no goal
              (within-time-limit)) ;; do not compute plans when the time limit is reached
-    (let* ((*problem* (build-component-problem task))
-           (*domain* (domain *problem*))
-           (dir (mktemp "plan-task" t)))
-      (when *debug-preprocessing*
-        (let ((*package* (find-package :pddl)))
-          (terpri)
-          (print-pddl-object *problem* *standard-output*)))
-      (multiple-value-match
+    (multiple-value-match
+        (let* ((*problem* (build-component-problem task))
+               (*domain* (domain *problem*))
+               (dir (mktemp "plan-task" t)))
+          (when *debug-preprocessing*
+            (let ((*package* (find-package :pddl)))
+              (terpri)
+              (print-pddl-object *problem* *standard-output*)))
           (with-open-file (s "/dev/null" :direction :output :if-exists :overwrite)
             (funcall #'test-problem-common
                      (write-pddl (if *remove-component-problem-cost*
@@ -60,20 +60,25 @@ invocation of underlying planner easiy. "
                      :memory *memory-limit*
                      :stream (if *debug-preprocessing* *error-output* s)
                      :error (if *debug-preprocessing* *error-output* s)
-                     :verbose *debug-preprocessing*))
-        ((plans time memory complete)
-         (when *debug-preprocessing*
-           (print plans) (print time) (print memory) (print complete)
-           (clear-output))
-         (signal 'evaluation-signal :usage (list time memory))
-         (values
-          (mapcar (let ((i 0))
-                    (curry #'pddl-plan
-                           :name (concatenate-symbols
-                                  (name *problem*) 'plan (incf i))
-                           :path))
-                  plans)
-          complete))))))
+                     :verbose *debug-preprocessing*)))
+      ((plans time memory complete)
+       (when *debug-preprocessing*
+         (print plans) (print time) (print memory) (print complete)
+         (clear-output))
+       (signal 'evaluation-signal :usage (list time memory))
+
+       (ematch task
+         ((abstract-component-task :problem problem)
+          (values
+           (mapcar (let ((i 0))
+                     (curry #'pddl-plan
+                            :problem problem
+                            :domain (domain problem)
+                            :name (concatenate-symbols
+                                   (name problem) 'plan (incf i))
+                            :path))
+                   plans)
+           complete)))))))
 
 ;;;; retry wrapper for plan-task
 
@@ -107,13 +112,13 @@ abstract task. objects and initial state is filtered according to the
 given strategy."
   ;(format t "~&Building a component problem of~&~a ..." abstract-task)
   (ematch abstract-task
-    ((abstract-component-task :problem *problem*
+    ((abstract-component-task :problem problem
                               :ac (abstract-component components)
                               :goal task-goal)
      ;; NOTE: abstract-component-fact is not used !
-     (ematch *problem*
+     (ematch problem
        ((pddl-problem :name total-name
-                      :domain *domain*
+                      :domain domain
                       :objects objs
                       :init init
                       :metric metric)
@@ -137,11 +142,11 @@ given strategy."
             ;;   (format t "~&Active Init  : ~w" active-init)
             ;;   (format t "~&Removed Init : ~w" removed-init))
             (pddl-problem
-             :domain *domain*
+             :domain domain
              :name (apply #'concatenate-symbols
                           total-name (mapcar #'name components))
              :objects (set-difference active-objects
-                                      (constants *domain*))
+                                      (constants domain))
              :init active-init
              :goal (list* 'and task-goal)
              :metric metric))))))))

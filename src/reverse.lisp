@@ -11,36 +11,35 @@ then add it as another macro
 
 |#
 
-(defun reverse-problem (gmacro task &optional
-                                      (*problem* *problem*)
-                                      (*domain* *domain*))
+(defun reverse-problem (gmacro task)
   (match task
-    ((abstract-component-task init goal)
+    ((abstract-component-task problem init goal)
      (pddl-problem :name (symbolicate 'rev- (name gmacro))
-                   :domain *domain*
-                   :objects (objects/const *problem*)
-                   :metric (metric *problem*)
-                   :init (apply-ground-action gmacro (init *problem*))
+                   :domain (domain problem)
+                   :objects (objects/const problem)
+                   :metric (metric problem)
+                   :init (apply-ground-action gmacro (init problem))
                    :goal `(and ,@goal ;; maintain the previously achieved goal is true
                                ,@(set-difference
                                   (remove-if
                                    (rcurry #'typep 'pddl-function-state)
-                                   (init *problem*))
+                                   (init problem))
                                   init ;; remove the fluents regarding this task
                                   :test #'eqstate))))))
 
-(defun %solve-rev (*problem* *domain*)
-  (let* ((dir (mktemp "reverse-problem" t)))
+(defun %solve-rev (problem)
+  (let* ((dir (mktemp "reverse-problem" t))
+         (domain (domain problem)))
     (when (within-time-limit)
       (multiple-value-match
           (funcall #'test-problem-common
                    (write-pddl (if *remove-component-problem-cost*
-                                   (remove-costs *problem*)
-                                   *problem*)
+                                   (remove-costs problem)
+                                   problem)
                                "problem.pddl" dir)
                    (write-pddl (if *remove-component-problem-cost*
-                                   (remove-costs *domain*)
-                                   *domain*)
+                                   (remove-costs domain)
+                                   domain)
                                "domain.pddl" dir)
                    :name *preprocessor*
                    :options *preprocessor-options*
@@ -52,35 +51,31 @@ then add it as another macro
          (signal 'evaluation-signal :usage (list time memory))
          (when plans
            (pddl-plan
+            :domain domain
+            :problem problem
             :name (concatenate-symbols
-                   (name *problem*) 'plan)
+                   (name problem) 'plan)
             :path (first plans))))))))
 
 #+nil
-(defun reverse-macro (bmvector &optional
-                             (*problem* *problem*)
-                             (*domain* *domain*))
+(defun reverse-macro (bmvector)
   "deprecated. the precondition does not contain restriction --> bloat"
   (multiple-value-bind (gms tasks) (get-actions-grounded bmvector)
     (when-let ((plan (%solve-rev
-                      (reverse-problem (first gms) (first tasks))
-                      *domain*)))
+                      (reverse-problem (first gms) (first tasks)))))
       ;; reuse this function
       (ematch (bmvector (vector tasks plan)) ;; -> (vector tasks macro)
         ((and it (vector _ (macro-action (name (place name)))))
          (setf name (symbolicate 'rev- name))
          it)))))
 
-
-(defun cyclic-macro (bmvector &optional (*problem* *problem*) (*domain* *domain*))
-  "grounded by default.
- Assume *problem*,*domain* is the original problem/domain."
+(defun cyclic-macro (bmvector)
+  "grounded by default."
   (handler-bind ((warning #'muffle-warning))
     (multiple-value-bind (gms tasks) (get-actions-grounded bmvector)
       (restart-case
           (if-let ((plan (%solve-rev
-                          (reverse-problem (first gms) (first tasks))
-                          *domain*)))
+                          (reverse-problem (first gms) (first tasks)))))
             (handler-case
                 (let ((reverse-gms
                        (get-actions-grounded

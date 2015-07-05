@@ -4,18 +4,13 @@
 ;;; factoring-bmvectors
 (defvar *binarization* nil)
 (defvar *variable-factoring* nil)
-(defun factoring-bmvectors (*problem* domain)
-  (let ((bproblem (if *binarization*
-                      (progn
-                        (format t "~&Binarizing domain ~a" domain)
-                        (binarize *problem* domain))
-                      *problem*)))
-    (-<>>
-        (if *variable-factoring*
-            (variable-factoring-bpvectors bproblem *problem* domain)
-            (component-factoring-bpvectors bproblem *problem* domain))
-      (mapcar #'bmvector)
-      (remove nil))))
+(defun factoring-bmvectors (problem domain)
+  (-<>>
+      (if *variable-factoring*
+          (variable-factoring-bpvectors problem)
+          (component-factoring-bpvectors problem)) 
+    (mapcar #'bmvector)
+    (remove nil)))
 
 ;;;; bmvector -> macro action instances
 (defun get-actions (bmvector)
@@ -34,17 +29,19 @@
                              ;; FIXME almost ignore it. is it correct?
                              (use-value (parameter c))))
                           (warning #'muffle-warning))
-             (change-class
-              (map-action m mapping)
-              'ground-macro-action
-              :problem *problem*
-              :parameters nil
-              :actions (map 'vector (rcurry #'map-action mapping)
-                            (actions m))
-              :name (gensym (symbol-name (name m)))
-              :alist ;; (iter (for (o1 . o2) in mapping)
-                     ;;       (collect (cons o2 (cdr (assoc o1 alist)))))
-              (mapping-between-tasks t2 t2)))))
+             (let* ((*problem* (abstract-component-task-problem t1))
+                    (*domain* (domain *problem*)))
+               (change-class
+                (map-action m mapping)
+                'ground-macro-action
+                :problem *problem*
+                :parameters nil
+                :actions (map 'vector (lambda (a) (map-action a mapping))
+                              (actions m))
+                :name (gensym (symbol-name (name m)))
+                :alist ;; (iter (for (o1 . o2) in mapping)
+                ;;       (collect (cons o2 (cdr (assoc o1 alist)))))
+                (mapping-between-tasks t2 t2))))))
        tasks)
       tasks))))
 
@@ -54,18 +51,17 @@
 (defvar *cyclic-macros* nil)
 (defvar *ground-macros* t)
 (defun postprocess-macros (domain problem bmvectors)
+  (format t "~&Instantiating ~:[forward~;cyclic~] macros." *cyclic-macros*)
   (-> (if *ground-macros*
-          (let ((*domain* domain) (*problem* problem))
-            (format t "~&Instantiating ~:[forward~;cyclic~] macros." *cyclic-macros*)
-            (-<>> bmvectors
-              (mappend (if *cyclic-macros*
-                           #'cyclic-macro
-                           #'get-actions-grounded))
-              (mapcar (if *pddl3.1-multiple-action-costs*
-                          #'identity
-                          #'ground-cost))
-              ;; make them appropriate for printing as actions in a domain description
-              (mapcar (lambda (x) (change-class x 'macro-action)))))
+          (-<>> bmvectors
+            (mappend (if *cyclic-macros*
+                         #'cyclic-macro
+                         #'get-actions-grounded))
+            (mapcar (if *pddl3.1-multiple-action-costs*
+                        #'identity
+                        #'ground-cost))
+            ;; make them appropriate for printing as actions in a domain description
+            (mapcar (lambda (x) (change-class x 'macro-action))))
           (mappend #'get-actions bmvectors))
     (report-macros bmvectors)))
 
@@ -120,30 +116,18 @@
   (format t "~&Enhancing domain ~a" domain)
   (ematch domain
     ((pddl-domain name)
-     (let* ((*domain* (shallow-copy domain :name (symbolicate name '-enhanced)))
-            (macros (compute-macros domain problem filters)))
+     (let* ((macros (compute-macros domain problem filters))
+            (edomain (shallow-copy domain
+                                   :name (symbolicate name '-enhanced)
+                                   :actions (append (actions domain) macros)
+                                   :constants (append (constants domain)
+                                                      (objects/const problem))))
+            (eproblem (shallow-copy problem
+                                    :name (symbolicate (name problem) '-enhanced)
+                                    :domain edomain
+                                    :objects nil)))
        (format t "~&Cyclic-macro computation: ~a sec" (elapsed-time))
-       (appendf (actions *domain*) macros)
-       (appendf (constants *domain*) (objects/const problem))
-       (let* ((*problem*
-               (shallow-copy
-                problem
-                :name (symbolicate (name problem) '-enhanced)
-                :domain *domain*
-                :objects nil)))
-         (multiple-value-bind (domain problem)
-             (if *remove-main-problem-cost*
-                 (remove-cost *domain* *problem*)
-                 (if *add-macro-cost*
-                     (add-macro-cost *domain* *problem*)
-                     (values *domain* *problem*)))
-           #+nil
-           (ematch* (*add-macro-cost* *remove-main-problem-cost*)
-             ((_ t)   (remove-cost *domain* *problem*))
-             ((t nil) (add-macro-cost *domain* *problem*))
-             ((_ _)   (values *domain* *problem*)))
-           (values problem domain macros)))))))
-
+       (values eproblem edomain macros)))))
 
 ;;; enhance and solve problems & domain
 
@@ -161,34 +145,40 @@
       (unwind-protect
           (handler-bind ((unix-signal
                           (lambda (c)
-                            (format t "~&Reached the limit during preprocessing")
+                            (format t "~&Received signal ~a: Reached the limit during preprocessing"
+                                    (signo c))
                             (return-from solve-problem-enhancing))))
             (enhance-problem problem))
         (let ((preprocessing-end (get-universal-time)))
           (format t "~&Preprocessing time: ~a sec"
                   (- preprocessing-end *start*))))
-    (format t "~&Enhancement finished on:~%   ~a~%-> ~a"
-            (name problem) (name eproblem))
-    (format t "~&Solving the enhanced problem with the main planner ~a."
-            *main-search*)
-    (unless *preprocess-only*
+    (format t "~&Enhancement finished on:~%   ~a~%-> ~a" (name problem) (name eproblem))
+    (format t "~&Solving the enhanced problem with the main planner ~a." *main-search*)
+    (when *preprocess-only* (return-from solve-problem-enhancing))
+    (multiple-value-bind (edomain-mod eproblem-mod macros-mod)
+        (if *remove-main-problem-cost*
+            (remove-cost edomain eproblem macros)
+            (if *add-macro-cost*
+                (add-macro-cost edomain eproblem macros)
+                (values edomain eproblem macros)))
       (when *debug-preprocessing*
         (let ((*package* (find-package :pddl)))
+          (terpri)
           (print-pddl-object edomain *standard-output*)
-          (print-pddl-object eproblem *standard-output*)))
+          (print-pddl-object eproblem *standard-output*)
+          (print-pddl-object edomain-mod *standard-output*)
+          (print eproblem-mod)
+          (print-pddl-object eproblem-mod *standard-output*)))
       (let* ((dir (mktemp "enhanced"))
-             (*domain* edomain)
-             (*problem* eproblem)
-             (plans (prog1
-                      (handler-bind ((unix-signal
-                                      (lambda (c)
-                                        (format t "~&main search terminated")
-                                        (invoke-restart
-                                         (find-restart 'pddl:finish c)))))
-                        (apply #'test-problem-common
-                               (write-pddl *problem* "eproblem.pddl" dir)
-                               (write-pddl *domain* "edomain.pddl" dir)
-                               test-problem-args)))))
+             (plans (handler-bind ((unix-signal
+                                    (lambda (c)
+                                      (format t "~&main search terminated")
+                                      (invoke-restart
+                                       (find-restart 'pddl:finish c)))))
+                      (apply #'test-problem-common
+                             (write-pddl eproblem-mod "eproblem.pddl" dir)
+                             (write-pddl edomain-mod "edomain.pddl" dir)
+                             test-problem-args))))
         (when *validation*
           (dolist (p plans)
             (validate-plan (pathname (format nil "~a/edomain.pddl" dir))
@@ -198,17 +188,15 @@
         (mapcar (lambda (plan i)
                   (terpri)
                   (block nil
-                    (pprint-logical-block
-                        (*standard-output*
-                         nil
-                         :per-line-prefix
-                         (format nil "Plan ~a " i))
+                    (pprint-logical-block (*standard-output* nil :per-line-prefix (format nil "Plan ~a " i))
                       (return 
-                        (decode-plan-all macros plan)))))
+                        (decode-plan-all macros-mod plan edomain-mod eproblem-mod)))))
                 plans (iota (length plans)))))))
 
-(defun decode-plan-all (macros plan)
+(defun decode-plan-all (macros plan edomain-mod eproblem-mod)
   (handler-bind ((warning #'muffle-warning))
     (reduce #'decode-plan macros
+            ;;            ^^^^^^
+            ;; based on edomain/eproblem: incompatible with edomain/eproblem-mod
             :from-end t
-            :initial-value (pddl-plan :path plan))))
+            :initial-value (pddl-plan :path plan :domain edomain-mod :problem eproblem-mod))))
