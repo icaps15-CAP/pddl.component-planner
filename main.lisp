@@ -146,19 +146,6 @@
             (main rest)))))
       ((list* "--default" rest)
        (main (list* "-v" rest)))
-      ((list* "--fffd" rest)
-       (main (list* "--default" "--preprocess-ff" rest)))
-      ;;;; ff
-      ((list* "--plain-ff" rest)
-       (main (list* "--plain" "--main-search-ff" rest)))
-      ((list* "--use-ff" rest)
-       (main (list* "--preprocess-ff" "--main-search-ff" rest)))
-      ((list* "--preprocess-ff" rest)
-       (main (list* "--remove-component-problem-cost"
-                    "--preprocessor" "ff-clean" "" rest)))
-      ((list* "--main-search-ff" rest)
-       (main (list* "--remove-main-problem-cost"
-                    "--main-search" "ff-clean" "" rest)))
 
       ;; find the problem files
       ((list ppath)
@@ -208,13 +195,8 @@
                '--main-search '(string string) "specify the options given to the MainPlanner. \"-\" means \"no options\"."
                '--preprocessor '(string string) "specify the options given to the ComponentPlanner. \"-\" means \"no options\"."
                '-------------shortcuts/aliases---------- nil "-------------------------------"
-               '--plain-ff nil "Use plain FF."
-               '--fffd nil "Use FF + LAMA combination."
-               '--default nil "same as -v. Remains only for compatibility"
                '--both-search '(string string) "specify the same config for --main-search and --preprocessor."
-               '--preprocess-ff nil "use FF during preprocesssing (otherwise LAMA ipc 2011)"
-               '--main-search-ff nil "use FF during main search (otherwise LAMA ipc 2011)"
-               '--use-ff nil "both --preprocess-ff and --main-search-ff")
+               '--default nil "same as -v. Remains only for compatibility")
        (format *error-output* "~%DOMAIN is by default domain.pddl in the same directory")
        (format *error-output* "~%Build date : ~a" *build-date*)
        (format *error-output* "~%Foreign library directories : ~a" cffi:*foreign-library-directories*)
