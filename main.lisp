@@ -144,8 +144,6 @@
                 (*main-options* options)
                 (*preprocessor-options* options))
             (main rest)))))
-      ((list* "--default" rest)
-       (main (list* "-v" rest)))
 
       ;; find the problem files
       ((list ppath)
@@ -160,7 +158,7 @@
        (format *error-output* "~&Usage: component-planner PROBLEM [DOMAIN]~
                ~%~@{~4t~40<~(~a~)~;~{~a ~}~> : ~@(~a~)~%~}"
                '-----------------debug-options---------- nil "-------------------------------"
-               '-v nil "specify verbosity"
+               '-v nil "Become more verbose"
                '--validation nil "run the validator after the planning"
                '--debug-preprocessing nil "enable the verbosity of the preprocessing planner"
                '--------------run-mode-options---------- nil "-------------------------------"
@@ -177,26 +175,28 @@
                ;; not used at all now
                ;; '--filtering-threashold '(threashold)
                ;; "set the threashold in macro filtering, 0 by default. Should be a number in [0,0.99)"
+               '--component-abstraction nil "Enables component abstraction."
+               '--binarization nil "Decompose multiary predicates into binary predicates during component abstraction."
+               '--cyclic-macros nil "Enables cyclic macros: additional preprocessing time"
+               '--compatibility nil "Enables compatibility-based pruning."
+               '--force-variable-factoring nil "Emulates Domshrak's Factor=Variable method"
+               '--force-lifted nil "Disables the macro-action grounding."
+               ;; true by default 
+               ;; '--precategorization nil "Do not apply precategorization before compatibility checking."
+               ;; now on/off only. once enabled, it uses "loose"
+               ;; '--compatibility-type '(symbol) "specify the result of combatibility when no component plan exists. One of: strict(default), loose, always-false(=disabling compat-check)."
+               '--iterated nil "Specify if the main search should run an iterated search (in case of FD/LAMA)."
+               '--------underlying-planner-options------ nil "-------------------------------"
+               '--main-search '(planner strings... -) "Specify MainPlanner. Options end with a \"-\"."
+               '--preprocessor '(planner string... -) "Specify ComponentPlanner. Options end with a \"-\"."
+               "" nil "Where PLANNER is one of: fd-clean,ff-clean,probe-clean,"
+               "" nil "marvin1-clean,marvin2-clean,lpg-clean,mp-clean."
+               '-------planner-compatibility-options---- nil "-------------------------------"
                '--add-macro-cost nil "Unit-cost domains are converted into action-cost domains. In those domains macro actions are then given a cost same as its length."
                '--remove-component-problem-cost nil "Remove :action-costs during component planning."
                '--remove-main-problem-cost nil "Remove :action-costs during main search. This option supersedes --add-macro-cost."
-               '--binarization nil "Use the binarized domain for component abstraction."
-               '--force-single-node-components nil "Do not extend the components; This harms the planner performance."
-               '--force-variable-factoring nil "Emulates Domshrak's Factor=Variable method"
-               '--cyclic-macros nil "Search/Use cyclic macros"
-               '--force-lifted nil "Disable the macro-action grounding. This harms the planner performance a lot."
-               ;; true by default 
-               ;; '--precategorization nil "Do not apply precategorization before compatibility checking."
-               ;; on/off only now
-               ;; '--compatibility-type '(symbol) "specify the result of combatibility when no component plan exists. One of: strict(default), loose, always-false(=disabling compat-check)."
-               '--compatibility nil "Enable compatibility-based pruning."
-               '--iterated nil "Specify if the main search should run an iterated search (in case of FD/LAMA)."
-               '--------underlying-planner-options------ nil "-------------------------------"
-               '--main-search '(string string) "specify the options given to the MainPlanner. \"-\" means \"no options\"."
-               '--preprocessor '(string string) "specify the options given to the ComponentPlanner. \"-\" means \"no options\"."
                '-------------shortcuts/aliases---------- nil "-------------------------------"
-               '--both-search '(string string) "specify the same config for --main-search and --preprocessor."
-               '--default nil "same as -v. Remains only for compatibility")
+               '--both-search '(string string) "specify the same config for --main-search and --preprocessor.")
        (format *error-output* "~%DOMAIN is by default domain.pddl in the same directory")
        (format *error-output* "~%Build date : ~a" *build-date*)
        (format *error-output* "~%Foreign library directories : ~a" cffi:*foreign-library-directories*)
