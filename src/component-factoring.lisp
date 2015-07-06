@@ -33,7 +33,7 @@
 ;;; structure-level categorization
 
 (defvar *precategorization* t)
-(defvar *single-node-components* nil)
+(defvar *component-abstraction* nil)
 (defun task-bags (problem seed)
   (format t "~2&Categorizing PROBLEM ~a with seed ~a" (name problem) seed)
   (-<>>
@@ -43,9 +43,9 @@
                             (binarize problem (domain problem)))
                           problem)))
         (-<>>
-            (if *single-node-components*
-                (abstract-tasks-single-node bproblem seed)
-                (abstract-tasks-seed-only bproblem seed))
+            (if *component-abstraction*
+                (abstract-tasks-seed-only bproblem seed)
+                (abstract-tasks-single-node bproblem seed))
           (format<> t "~&Debinarizing Tasks...")
           (mapcar (curry #'debinarize-task problem))))
     ;; remove tasks of the trivial component = components of single object

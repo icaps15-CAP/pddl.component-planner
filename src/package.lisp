@@ -33,7 +33,7 @@
            :*remove-component-problem-cost*
            :*remove-main-problem-cost*
            :*precategorization*
-           :*single-node-components*
+           :*component-abstraction*
            :*variable-factoring*
            :enhance-problem
            :*start*)
