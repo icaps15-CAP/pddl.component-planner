@@ -197,7 +197,7 @@
                '--remove-main-problem-cost nil "Remove :action-costs during main search. This option supersedes --add-macro-cost."
                '-------------shortcuts/aliases---------- nil "-------------------------------"
                '--both-search '(string string) "specify the same config for --main-search and --preprocessor.")
-       (format *error-output* "~%DOMAIN is by default domain.pddl in the same directory")
+       (format *error-output* "~%DOMAIN is by default domain.pddl, or [problemname]-domain.pddl in the same directory")
        (format *error-output* "~%Build date : ~a" *build-date*)
        (format *error-output* "~%Foreign library directories : ~a" cffi:*foreign-library-directories*)
        (terpri *error-output*))
