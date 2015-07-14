@@ -2,6 +2,8 @@
 (in-package :pddl.component-planner)
 (cl-syntax:use-syntax :annot)
 
+(defvar *binarization* nil)
+
 ;;; class definitions
 
 (define-pddl-class binarized-object ()

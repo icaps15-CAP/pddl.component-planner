@@ -2,7 +2,7 @@
 (in-package :pddl.component-planner)
 (cl-syntax:use-syntax :annot)
 ;;; factoring-bmvectors
-(defvar *binarization* nil)
+
 (defvar *variable-factoring* nil)
 (defun factoring-bmvectors (problem domain)
   (-<>>
