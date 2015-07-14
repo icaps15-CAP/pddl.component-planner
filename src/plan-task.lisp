@@ -6,10 +6,6 @@
 
 ;;;; basic plan-task functionality
 
-(defun clear-plan-task-cache ()
-  "Clear the cache for plan-task."
-  (clear-cache *PLAN-TASK-CACHE*))
-
 (defvar *preprocessor* "lama-clean")
 (defvar *preprocessor-options* "")
 (defvar *debug-preprocessing* nil)
@@ -79,6 +75,10 @@ invocation of underlying planner easiy. "
                             :path))
                    plans)
            complete)))))))
+
+(defun clear-plan-task-cache ()
+  "Clear the cache for plan-task."
+  (clear-cache *PLAN-TASK-CACHE*))
 
 ;;;; retry wrapper for plan-task
 
