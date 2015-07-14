@@ -153,6 +153,9 @@
                                                            :parameters (list o o)))
                                                         (objects problem))
                                                 (init problem))))))
+       (format t "~&Max_number_of_parameters: ~a"
+               (reduce #'max (mapcar (lambda (a) (length (parameters a)))
+                                     (actions edomain))))
        (format t "~&Cyclic-macro computation: ~a sec" (elapsed-time))
        (values eproblem edomain macros)))))
 
