@@ -32,8 +32,12 @@ invocation of underlying planner easiy. "
   (when (and (abstract-component-task-goal task) ;; filter if the task has no goal
              (within-time-limit)) ;; do not compute plans when the time limit is reached
     (multiple-value-match
-        (let* ((*problem* (build-component-problem task))
-               (*domain* (domain *problem*))
+        (let* ((*problem* (-<>> (build-component-problem task)
+                            (if *remove-component-problem-cost*
+                                (remove-costs <>) <>)))
+               (*domain* (-<>> (domain *problem*)
+                           (if *remove-component-problem-cost*
+                               (remove-costs <>) <>)))
                (dir (mktemp "plan-task" t)))
           (when *debug-preprocessing*
             (let ((*package* (find-package :pddl)))
@@ -41,14 +45,8 @@ invocation of underlying planner easiy. "
               (print-pddl-object *problem* *standard-output*)))
           (with-open-file (s "/dev/null" :direction :output :if-exists :overwrite)
             (funcall #'test-problem-common
-                     (write-pddl (if *remove-component-problem-cost*
-                                     (remove-costs *problem*)
-                                     *problem*)
-                                 "problem.pddl" dir)
-                     (write-pddl (if *remove-component-problem-cost*
-                                     (remove-costs *domain*)
-                                     *domain*)
-                                 "domain.pddl" dir)
+                     (write-pddl *problem* "problem.pddl" dir)
+                     (write-pddl *domain* "domain.pddl" dir)
                      :name *preprocessor*
                      :options *preprocessor-options*
                      :time-limit 1
