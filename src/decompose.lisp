@@ -18,7 +18,11 @@
 
 ;;;; bmvector -> macro action instances
 (defun get-actions (bmvector)
-  (ematch bmvector ((vector _ m) (list m))))
+  (ematch bmvector
+    ((vector _ (and m (ground-macro-action)))
+     (handler-bind ((parameter-not-found
+                       (lambda (c) (invoke-restart 'lift c))))
+       (list (lift-action m))))))
 
 (defun get-actions-grounded (bmvector)
   (ematch bmvector
@@ -119,17 +123,36 @@
                         &aux (domain (domain problem)))
   (format t "~&Enhancing domain ~a" domain)
   (ematch domain
-    ((pddl-domain name)
+    ((pddl-domain name actions constants predicates)
      (let* ((macros (compute-macros domain problem filters))
             (edomain (shallow-copy domain
                                    :name (symbolicate name '-enhanced)
-                                   :actions (append (actions domain) macros)
-                                   :constants (append (constants domain)
-                                                      (objects/const problem))))
+                                   :actions (append actions macros)
+                                   :constants (append constants (objects/const problem))
+                                   :predicates
+                                   (if *ground-macros*
+                                       predicates
+                                       (cons (pddl-predicate
+                                              :domain domain
+                                              :name 'equal
+                                              :parameters (list (pddl-variable :domain domain :name '?p1)
+                                                                (pddl-variable :domain domain :name '?p2)))
+                                             predicates))))
             (eproblem (shallow-copy problem
                                     :name (symbolicate (name problem) '-enhanced)
                                     :domain edomain
-                                    :objects nil)))
+                                    :objects nil
+                                    :init
+                                    (if *ground-macros*
+                                        (init problem)
+                                        (append (mapcar (lambda (o)
+                                                          (pddl-atomic-state
+                                                           :domain domain
+                                                           :problem problem
+                                                           :name 'equal
+                                                           :parameters (list o o)))
+                                                        (objects problem))
+                                                (init problem))))))
        (format t "~&Cyclic-macro computation: ~a sec" (elapsed-time))
        (values eproblem edomain macros)))))
 
@@ -198,7 +221,12 @@
                 plans (iota (length plans)))))))
 
 (defun decode-plan-all (macros plan edomain-mod eproblem-mod)
-  (handler-bind ((warning #'muffle-warning))
+  (handler-bind ((warning #'muffle-warning)
+                 (undefined-predicate
+                  (lambda (c)
+                    (when (and (not *ground-macros*)
+                               (eq 'equal (name c)))
+                      (invoke-restart 'ignore)))))
     (reduce #'decode-plan macros
             ;;            ^^^^^^
             ;; based on edomain/eproblem: incompatible with edomain/eproblem-mod
