@@ -3,6 +3,8 @@
 
 ;;; normalized score
 
+(defvar *threshold* 0)
+
 (defun basedata (pair)
   (ematch pair
     ((vector (and bag (list* (abstract-component-task-
@@ -142,8 +144,6 @@
     (format t "~&~a macros are filtered down to 2 (fixed number)."
             (length pairs)))
   (subseq pairs 0 (min 2 (length pairs))))
-
-(defvar *threshold* 0)
 
 (defun sort-and-print-macros (pairs)
   (format t "~&~a macros, status:" (length pairs))
