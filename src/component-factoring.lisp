@@ -87,9 +87,8 @@
 
 (defun bmvector (bpvector) ;; bag plan vector
   (ematch bpvector
-    ((vector (and bag (list* t1 _)) (pddl-plan actions))
+    ((vector bag (pddl-plan actions))
      (handler-bind ((warning #'muffle-warning))
-       (vector bag (ground-macro-action
-                    actions (mapcar #'car (mapping-between-tasks t1 t1))))))))
+       (vector bag (ground-macro-action actions))))))
 
 
