@@ -119,7 +119,8 @@
                                  #'remove-single-macros
                                  ;; #'sort-and-print-macros
                                  ;; #'filter-macros-normdist
-                                 #'filter-macros-normalized))
+                                 ;; #'filter-macros-normalized
+                                 ))
                         &aux (domain (domain problem)))
   (format t "~&Enhancing domain ~a" domain)
   (ematch domain
