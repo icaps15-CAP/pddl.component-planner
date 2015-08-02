@@ -14,15 +14,15 @@
 @export
 (defun solve (ppath dpath)
     (let ((*start* (get-universal-time)))
-      (unwind-protect
-          (multiple-value-bind (dname domain) (suppress (parse-file dpath nil t))
-            (multiple-value-bind (pname problem) (suppress (parse-file ppath nil t))
-              (print dname)
-              (print domain)
-              (print pname)
-              (print problem)
-              (if *use-plain-planner*
-                (plan-plain dpath ppath domain problem)
+      (unwind-protect 
+          (if *use-plain-planner*
+              (plan-plain dpath ppath)
+              (multiple-value-bind (dname domain) (suppress (parse-file dpath nil t))
+                (multiple-value-bind (pname problem) (suppress (parse-file ppath nil t))
+                  (print dname)
+                  (print domain)
+                  (print pname)
+                  (print problem)
                   (let ((plans
                          (solve-problem-enhancing problem
                                                   :time-limit 1 ; satisficing
@@ -47,7 +47,13 @@
 @export
 (defvar *training-instances* nil)
 
-(defun plan-plain (dpath ppath *domain* *problem*)
+(defun just-copy-file (src dest)
+  (ensure-directories-exist dest)
+  (eazy-process:shell-command
+   (format nil "cp ~a ~a" (namestring src) (namestring dest)) :verbose t)
+  (namestring dest))
+
+(defun plan-plain (dpath ppath)
   (let ((dir (mktemp "plain")))
     (let ((plans
            (handler-bind ((unix-signal
@@ -62,25 +68,34 @@
                      (unless (probe-file tppath)
                        (format t "~&  ~a does not exist, ignored!" tppath)
                        (next-iteration))
-                     (let ((tprob (nth-value 1 (suppress (parse-file tppath nil t)))))
-                       (write-pddl (if *remove-main-problem-cost*
-                                       (remove-costs tprob)
-                                       tprob)
-                                   (file-namestring tppath)
-                                   dir *verbose*))))
-             (test-problem-common
-              (write-pddl (if *remove-main-problem-cost*
-                              (remove-costs *problem*)
-                              *problem*)
-                          "problem.pddl" dir)
-              (write-pddl (if *remove-main-problem-cost*
-                              (remove-costs *domain*)
-                              *domain*)
-                          "domain.pddl" dir)
-              :name *main-search*
-              :options *main-options*
-              :verbose *verbose*
-              :iterated *iterated*))))
+                     (if *remove-main-problem-cost*
+                         (let ((tprob (nth-value 1 (suppress (parse-file tppath nil t)))))
+                           (write-pddl (remove-costs tprob)
+                                       (file-namestring tppath)
+                                       dir *verbose*))
+                         (just-copy-file
+                          ppath
+                          (format nil "~a/~a" dir
+                                  (file-namestring tppath))))))
+             (if *remove-main-problem-cost*
+                 (multiple-value-bind (dname *domain*) (suppress (parse-file dpath nil t))
+                   (declare (ignorable dname))
+                     (multiple-value-bind (pname *problem*) (suppress (parse-file ppath nil t))
+                     (declare (ignorable pname))
+                     (test-problem-common
+                      (write-pddl (remove-costs *problem*) "problem.pddl" dir)
+                      (write-pddl (remove-costs *domain*) "domain.pddl" dir)
+                      :name *main-search*
+                      :options *main-options*
+                      :verbose *verbose*
+                      :iterated *iterated*)))
+                 (test-problem-common
+                  (just-copy-file ppath (format nil "~a/problem.pddl" dir))
+                  (just-copy-file dpath (format nil "~a/domain.pddl" dir))
+                  :name *main-search*
+                  :options *main-options*
+                  :verbose *verbose*
+                  :iterated *iterated*)))))
       (iter (for path in plans)
             (for i from 1)
             (for new-path =
