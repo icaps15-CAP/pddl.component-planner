@@ -6,12 +6,13 @@
   (let (tasks)
     (finishes
       (setf tasks (abstract-tasks-seed-only assemblep :product)))
-    (finishes
-      (ematch tasks
-        ((list t1 t2)
-         (is-false (task-plan-equal t1 t2))))))) ; since the problem is not
-                                        ; binarized and the
-                                        ; abstraction fails
+    ;; no longer hold true
+    ;; ;; since the problem is not binarized and the abstraction fails
+    ;; (ematch tasks
+    ;;   ((list t1 t2)
+    ;;    (is-false (task-plan-equal t1 t2))))
+    ))
+
 
 #+nil
 (test component-after-binarization
@@ -59,3 +60,25 @@
          (pp (write-pddl assemblep "problem.pddl" dir t))
          (plp (write-plan plan "decoded.plan" dir t)))
     (is-true (validate-plan dp pp plp :verbose t))))
+
+
+(defun solve-tests (rel-ppath)
+  (solve (asdf:system-relative-pathname :pddl.component-planner rel-ppath)))
+
+(test cap-normal
+  (finishes (solve-tests "t/domains/assembly-acp-ll/p01.pddl"))
+  (finishes (solve-tests "t/domains/assembly-acp-ll/p02.pddl"))
+  (finishes (solve-tests "t/domains/assembly-cap-ll/p01.pddl"))
+  (finishes (solve-tests "t/domains/assembly-cap-ll/p02.pddl"))
+  (finishes (solve-tests "t/domains/elevators-ll/p01.pddl"))
+  (finishes (solve-tests "t/domains/elevators-ll/p02.pddl")))
+
+(test compatibility
+  (finishes
+    (let ((*compatibility* :strict))
+      (finishes (solve-tests "t/domains/assembly-acp-ll/p01.pddl"))
+      (finishes (solve-tests "t/domains/assembly-acp-ll/p02.pddl"))
+      (finishes (solve-tests "t/domains/assembly-cap-ll/p01.pddl"))
+      (finishes (solve-tests "t/domains/assembly-cap-ll/p02.pddl"))
+      (finishes (solve-tests "t/domains/elevators-ll/p01.pddl"))
+      (finishes (solve-tests "t/domains/elevators-ll/p02.pddl")))))
