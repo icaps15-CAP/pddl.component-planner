@@ -27,13 +27,16 @@ function basically cannot negatively prove the compatibility.
          (values
           (some
            (lambda (plan1)
-             (simulate-plan
-              (pddl-environment
-               :problem problem2
-               :domain (domain problem2)
-               :plan (map-component-plan
-                      plan1
-                      (mapping-between-tasks t1 t2)))))
+             (handler-case
+                 (simulate-plan
+                  (pddl-environment
+                   :problem problem2
+                   :domain (domain problem2)
+                   :plan (map-component-plan
+                          plan1
+                          (mapping-between-tasks t1 t2))))
+               (application-failure ()
+                 nil)))
            plans)
           :proven))
         ((and (null plans) complete)
