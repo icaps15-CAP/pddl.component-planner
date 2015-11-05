@@ -13,44 +13,30 @@
         :cl-annot
         :trivial-signal
         :arrow-macros)
-  (:export :resource-usage
-           :categorize-problem
-           :component-plans
-           :component-macro
-           :enhance-problem
-           :solve-problem-enhancing
-           :clear-plan-task-cache
-           :plan-task
-           :types-in-goal
-           :add-cost-domain
-           :add-cost-problem
+  (:export :reformat-pddl
+           :solve
            :*preprocess-only*
            :*component-plan-time-limit*
            :*preprocess-time-limit*
            :*validation*
-           :*disable-filtering*
            :*preprocessor*
            :*preprocessor-options*
            :*debug-preprocessing*
            :*main-search*
            :*main-options*
-           :reverse-problem
-           :get-actions-grounded
-           :solve-rev
-           :*use-grounded-macros*
-           :*use-reverse-macros*
-           :*use-grounded-reverse-macros*
-           :reverse-macro
-           :cyclic-macro
            :*threshold*
            :*compatibility*
-           :strict
-           :loose
            :*binarization*
            :*cyclic-macros*
+           :*ground-macros*
+           :*add-macro-cost*
            :*remove-component-problem-cost*
            :*remove-main-problem-cost*
-           :*precategorization*)
+           :*precategorization*
+           :*component-abstraction*
+           :*variable-factoring*
+           :enhance-problem
+           :*start*)
   (:shadowing-import-from :guicho-utilities
                           :permutations)
   (:shadowing-import-from :statistics

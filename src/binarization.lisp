@@ -2,6 +2,8 @@
 (in-package :pddl.component-planner)
 (cl-syntax:use-syntax :annot)
 
+(defvar *binarization* nil)
+
 ;;; class definitions
 
 (define-pddl-class binarized-object ()
@@ -138,3 +140,37 @@ Returns itself if numeric-fluents are given."
 ;; (defun binarize-assign-ops (assign-ops)
 ;;   (iter (for op in assign-ops)
         
+
+;;; debinarize
+
+(defun debinarize-predicate (pred)
+  (ematch pred
+    ((binarized-predicate binarization-origin)
+     binarization-origin)
+    ((pddl-predicate) pred)))
+
+(defun debinarize-predicates (predicates)
+  (remove-duplicates
+   (mapcar #'debinarize-predicate predicates)
+   :test #'eqstate))
+
+(defun debinarize-task (problem task)
+  (ematch task
+    ((abstract-component-task
+      ;; problem
+      init goal
+      (ac (abstract-component
+           seed facts
+           components attributes)))
+     (make-abstract-component-task
+      :problem problem
+      ;; NOTE: these facts may contain environment objects
+      ;; when they are more than 3 arg predicates.
+      :init (debinarize-predicates init)
+      :goal (debinarize-predicates goal)
+      :ac (make-abstract-component
+           :problem problem
+           :seed seed
+           :facts (debinarize-predicates facts)
+           :components components
+           :attributes attributes)))))

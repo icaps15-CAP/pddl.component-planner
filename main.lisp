@@ -1,8 +1,11 @@
 
 (defpackage :pddl.component-planner.experiment
+  (:nicknames :experiment)
   (:use :cl :cl-rlimit :pddl :pddl.component-planner :optima
         :alexandria :iterate :guicho-utilities)
-  (:shadowing-import-from :pddl :minimize :maximize))
+  (:shadowing-import-from :pddl :minimize :maximize)
+  (:export
+   #:main))
 (in-package :pddl.component-planner.experiment)
 
 (defvar *build-date*
@@ -12,7 +15,17 @@
 
 (defun toplevel ()
   (sb-ext:disable-debugger)
-  (main))
+  (uiop:quit
+   (if (main) 0 1)))
+
+(defun consume-until-hyphen (list next)
+  (labels ((rec (acc list)
+             (ematch list
+               ((list* "-" rest)
+                (funcall next (format nil "~{~a~^ ~}" (nreverse acc)) rest))
+               ((list* string rest)
+                (rec (cons string acc) rest)))))
+    (rec nil list)))
 
 (defun main (&optional (argv (cdr sb-ext:*posix-argv*)))
   (when *verbose*
@@ -64,7 +77,10 @@
 
       ;; CAP search options
       ((list* "--compatibility" rest)
-       (let ((*compatibility* 'strict))
+       (let ((*compatibility* :strict))
+         (main rest)))
+      ((list* "--force-lifted" rest)
+       (let ((*ground-macros* nil))
          (main rest)))
       #+nil
       ((list* "--precategorization" rest)
@@ -73,18 +89,30 @@
       ((list* "--binarization" rest)
        (let ((*binarization* t))
          (main rest)))
+      ((list* "--component-abstraction" rest)
+       (let ((*component-abstraction* t))
+         (main rest)))
+      ((list* "--force-variable-factoring" rest)
+       (let ((*variable-factoring* t))
+         (main rest)))
       ((list* "--cyclic-macros" rest)
        (let ((*cyclic-macros* t))
          (main rest)))
       ((list* "--iterated" rest)
        (let ((*iterated* t))
          (main rest)))
-      ((list* "--remove-component-problem-cost" rest)
-       (let ((*remove-component-problem-cost* t))
+
+      ;; cost options
+      ((list* "--add-macro-cost" rest)
+       (let ((*add-macro-cost* t))
          (main rest)))
       ((list* "--remove-main-problem-cost" rest)
        (let ((*remove-main-problem-cost* t))
          (main rest)))
+      ((list* "--remove-component-problem-cost" rest)
+       (let ((*remove-component-problem-cost* t))
+         (main rest)))
+
       ;; not used at all now
       #+nil
       ((list* "--filtering-threashold" th rest)
@@ -94,36 +122,28 @@
                  (main rest)
                  (error "--filtering-threashold should be 0 <= x < 0.99999995 ~~ 1-eps! "))
              (error "--filtering-threashold should be a lisp-readable number! ex) 0, 0.0, 1/2, 0.5d0, 0.7"))))
-      ((list* "--preprocessor" *preprocessor* "-" rest)
-       (main (list* "--preprocessor" *preprocessor* "" rest)))
-      ((list* "--preprocessor"
-              *preprocessor*
-              *preprocessor-options* rest) (main rest))
-      ((list* "--main-search" *main-search* "-" rest)
-       (main (list* "--main-search" *main-search* "" rest)))
-      ((list* "--main-search"
-              *main-search*
-              *main-options* rest) (main rest))
+
+      ((list* "--preprocessor" *preprocessor* rest)
+       (consume-until-hyphen
+        rest
+        (lambda (*preprocessor-options* rest)
+          (main rest))))
+      ((list* "--main-search" *main-search* rest)
+       (consume-until-hyphen
+        rest
+        (lambda (*main-options* rest)
+          (main rest))))
 
       ;; aliases
-      ((list* "--both-search" searcher option rest)
-       (main (list* "--preprocessor" searcher option
-                    "--main-search" searcher option rest)))
-      ((list* "--default" rest)
-       (main (list* "-v" rest)))
-      ((list* "--fffd" rest)
-       (main (list* "--default" "--preprocess-ff" rest)))
-      ;;;; ff
-      ((list* "--plain-ff" rest)
-       (main (list* "--plain" "--main-search-ff" rest)))
-      ((list* "--use-ff" rest)
-       (main (list* "--preprocess-ff" "--main-search-ff" rest)))
-      ((list* "--preprocess-ff" rest)
-       (main (list* "--remove-component-problem-cost"
-                    "--preprocessor" "ff-clean" "" rest)))
-      ((list* "--main-search-ff" rest)
-       (main (list* "--remove-main-problem-cost"
-                    "--main-search" "ff-clean" "" rest)))
+      ((list* "--both-search" searcher rest)
+       (consume-until-hyphen
+        rest
+        (lambda (options rest)
+          (let ((*main-search* searcher)
+                (*preprocessor* searcher)
+                (*main-options* options)
+                (*preprocessor-options* options))
+            (main rest)))))
 
       ;; find the problem files
       ((list ppath)
@@ -138,7 +158,7 @@
        (format *error-output* "~&Usage: component-planner PROBLEM [DOMAIN]~
                ~%~@{~4t~40<~(~a~)~;~{~a ~}~> : ~@(~a~)~%~}"
                '-----------------debug-options---------- nil "-------------------------------"
-               '-v nil "specify verbosity"
+               '-v nil "Become more verbose"
                '--validation nil "run the validator after the planning"
                '--debug-preprocessing nil "enable the verbosity of the preprocessing planner"
                '--------------run-mode-options---------- nil "-------------------------------"
@@ -155,28 +175,29 @@
                ;; not used at all now
                ;; '--filtering-threashold '(threashold)
                ;; "set the threashold in macro filtering, 0 by default. Should be a number in [0,0.99)"
-               '--remove-component-problem-cost nil "Remove :action-costs during component planning"
-               '--remove-main-problem-cost nil "Remove :action-costs during main search"
-               '--binarization nil "Use the binarized domain for component abstraction."
-               '--cyclic-macros nil "Search/Use cyclic macros"
+               '--component-abstraction nil "Enables component abstraction."
+               '--binarization nil "Decompose multiary predicates into binary predicates during component abstraction."
+               '--cyclic-macros nil "Enables cyclic macros: additional preprocessing time"
+               '--compatibility nil "Enables compatibility-based pruning."
+               '--force-variable-factoring nil "Emulates Domshrak's Factor=Variable method"
+               '--force-lifted nil "Disables the macro-action grounding."
                ;; true by default 
                ;; '--precategorization nil "Do not apply precategorization before compatibility checking."
-               ;; on/off only now
+               ;; now on/off only. once enabled, it uses "loose"
                ;; '--compatibility-type '(symbol) "specify the result of combatibility when no component plan exists. One of: strict(default), loose, always-false(=disabling compat-check)."
-               '--compatibility nil "Enable compatibility-based pruning."
                '--iterated nil "Specify if the main search should run an iterated search (in case of FD/LAMA)."
                '--------underlying-planner-options------ nil "-------------------------------"
-               '--main-search '(string string) "specify the options given to the MainPlanner. \"-\" means \"no options\"."
-               '--preprocessor '(string string) "specify the options given to the ComponentPlanner. \"-\" means \"no options\"."
+               '--main-search '(planner strings... -) "Specify MainPlanner. Options end with a \"-\"."
+               '--preprocessor '(planner string... -) "Specify ComponentPlanner. Options end with a \"-\"."
+               "" nil "Where PLANNER is one of: fd-clean,ff-clean,probe-clean,"
+               "" nil "marvin1-clean,marvin2-clean,lpg-clean,mp-clean."
+               '-------planner-compatibility-options---- nil "-------------------------------"
+               '--add-macro-cost nil "Unit-cost domains are converted into action-cost domains. In those domains macro actions are then given a cost same as its length."
+               '--remove-component-problem-cost nil "Remove :action-costs during component planning."
+               '--remove-main-problem-cost nil "Remove :action-costs during main search. This option supersedes --add-macro-cost."
                '-------------shortcuts/aliases---------- nil "-------------------------------"
-               '--plain-ff nil "Use plain FF."
-               '--fffd nil "Use FF + LAMA combination."
-               '--default nil "same as -v. Remains only for compatibility"
-               '--both-search '(string string) "specify the same config for --main-search and --preprocessor."
-               '--preprocess-ff nil "use FF during preprocesssing (otherwise LAMA ipc 2011)"
-               '--main-search-ff nil "use FF during main search (otherwise LAMA ipc 2011)"
-               '--use-ff nil "both --preprocess-ff and --main-search-ff")
-       (format *error-output* "~%DOMAIN is by default domain.pddl in the same directory")
+               '--both-search '(string string) "specify the same config for --main-search and --preprocessor.")
+       (format *error-output* "~%DOMAIN is by default domain.pddl, or [problemname]-domain.pddl in the same directory")
        (format *error-output* "~%Build date : ~a" *build-date*)
        (format *error-output* "~%Foreign library directories : ~a" cffi:*foreign-library-directories*)
        (terpri *error-output*))
