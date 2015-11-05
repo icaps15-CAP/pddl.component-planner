@@ -6,8 +6,8 @@
 
 ;;;; basic plan-task functionality
 
-(defvar *preprocessor* "lama-clean")
-(defvar *preprocessor-options* "")
+(defvar *preprocessor* "fd-clean")
+(defvar *preprocessor-options* "--search-options --if-unit-cost --heuristic hlm,hff=lm_ff_syn(lm_rhw(reasonable_orders=true)) --search lazy_greedy([hff,hlm],preferred=[hff,hlm]) --if-non-unit-cost --heuristic hlm1,hff1=lm_ff_syn(lm_rhw(reasonable_orders=true,lm_cost_type=one,cost_type=one)) --search lazy_greedy([hff1,hlm1],preferred=[hff1,hlm1],cost_type=one,reopen_closed=false) --always")
 (defvar *debug-preprocessing* nil)
 (defvar *component-plan-time-limit* 30)
 (defvar *remove-component-problem-cost* nil
