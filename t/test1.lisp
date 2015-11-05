@@ -71,7 +71,9 @@
   (finishes (solve-tests "t/domains/assembly-cap-ll/p01.pddl"))
   (finishes (solve-tests "t/domains/assembly-cap-ll/p02.pddl"))
   (finishes (solve-tests "t/domains/elevators-ll/p01.pddl"))
-  (finishes (solve-tests "t/domains/elevators-ll/p02.pddl")))
+  (finishes (solve-tests "t/domains/elevators-ll/p02.pddl"))
+  (finishes (solve-tests "t/domains/woodworking-ipc11/p01.pddl"))
+  (finishes (solve-tests "t/domains/woodworking-ipc11/p02.pddl")))
 
 (test compatibility
   (finishes
@@ -81,4 +83,7 @@
       (finishes (solve-tests "t/domains/assembly-cap-ll/p01.pddl"))
       (finishes (solve-tests "t/domains/assembly-cap-ll/p02.pddl"))
       (finishes (solve-tests "t/domains/elevators-ll/p01.pddl"))
-      (finishes (solve-tests "t/domains/elevators-ll/p02.pddl")))))
+      (finishes (solve-tests "t/domains/elevators-ll/p02.pddl"))
+      (finishes (solve-tests "t/domains/woodworking-ipc11/p01.pddl"))
+      (finishes (solve-tests "t/domains/woodworking-ipc11/p02.pddl"))
+      )))
