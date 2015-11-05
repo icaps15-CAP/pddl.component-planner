@@ -4,7 +4,7 @@
 |#
 
 (in-package :cl-user)
-(defpackage pddl.component-planner-test
+(defpackage pddl.component-planner.test
   (:use :cl
         :alexandria
         :pddl
@@ -16,5 +16,5 @@
         :fiveam)
   (:shadow :fail)
   (:shadowing-import-from :pddl :maximize :minimize))
-(in-package :pddl.component-planner-test)
+(in-package :pddl.component-planner.test)
 (def-suite :pddl.component-planner)

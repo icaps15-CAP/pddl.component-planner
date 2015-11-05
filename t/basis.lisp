@@ -1,4 +1,4 @@
-(in-package :pddl.component-planner-test)
+(in-package :pddl.component-planner.test)
 (in-suite :pddl.component-planner)
 
 (define (domain assemble)

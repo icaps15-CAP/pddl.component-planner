@@ -4,11 +4,11 @@
 |#
 
 (in-package :cl-user)
-(defpackage pddl.component-planner-test-asd
+(defpackage pddl.component-planner.test-asd
   (:use :cl :asdf))
-(in-package :pddl.component-planner-test-asd)
+(in-package :pddl.component-planner.test-asd)
 
-(defsystem pddl.component-planner-test
+(defsystem pddl.component-planner.test
   :author "guicho"
   :license "LLGPL"
   :depends-on (:pddl.component-planner
