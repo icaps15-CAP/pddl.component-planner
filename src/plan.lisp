@@ -12,7 +12,7 @@
 @export
 (defvar *use-plain-planner* nil)
 @export
-(defun solve (ppath dpath)
+(defun solve (ppath &optional (dpath (find-domain ppath)))
     (let ((*start* (get-universal-time)))
       (unwind-protect 
           (if *use-plain-planner*
@@ -119,7 +119,9 @@
                 :defaults problem-path :name
                 (format nil "~a-domain" (pathname-name problem-path)))))
     (when (probe-file dpath) (return-from find-domain dpath)))
-  (error "~& Failed to infer the domain file pathname!"))
+  (error "~& Failed to infer the domain file pathname!~% ~a~% ~a"
+         (make-pathname :defaults problem-path :name "domain")
+         (make-pathname :defaults problem-path :name (format nil "~a-domain" (pathname-name problem-path)))))
 
 @export
 (defun reformat-pddl (path)

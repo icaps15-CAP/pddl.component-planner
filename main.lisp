@@ -147,13 +147,11 @@
 
       ;; find the problem files
       ((list ppath)
-       (let* ((ppath (merge-pathnames ppath)))
-         (main (list ppath (find-domain ppath)))))
+       (solve (merge-pathnames ppath)))
       ((list ppath dpath)
-       (let ((ppath (merge-pathnames ppath))
-             (dpath (merge-pathnames dpath)))
          (format t "~%; Build date : ~a~%" *build-date*)
-         (solve ppath dpath)))
+       (solve (merge-pathnames ppath)
+              (merge-pathnames dpath)))
       (nil
        (format *error-output* "~&Usage: component-planner PROBLEM [DOMAIN]~
                ~%~@{~4t~40<~(~a~)~;~{~a ~}~> : ~@(~a~)~%~}"
