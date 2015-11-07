@@ -30,17 +30,18 @@
                                                   :options *main-options*
                                                   :verbose *verbose*
                                                   :iterated *iterated*)))
-                    (iter (for plan in plans)
-                          (for i from 1)
-                          (for plp =
-                               (merge-pathnames
-                                (format nil "~a.plan.~a"
-                                        (pathname-name ppath) i)))
-                          (when (probe-file plp) (delete-file plp))
-                          (write-plan plan plp *default-pathname-defaults* t)
-                          (when *validation*
-                            (always
-                             (validate-plan dpath ppath plp :verbose *verbose*))))))))
+                    (and plans
+                         (iter (for plan in plans)
+                               (for i from 1)
+                               (for plp =
+                                    (merge-pathnames
+                                     (format nil "~a.plan.~a"
+                                             (pathname-name ppath) i)))
+                               (when (probe-file plp) (delete-file plp))
+                               (write-plan plan plp *default-pathname-defaults* t)
+                               (when *validation*
+                                 (always
+                                  (validate-plan dpath ppath plp :verbose *verbose*)))))))))
         (format t "~&Wall time: ~a sec~%"
               (- (get-universal-time) *start*)))))
 
@@ -96,19 +97,20 @@
                   :options *main-options*
                   :verbose *verbose*
                   :iterated *iterated*)))))
-      (iter (for path in plans)
-            (for i from 1)
-            (for new-path =
-                 (merge-pathnames
-                  (format nil "~a.plan.~a"
-                          (pathname-name ppath) i)))
-            (when (probe-file new-path) (delete-file new-path))
-            (sb-ext:run-program
-             "/bin/cp" (list (namestring path)
-                             (namestring new-path)))
-            (when *validation*
-              (always
-               (validate-plan dpath ppath new-path :verbose *verbose*)))))))
+      (and plans
+           (iter (for path in plans)
+                 (for i from 1)
+                 (for new-path =
+                      (merge-pathnames
+                       (format nil "~a.plan.~a"
+                               (pathname-name ppath) i)))
+                 (when (probe-file new-path) (delete-file new-path))
+                 (sb-ext:run-program
+                  "/bin/cp" (list (namestring path)
+                                  (namestring new-path)))
+                 (when *validation*
+                   (always
+                    (validate-plan dpath ppath new-path :verbose *verbose*))))))))
 
 @export
 (defun find-domain (problem-path)
