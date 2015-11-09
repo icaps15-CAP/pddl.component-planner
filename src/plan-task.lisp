@@ -10,6 +10,7 @@
 (defvar *preprocessor-options* "--search-options --if-unit-cost --heuristic hlm,hff=lm_ff_syn(lm_rhw(reasonable_orders=true)) --search lazy_greedy([hff,hlm],preferred=[hff,hlm]) --if-non-unit-cost --heuristic hlm1,hff1=lm_ff_syn(lm_rhw(reasonable_orders=true,lm_cost_type=one,cost_type=one)) --search lazy_greedy([hff1,hlm1],preferred=[hff1,hlm1],cost_type=one,reopen_closed=false) --always")
 (defvar *debug-preprocessing* nil)
 (defvar *component-plan-time-limit* 30)
+(defvar *component-plan-memory-limit* 1000000)
 (defvar *remove-component-problem-cost* nil
   "The problem and the domain solved by
 the external planner could be modified so that it does not have
@@ -51,7 +52,7 @@ invocation of underlying planner easiy. "
                      :options *preprocessor-options*
                      :time-limit 1
                      :hard-time-limit *component-plan-time-limit*
-                     :memory *memory-limit*
+                     :memory *component-plan-memory-limit*
                      :stream (if *debug-preprocessing* *error-output* s)
                      :error (if *debug-preprocessing* *error-output* s)
                      :verbose *debug-preprocessing*)))
