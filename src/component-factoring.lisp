@@ -22,7 +22,7 @@
     (pmapcar (lambda (bag)
                (when-let ((plans-for-a-task (some #'plan-task bag)))
                  (vector bag (first plans-for-a-task))))
-             <>)
+             (shuffle <>))
     (remove nil <>)))
 
 (defun types-in-goal (problem)
