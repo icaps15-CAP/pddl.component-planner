@@ -39,7 +39,17 @@
            :enhance-problem
            :*start*
            :*component-plan-memory-limit*
-           :*num-threads*)
+           :*num-threads*
+           :*use-plain-planner*
+           :*iterated*
+           :*verbose*
+           :*training-instances*
+           :find-domain
+           :map-component-plan
+           :task-plan-equal
+           :evaluation-signal
+           :restored-evaluation-signal
+           :comparison-signal)
   (:shadowing-import-from :guicho-utilities
                           :permutations)
   (:shadowing-import-from :statistics

@@ -5,16 +5,15 @@
 (defmacro suppress (&body body)
   `(handler-bind ((warning #'muffle-warning))
      ,@body))
-@export
+
 (defvar *verbose* nil)
-@export
+
 (defvar *iterated* nil)
-@export
+
 (defvar *use-plain-planner* nil)
 
 (defvar *num-threads* 1)
 
-@export
 (defun solve (ppath &optional (dpath (find-domain ppath)))
   (setf *start* (get-universal-time)
         *kernel* (make-kernel *num-threads*))
@@ -50,7 +49,6 @@
               (- (get-universal-time) *start*))
     (end-kernel)))
 
-@export
 (defvar *training-instances* nil)
 
 (defun just-copy-file (src dest)
@@ -117,7 +115,6 @@
                    (always
                     (validate-plan dpath ppath new-path :verbose *verbose*))))))))
 
-@export
 (defun find-domain (problem-path)
   (let ((dpath (make-pathname
                 :defaults problem-path :name "domain")))
@@ -130,7 +127,6 @@
          (make-pathname :defaults problem-path :name "domain")
          (make-pathname :defaults problem-path :name (format nil "~a-domain" (pathname-name problem-path)))))
 
-@export
 (defun reformat-pddl (path)
   (unwind-protect
        (print-pddl-object

@@ -1,7 +1,6 @@
 (in-package :pddl.component-planner)
 (cl-syntax:use-syntax :annot)
 
-@export
 (defun task-plan-equal (t1 t2)
   "Computes plan-wise compatibility. It returns true if any of the component plan
 mapped from t1 to t2 is a valid plan of t2.
