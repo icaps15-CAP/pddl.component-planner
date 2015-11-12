@@ -68,11 +68,15 @@
       ((list* "--component-plan-limit" time rest)
        (let ((*component-plan-time-limit* (parse-integer time)))
          (main rest)))
+      ((list* "--component-plan-memory-limit" memory rest)
+       (let ((*component-plan-memory-limit* (parse-integer memory)))
+         (main rest)))
       ((list* "-t" time rest)
        (let ((*hard-time-limit* (parse-integer time)))
          (main rest)))
       ((list* "-m" memory rest)
-       (let ((*memory-limit* (parse-integer memory)))
+       (let* ((*memory-limit* (parse-integer memory))
+              (*component-plan-memory-limit* *memory-limit*))
          (main rest)))
 
       ;; CAP search options
@@ -165,10 +169,11 @@
                '--reformat '(path) "Loading the pddl file and reformatting the result to stdout"
                '--training '(path) "Also copy the training instance (effective only under --plain, for SOL-EP)"
                '----------computational-resource-------- nil "-------------------------------"
-               '-t '(time) "time limit for the main search. NOT the total limit"
-               '-m '(memory) "memory limit for the main search. NOT the total limit"
-               '--preprocess-limit '(sec) "Specify the maxmimum total preprocessing time in integer."
-               '--component-plan-limit '(sec) "Specify the time limit for solving each subproblem in integer (default: 30)"
+               '-t '(sec) "time limit for the main search. NOT the total limit"
+               '-m '(memory-in-kb) "memory limit for main search and subproblems. NOT the total limit"
+               '--preprocess-limit '(sec) "max total preprocessing time."
+               '--component-plan-limit '(sec) "time limit for solving subproblems (default: 30)"
+               '--component-plan-memory-limit '(memory-in-kb) "Override the memory limit for subproblems."
                '----------------CAP-options------------- nil "-------------------------------"
                ;; not used at all now
                ;; '--filtering-threashold '(threashold)
