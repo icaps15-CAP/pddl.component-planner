@@ -23,10 +23,10 @@ returns a list of PDDL-PLAN. The call to this function is cached and memoized, s
 careful if you measure the elapsed time. When you measure the time, run
  (clear-plan-task-cache) to clear the cache.
 
-The behavior of this function can be tweaked:
+The behavior of this function can be tweaked: see
 `*remove-component-problem-cost*',
 `*preprocessor*',`*preprocessor-options*', `*debug-preprocessing*',
-`*component-plan-time-limit*'.
+`*component-plan-time-limit*', `*component-plan-memory-limit*'.
 
 It signals 'evaluation-signal each time in order to count the actual
 invocation of underlying planner easiy. "

@@ -36,7 +36,8 @@
            :*component-abstraction*
            :*variable-factoring*
            :enhance-problem
-           :*start*)
+           :*start*
+           :*component-plan-memory-limit*)
   (:shadowing-import-from :guicho-utilities
                           :permutations)
   (:shadowing-import-from :statistics
