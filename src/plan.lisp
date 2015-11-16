@@ -26,25 +26,29 @@
                 (print domain)
                 (print pname)
                 (print problem)
-                (let ((plans
-                       (solve-problem-enhancing problem
-                                                :time-limit 1 ; satisficing
-                                                :name *main-search*
-                                                :options *main-options*
-                                                :verbose *verbose*
-                                                :iterated *iterated*)))
-                  (and plans
-                       (iter (for plan in plans)
-                             (for i from 1)
-                             (for plp =
-                                  (merge-pathnames
-                                   (format nil "~a.plan.~a"
-                                           (pathname-name ppath) i)))
-                             (when (probe-file plp) (delete-file plp))
-                             (write-plan plan plp *default-pathname-defaults* t)
-                             (when *validation*
-                               (always
-                                (validate-plan dpath ppath plp :verbose *verbose*)))))))))
+                (handler-case
+                    (let ((plans
+                           (solve-problem-enhancing problem
+                                                    :time-limit 1 ; satisficing
+                                                    :name *main-search*
+                                                    :options *main-options*
+                                                    :verbose *verbose*
+                                                    :iterated *iterated*)))
+                      (and plans
+                           (iter (for plan in plans)
+                                 (for i from 1)
+                                 (for plp =
+                                      (merge-pathnames
+                                       (format nil "~a.plan.~a"
+                                               (pathname-name ppath) i)))
+                                 (when (probe-file plp) (delete-file plp))
+                                 (write-plan plan plp *default-pathname-defaults* t)
+                                 (when *validation*
+                                   (always
+                                    (validate-plan dpath ppath plp :verbose *verbose*))))))
+                  (no-macro ()
+                    (format t "~&No macros found, switch to the plain mode")
+                    (plan-plain dpath ppath))))))
       (format t "~&Wall time: ~a sec~%"
               (- (get-universal-time) *start*))
     (end-kernel)))
