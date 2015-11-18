@@ -33,7 +33,7 @@
           (iter (while (within-time-limit))
                 (until (every #'identity results))
                 (for i from 0)
-                (for *component-plan-time-limit* = (expt 2 i))
+                (for *component-plan-time-limit* = (* 5 (expt 2 i)))
                 #+nil (while (< *component-plan-time-limit* max-component-time-limit))
                 (format t "~&Start iteration with time limit ~a!" *component-plan-time-limit*)
                 (iter (for bag in <>)
