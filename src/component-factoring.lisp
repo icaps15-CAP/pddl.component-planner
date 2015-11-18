@@ -43,7 +43,13 @@
                         (handler-case
                             (setf (aref results j) (vector bag (first (plan-task (first bag)))))
                           (plan-not-found ()
-                            (format t "~&Failed with time limit ~a!" *component-plan-time-limit*)))))))
+                            (format t "~&Failed with time limit ~a!" *component-plan-time-limit*))))))
+          (remove-if (lambda (x)
+                       (ematch x
+                         (nil t)
+                         ((vector _ nil) t)
+                         ((vector _ _) nil)))
+                     (coerce results 'list)))
         (iter (for bag in <>)
               ;; assume the cached value of plan-task
               (when-let ((plans-for-a-task (some #'plan-task bag)))
