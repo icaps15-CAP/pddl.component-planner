@@ -37,7 +37,8 @@
            :*variable-factoring*
            :enhance-problem
            :*start*
-           :*component-plan-memory-limit*)
+           :*component-plan-memory-limit*
+           :*iterative-resource*)
   (:shadowing-import-from :guicho-utilities
                           :permutations)
   (:shadowing-import-from :statistics

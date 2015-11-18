@@ -2,6 +2,7 @@
 (in-package :pddl.component-planner)
 (cl-syntax:use-syntax :annot)
 
+(defvar *iterative-resource* nil)
 (defun component-factoring-bpvectors (problem)
   (-<>>
       (iter (for seed in (types-in-goal problem))
@@ -12,17 +13,41 @@
     (format<> t "~&Calling the preprocessing planner ~a" *preprocessor*)
     (format<> t "~&Total Tasks /g/i/attr: ~a" (reduce #'+ (mapcar #'length <>)))
     (format<> t "~&Task cardinalities: ~a" (mapcar #'length <>))
-    (block nil
-      (let ((*print-pretty* t))
-        (pprint-logical-block (*standard-output* nil)
-          (return
-            (mappend #'categorize-by-compatibility <>)))))
+    (if *iterative-resource*
+        (progn (format t "~&Iterative resource mode, compatibility option is ignored!")
+               (mappend (lambda (list)
+                          (mapcar #'list list)) <>))
+        (block nil
+          (let ((*print-pretty* t))
+            (pprint-logical-block (*standard-output* nil)
+              (return
+                (mappend #'categorize-by-compatibility <>))))))
+    ;; list of lists of tasks
     (format<> t "~&Finished the categorization based on plan compatibility.")
     (format<> t "~&TASKS/plan : ~a" (mapcar #'length <>))
-    (iter (for bag in <>)
-          ;; assume the cached value of plan-task
-          (when-let ((plans-for-a-task (some #'plan-task bag)))
-            (collect (vector bag (first plans-for-a-task)))))))
+    (if *iterative-resource*
+        (let (#+nil
+              (max-component-time-limit *component-plan-time-limit*)
+              (results (make-array (length <>) :initial-element nil)))
+          ;; we know that each bag is just a list of 1 element
+          (iter (while (within-time-limit))
+                (until (every #'identity results))
+                (for i from 0)
+                (for *component-plan-time-limit* = (expt 2 i))
+                #+nil (while (< *component-plan-time-limit* max-component-time-limit))
+                (format t "~&Start iteration with time limit ~a!" *component-plan-time-limit*)
+                (iter (for bag in <>)
+                      (for j from 0)
+                      (assert (= 1 (length bag)))
+                      (unless (aref results j)
+                        (handler-case
+                            (setf (aref results j) (vector bag (first (plan-task (first bag)))))
+                          (plan-not-found ()
+                            (format t "~&Failed with time limit ~a!" *component-plan-time-limit*)))))))
+        (iter (for bag in <>)
+              ;; assume the cached value of plan-task
+              (when-let ((plans-for-a-task (some #'plan-task bag)))
+                (collect (vector bag (first plans-for-a-task))))))))
 
 (defun types-in-goal (problem)
   (ematch problem

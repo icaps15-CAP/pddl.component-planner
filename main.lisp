@@ -71,6 +71,9 @@
       ((list* "--component-plan-memory-limit" memory rest)
        (let ((*component-plan-memory-limit* (parse-integer memory)))
          (main rest)))
+      ((list* "--iterative-resource" rest)
+       (let ((*iterative-resource* t))
+         (main rest)))
       ((list* "-t" time rest)
        (let ((*hard-time-limit* (parse-integer time)))
          (main rest)))
@@ -174,6 +177,7 @@
                '--preprocess-limit '(sec) "max total preprocessing time."
                '--component-plan-limit '(sec) "time limit for solving subproblems (default: 30)"
                '--component-plan-memory-limit '(memory-in-kb) "Override the memory limit for subproblems."
+               '--iterative-resource nil "Enable iterative resource limit. This ignores --compatibility and --component-plan-limit"
                '----------------CAP-options------------- nil "-------------------------------"
                ;; not used at all now
                ;; '--filtering-threashold '(threashold)
