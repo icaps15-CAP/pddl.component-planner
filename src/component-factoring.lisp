@@ -19,10 +19,11 @@
             (mappend #'categorize-by-compatibility <>)))))
     (format<> t "~&Finished the categorization based on plan compatibility.")
     (format<> t "~&TASKS/plan : ~a" (mapcar #'length <>))
-    (iter (for bag in <>)
-          ;; assume the cached value of plan-task
-          (when-let ((plans-for-a-task (some #'plan-task bag)))
-            (collect (vector bag (first plans-for-a-task)))))))
+    (pmapcar (lambda (bag)
+               (when-let ((plans-for-a-task (some #'plan-task bag)))
+                 (vector bag (first plans-for-a-task))))
+             <>)
+    (remove nil <>)))
 
 (defun types-in-goal (problem)
   (ematch problem

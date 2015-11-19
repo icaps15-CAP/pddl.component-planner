@@ -106,6 +106,14 @@
        (setf *iterated* t)
        (main rest))
 
+      ;; concurrency option
+      ((list* "--threads" num rest)
+       (setf *num-threads* (parse-integer num))
+       (main rest))
+
+      ((list* "--ipc-threads" rest)
+       (main (list* "--threads" "4" rest)))
+
       ;; cost options
       ((list* "--add-macro-cost" rest)
        (setf *add-macro-cost* t)
@@ -193,6 +201,9 @@
                ;; now on/off only. once enabled, it uses "loose"
                ;; '--compatibility-type '(symbol) "specify the result of combatibility when no component plan exists. One of: strict(default), loose, always-false(=disabling compat-check)."
                '--iterated nil "Specify if the main search should run an iterated search (in case of FD/LAMA)."
+               '------------concurrency-options--------- nil "-------------------------------"
+               '--threads '(num) "specify the number of threads to solve subproblems. Default: 1"
+               '--ipc-threads nil "alias to --threads 4, for IPC MultiCore track."
                '--------underlying-planner-options------ nil "-------------------------------"
                '--main-search '(planner strings... -) "Specify MainPlanner. Options end with a \"-\"."
                '--preprocessor '(planner string... -) "Specify ComponentPlanner. Options end with a \"-\"."

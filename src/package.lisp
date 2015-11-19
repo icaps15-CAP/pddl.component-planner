@@ -12,7 +12,8 @@
         :alexandria
         :cl-annot
         :trivial-signal
-        :arrow-macros)
+        :arrow-macros
+        :lparallel)
   (:export :reformat-pddl
            :solve
            :*preprocess-only*
@@ -37,7 +38,8 @@
            :*variable-factoring*
            :enhance-problem
            :*start*
-           :*component-plan-memory-limit*)
+           :*component-plan-memory-limit*
+           :*num-threads*)
   (:shadowing-import-from :guicho-utilities
                           :permutations)
   (:shadowing-import-from :statistics

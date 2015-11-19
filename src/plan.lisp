@@ -11,9 +11,13 @@
 (defvar *iterated* nil)
 @export
 (defvar *use-plain-planner* nil)
+
+(defvar *num-threads* 1)
+
 @export
 (defun solve (ppath &optional (dpath (find-domain ppath)))
-  (setf *start* (get-universal-time))
+  (setf *start* (get-universal-time)
+        *kernel* (make-kernel *num-threads*))
     (unwind-protect 
         (if *use-plain-planner*
             (plan-plain dpath ppath)
@@ -43,7 +47,8 @@
                                (always
                                 (validate-plan dpath ppath plp :verbose *verbose*)))))))))
       (format t "~&Wall time: ~a sec~%"
-              (- (get-universal-time) *start*))))
+              (- (get-universal-time) *start*))
+    (end-kernel)))
 
 @export
 (defvar *training-instances* nil)

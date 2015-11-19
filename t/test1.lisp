@@ -75,6 +75,17 @@
   (finishes (solve-tests "t/domains/woodworking-ipc11/p01.pddl"))
   (finishes (solve-tests "t/domains/woodworking-ipc11/p02.pddl")))
 
+(test cap-parallel
+  (let ((*num-threads* 4))
+    (finishes (solve-tests "t/domains/assembly-acp-ll/p01.pddl"))
+    (finishes (solve-tests "t/domains/assembly-acp-ll/p02.pddl"))
+    (finishes (solve-tests "t/domains/assembly-cap-ll/p01.pddl"))
+    (finishes (solve-tests "t/domains/assembly-cap-ll/p02.pddl"))
+    (finishes (solve-tests "t/domains/elevators-ll/p01.pddl"))
+    (finishes (solve-tests "t/domains/elevators-ll/p02.pddl"))
+    (finishes (solve-tests "t/domains/woodworking-ipc11/p01.pddl"))
+    (finishes (solve-tests "t/domains/woodworking-ipc11/p02.pddl"))))
+
 (test compatibility
   (finishes
     (let ((*compatibility* :strict))
