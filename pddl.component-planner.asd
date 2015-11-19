@@ -28,7 +28,8 @@
                :iterate
                :alexandria
                :cl-annot
-               :arrow-macros)
+               :arrow-macros
+               :lparallel)
   :components ((:module "src"
                 :components
                 ((:file :cl-statistics)

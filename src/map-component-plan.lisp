@@ -3,7 +3,6 @@
 
 ;;; primary function : apply-mapping
 
-@export
 (defun map-component-plan (pddl-plan mapping)
   (ematch pddl-plan
     ((pddl-plan actions problem)

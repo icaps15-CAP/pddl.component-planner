@@ -52,7 +52,7 @@ invocation of underlying planner easiy. "
                      :options *preprocessor-options*
                      :time-limit 1
                      :hard-time-limit *component-plan-time-limit*
-                     :memory *component-plan-memory-limit*
+                     :memory (floor (/ *component-plan-memory-limit* *num-threads*))
                      :stream (if *debug-preprocessing* *error-output* s)
                      :error (if *debug-preprocessing* *error-output* s)
                      :verbose *debug-preprocessing*)))

@@ -34,91 +34,101 @@
     (match argv
       ;; debug options
       ((list* "-v" rest)
-       (let ((*verbose* t))
-         (main rest)))
+       (setf *verbose* t)
+       (main rest))
       ((list* "--validation" rest)
-       (let ((*validation* t))
-         (main rest)))
+       (setf *validation* t)
+       (main rest))
       ((list* "--debug-preprocessing" rest)
-       (let ((*debug-preprocessing* t))
-         (main rest)))
+       (setf *debug-preprocessing* t)
+       (main rest))
 
       ;; run mode options
       ((list* "--preprocess-only" rest)
        (format t "~&; Preprocessing-only mode was activated")
        (format t "~&; CAP does not run the main planner.")
-       (let ((*preprocess-only* t))
-         (main rest)))
+       (setf *preprocess-only* t)
+       (main rest))
       ((list* "--plain" rest)
        (format t "~&; Plain mode was activated, CAP runs only the main planner.")
-       (let ((*use-plain-planner* t)) (main rest)))
+       (setf *use-plain-planner* t)
+       (main rest))
       ((list "--reformat" path)
        (format t "~&; Loading the pddl file and reformatting the result to stdout")
        (reformat-pddl path))
       ((list* "--training" path rest)
        (format t "~&; Copy the training instances ~a (effective only under --plain)" path)
-       (let ((*training-instances*
-              (cons (pathname path) *training-instances*)))
-         (main rest)))
+       (setf *training-instances* (cons (pathname path) *training-instances*))
+       (main rest))
       
       ;; time limit and resource
       ((list* "--preprocess-limit" time rest)
-       (let ((*preprocess-time-limit* (parse-integer time)))
-         (main rest)))
+       (setf *preprocess-time-limit* (parse-integer time))
+       (main rest))
       ((list* "--component-plan-limit" time rest)
-       (let ((*component-plan-time-limit* (parse-integer time)))
-         (main rest)))
+       (setf *component-plan-time-limit* (parse-integer time))
+       (main rest))
       ((list* "--component-plan-memory-limit" memory rest)
-       (let ((*component-plan-memory-limit* (parse-integer memory)))
-         (main rest)))
+       (setf *component-plan-memory-limit* (parse-integer memory))
+       (main rest))
+
       ((list* "--iterative-resource" rest)
-       (let ((*iterative-resource* t))
-         (main rest)))
+       (setf *iterative-resource* t)
+       (main rest))
+
       ((list* "-t" time rest)
-       (let ((*hard-time-limit* (parse-integer time)))
-         (main rest)))
+       (setf *hard-time-limit* (parse-integer time))
+       (main rest))
       ((list* "-m" memory rest)
-       (let* ((*memory-limit* (parse-integer memory))
-              (*component-plan-memory-limit* *memory-limit*))
-         (main rest)))
+       (setf *memory-limit* (parse-integer memory))
+       (setf *component-plan-memory-limit* *memory-limit*)
+       (main rest))
 
       ;; CAP search options
       ((list* "--compatibility" rest)
-       (let ((*compatibility* :strict))
-         (main rest)))
+       (setf *compatibility* :strict)
+       (main rest))
       ((list* "--force-lifted" rest)
-       (let ((*ground-macros* nil))
-         (main rest)))
+       (setf *ground-macros* nil)
+       (main rest))
       #+nil
       ((list* "--precategorization" rest)
-       (let ((*precategorization* t))
-         (main rest)))
+       (setf *precategorization* t)
+       (main rest))
       ((list* "--binarization" rest)
-       (let ((*binarization* t))
-         (main rest)))
+       (setf *binarization* t)
+       (main rest))
       ((list* "--component-abstraction" rest)
-       (let ((*component-abstraction* t))
-         (main rest)))
+       (setf *component-abstraction* t)
+       (main rest))
       ((list* "--force-variable-factoring" rest)
-       (let ((*variable-factoring* t))
-         (main rest)))
+       (setf *variable-factoring* t)
+       (main rest))
       ((list* "--cyclic-macros" rest)
-       (let ((*cyclic-macros* t))
-         (main rest)))
+       (setf *cyclic-macros* t)
+       (main rest))
       ((list* "--iterated" rest)
-       (let ((*iterated* t))
-         (main rest)))
+       (setf *iterated* t)
+       (main rest))
+
+      ;; concurrency option
+      ((list* "--threads" num rest)
+       (setf *num-threads* (parse-integer num))
+       (main rest))
+
+      ((list* "--ipc-threads" rest)
+       (main (list* "--threads" "4" rest)))
 
       ;; cost options
       ((list* "--add-macro-cost" rest)
-       (let ((*add-macro-cost* t))
-         (main rest)))
+       (setf *add-macro-cost* t)
+       (main rest))
       ((list* "--remove-main-problem-cost" rest)
-       (let ((*remove-main-problem-cost* t))
-         (main rest)))
+       (setf *remove-main-problem-cost* t)
+       (main rest))
       ((list* "--remove-component-problem-cost" rest)
-       (let ((*remove-component-problem-cost* t))
-         (main rest)))
+       (setf *remove-component-problem-cost* t)
+       (main rest))
 
       ;; not used at all now
       #+nil
@@ -130,15 +140,19 @@
                  (error "--filtering-threashold should be 0 <= x < 0.99999995 ~~ 1-eps! "))
              (error "--filtering-threashold should be a lisp-readable number! ex) 0, 0.0, 1/2, 0.5d0, 0.7"))))
 
-      ((list* "--preprocessor" *preprocessor* rest)
+      ((list* "--preprocessor" planner rest)
+       (setf *preprocessor* planner)
        (consume-until-hyphen
         rest
-        (lambda (*preprocessor-options* rest)
+        (lambda (options rest)
+          (setf *preprocessor-options* options)
           (main rest))))
-      ((list* "--main-search" *main-search* rest)
+      ((list* "--main-search" planner rest)
+       (setf *main-search* planner)
        (consume-until-hyphen
         rest
-        (lambda (*main-options* rest)
+        (lambda (options rest)
+          (setf *main-options* options)
           (main rest))))
 
       ;; aliases
@@ -146,11 +160,11 @@
        (consume-until-hyphen
         rest
         (lambda (options rest)
-          (let ((*main-search* searcher)
-                (*preprocessor* searcher)
-                (*main-options* options)
-                (*preprocessor-options* options))
-            (main rest)))))
+          (setf *main-search* searcher
+                *preprocessor* searcher
+                *main-options* options
+                *preprocessor-options* options)
+          (main rest))))
 
       ;; find the problem files
       ((list ppath)
@@ -193,6 +207,9 @@
                ;; now on/off only. once enabled, it uses "loose"
                ;; '--compatibility-type '(symbol) "specify the result of combatibility when no component plan exists. One of: strict(default), loose, always-false(=disabling compat-check)."
                '--iterated nil "Specify if the main search should run an iterated search (in case of FD/LAMA)."
+               '------------concurrency-options--------- nil "-------------------------------"
+               '--threads '(num) "specify the number of threads to solve subproblems. Default: 1"
+               '--ipc-threads nil "alias to --threads 4, for IPC MultiCore track."
                '--------underlying-planner-options------ nil "-------------------------------"
                '--main-search '(planner strings... -) "Specify MainPlanner. Options end with a \"-\"."
                '--preprocessor '(planner string... -) "Specify ComponentPlanner. Options end with a \"-\"."

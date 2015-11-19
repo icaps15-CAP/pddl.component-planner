@@ -25,7 +25,8 @@
     ;; list of lists of tasks
     (format<> t "~&Finished the categorization based on plan compatibility.")
     (format<> t "~&TASKS/plan : ~a" (mapcar #'length <>))
-    (if *iterative-resource*
+    (cond
+      (*iterative-resource*
         (let (#+nil
               (max-component-time-limit *component-plan-time-limit*)
               (results (make-array (length <>) :initial-element nil)))
@@ -49,11 +50,14 @@
                          (nil t)
                          ((vector _ nil) t)
                          ((vector _ _) nil)))
-                     (coerce results 'list)))
-        (iter (for bag in <>)
-              ;; assume the cached value of plan-task
-              (when-let ((plans-for-a-task (some #'plan-task bag)))
-                (collect (vector bag (first plans-for-a-task))))))))
+                     (coerce results 'list))))
+      (t ; use lparallel even under 1 thread
+       (remove nil
+               (pmapcar (lambda (bag)
+                          (when-let ((plans-for-a-task (some #'plan-task bag)))
+                                    (vector bag (first plans-for-a-task))))
+                        (shuffle <>)))))))
+
 
 (defun types-in-goal (problem)
   (ematch problem
