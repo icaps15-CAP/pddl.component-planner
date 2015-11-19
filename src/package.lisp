@@ -50,7 +50,8 @@
            :task-plan-equal
            :evaluation-signal
            :restored-evaluation-signal
-           :comparison-signal)
+           :comparison-signal
+           :*rely-on-cfs*)
   (:shadowing-import-from :guicho-utilities
                           :permutations)
   (:shadowing-import-from :statistics

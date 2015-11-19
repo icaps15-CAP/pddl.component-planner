@@ -52,11 +52,14 @@
                          ((vector _ _) nil)))
                      (coerce results 'list))))
       (t ; use lparallel even under 1 thread
-       (remove nil
-               (pmapcar (lambda (bag)
-                          (when-let ((plans-for-a-task (some #'plan-task bag)))
-                                    (vector bag (first plans-for-a-task))))
-                        (shuffle <>)))))))
+       (setf *kernel* (make-kernel (if *rely-on-cfs* (length <>) *num-threads*)))
+       (unwind-protect
+           (remove nil
+                   (pmapcar (lambda (bag)
+                              (when-let ((plans-for-a-task (some #'plan-task bag)))
+                                (vector bag (first plans-for-a-task))))
+                            (shuffle <>)))
+         (end-kernel))))))
 
 
 (defun types-in-goal (problem)

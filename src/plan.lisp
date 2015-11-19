@@ -13,10 +13,26 @@
 (defvar *use-plain-planner* nil)
 
 (defvar *num-threads* 1)
+(defvar *rely-on-cfs* nil)
+
+(defun cgroup-path (subsystem name)
+  (let ((*print-case* :downcase))
+    (let ((path (pathname
+                 (format nil
+                         "/sys/fs/cgroup/~a~a/~a"
+                         subsystem
+                         (uiop:run-program
+                          (format nil "grep :~a: /proc/self/cgroup | cut -d: -f3" subsystem)
+                          :output '(:STRING :STRIPPED T))
+                         name))))
+      (unless (probe-file path)
+        (error "no such cgroup file ~a exists" path))
+      path)))
 
 (defun solve (ppath &optional (dpath (find-domain ppath)))
-  (setf *start* (get-universal-time)
-        *kernel* (make-kernel *num-threads*))
+  (setf *start* (get-universal-time))
+  (with-open-file (s (cgroup-path :cpu :cpu.cfs_period_us) :direction :output :if-exists :supersede) (princ 100000 s))
+  (with-open-file (s (cgroup-path :cpu :cpu.cfs_quota_us) :direction :output :if-exists :supersede) (princ (* *num-threads* 100000) s))
     (unwind-protect 
         (if *use-plain-planner*
             (plan-plain dpath ppath)

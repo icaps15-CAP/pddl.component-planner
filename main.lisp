@@ -119,6 +119,10 @@
       ((list* "--ipc-threads" rest)
        (main (list* "--threads" "4" rest)))
 
+      ((list* "--cfs" rest)
+       (setf *rely-on-cfs* t)
+       (main rest))
+
       ;; cost options
       ((list* "--add-macro-cost" rest)
        (setf *add-macro-cost* t)
@@ -210,6 +214,7 @@
                '------------concurrency-options--------- nil "-------------------------------"
                '--threads '(num) "specify the number of threads to solve subproblems. Default: 1"
                '--ipc-threads nil "alias to --threads 4, for IPC MultiCore track."
+               '--cfs '() "Spawn as many threads and use Linux's Completely Fair Scheduler to balance threaded executions. Default: disabled"
                '--------underlying-planner-options------ nil "-------------------------------"
                '--main-search '(planner strings... -) "Specify MainPlanner. Options end with a \"-\"."
                '--preprocessor '(planner string... -) "Specify ComponentPlanner. Options end with a \"-\"."
