@@ -25,41 +25,59 @@
     ;; list of lists of tasks
     (format<> t "~&Finished the categorization based on plan compatibility.")
     (format<> t "~&TASKS/plan : ~a" (mapcar #'length <>))
-    (cond
-      (*iterative-resource*
-        (let (#+nil
-              (max-component-time-limit *component-plan-time-limit*)
-              (results (make-array (length <>) :initial-element nil)))
-          ;; we know that each bag is just a list of 1 element
-          (iter (while (within-time-limit))
-                (until (every #'identity results))
-                (for i from 0)
-                (for *component-plan-time-limit* = (* 5 (expt 2 i)))
-                #+nil (while (< *component-plan-time-limit* max-component-time-limit))
-                (format t "~&Start iteration with time limit ~a!" *component-plan-time-limit*)
-                (iter (for bag in <>)
-                      (for j from 0)
-                      (assert (= 1 (length bag)))
-                      (unless (aref results j)
-                        (handler-case
-                            (setf (aref results j) (vector bag (first (plan-task (first bag)))))
-                          (plan-not-found ()
-                            (format t "~&Failed with time limit ~a!" *component-plan-time-limit*))))))
-          (remove-if (lambda (x)
-                       (ematch x
-                         (nil t)
-                         ((vector _ nil) t)
-                         ((vector _ _) nil)))
-                     (coerce results 'list))))
-      (t ; use lparallel even under 1 thread
-       (setf *kernel* (make-kernel (if *rely-on-cfs* (length <>) *num-threads*)))
-       (unwind-protect
-           (remove nil
-                   (pmapcar (lambda (bag)
-                              (when-let ((plans-for-a-task (some #'plan-task bag)))
-                                (vector bag (first plans-for-a-task))))
-                            (shuffle <>)))
-         (end-kernel))))))
+    (unwind-protect
+        (progn
+          (setf *kernel* (make-kernel (if *rely-on-cfs* (length <>) *num-threads*)))
+          (cond
+            (*iterative-resource*
+             (assert (every (lambda (bag) (= 1 (length bag))) <>))
+             (let ((initial-time-limit 1))
+               ;; we know that each bag is just a list of 1 element
+               (labels ((rec (bag limit)
+                          (handler-case
+                              (vector bag
+                                      (let ((*component-plan-time-limit* limit))
+                                        (first (plan-task (first bag)))))
+                            (plan-not-found () 
+                              (format t "~&Failed with time limit ~a" limit)
+                              (lambda (max-component-time-limit)
+                                (let ((limit (* 2 limit)))
+                                  (if (< limit max-component-time-limit)
+                                      (future (rec bag limit))
+                                      (format t "~&Iteration stopped: ~a = ~a"
+                                              `(< limit max-component-time-limit)
+                                              `(< ,limit ,max-component-time-limit)))))))))
+                 (iter (for futures =
+                            (mapcar #'force
+                                    (if (first-time-p)
+                                        (mapcar (lambda (bag) (future (rec bag initial-time-limit))) <>)
+                                        futures)))
+                       (for count = (count-if #'functionp futures))
+                       (if (zerop count)
+                           (return
+                             (remove-if (lambda (x)
+                                          (ematch x
+                                            (nil t)
+                                            ((vector _ nil) t)
+                                            ((vector _ _) nil)))
+                                        futures))
+                           (let ((new-max (* *num-threads* (/ *preprocess-time-limit* count))))
+                             (setf futures
+                                   (mapcar (lambda (res)
+                                             (ematch res
+                                               ((type vector) res)
+                                               ((type function) (funcall res new-max))))
+                                           futures))))))))
+            (t ; use lparallel even under 1 thread
+             (remove nil
+                     (mapcar #'force
+                             (mapcar (lambda (bag)
+                                       (future
+                                         (when-let ((plans-for-a-task (some #'plan-task bag)))
+                                           (vector bag (first plans-for-a-task)))))
+                                     (shuffle <>)))))))
+      (when (check-kernel)
+        (end-kernel)))))
 
 
 (defun types-in-goal (problem)
