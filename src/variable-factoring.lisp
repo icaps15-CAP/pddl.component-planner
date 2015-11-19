@@ -12,20 +12,22 @@
      (format t "~&Removing tasks w/o goals : ~a" (length positive-goals))
      (format t "~&TASKS/g/i/attr : ~a" (mapcar (constantly 1) positive-goals))
      (remove nil
-             (pmapcar (lambda (goal)
-                        (let ((task (make-abstract-component-task
-                                     :problem problem
-                                     ;; NOTE: these facts may contain environment objects
-                                     ;; when they are more than 3 arg predicates.
-                                     :init nil
-                                     :goal (list (debinarize-predicate goal))
-                                     :ac (make-abstract-component
-                                          :problem problem
-                                          :seed nil
-                                          :facts nil
-                                          :components nil
-                                          :attributes nil))))
-                          (when-let ((plans-for-a-task (plan-task task)))
-                            (vector (list task)
-                                    (first plans-for-a-task)))))
-                      positive-goals)))))
+             (mapcar #'force
+                     (mapcar (lambda (goal)
+                               (future
+                                 (let ((task (make-abstract-component-task
+                                              :problem problem
+                                              ;; NOTE: these facts may contain environment objects
+                                              ;; when they are more than 3 arg predicates.
+                                              :init nil
+                                              :goal (list (debinarize-predicate goal))
+                                              :ac (make-abstract-component
+                                                   :problem problem
+                                                   :seed nil
+                                                   :facts nil
+                                                   :components nil
+                                                   :attributes nil))))
+                                   (when-let ((plans-for-a-task (plan-task task)))
+                                     (vector (list task)
+                                             (first plans-for-a-task))))))
+                             positive-goals))))))
