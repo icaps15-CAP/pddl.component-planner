@@ -12,7 +12,8 @@
         :alexandria
         :cl-annot
         :trivial-signal
-        :arrow-macros)
+        :arrow-macros
+        :lparallel)
   (:export :reformat-pddl
            :solve
            :*preprocess-only*
@@ -36,7 +37,21 @@
            :*component-abstraction*
            :*variable-factoring*
            :enhance-problem
-           :*start*)
+           :*start*
+           :*component-plan-memory-limit*
+           :*iterative-resource*
+           :*num-threads*
+           :*use-plain-planner*
+           :*iterated*
+           :*verbose*
+           :*training-instances*
+           :find-domain
+           :map-component-plan
+           :task-plan-equal
+           :evaluation-signal
+           :restored-evaluation-signal
+           :comparison-signal
+           :*rely-on-cfs*)
   (:shadowing-import-from :guicho-utilities
                           :permutations)
   (:shadowing-import-from :statistics

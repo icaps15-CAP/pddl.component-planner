@@ -14,3 +14,4 @@
 *.plan
 *.log
 *.typed-pddl
+/t/*.plan.*

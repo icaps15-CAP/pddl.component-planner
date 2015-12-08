@@ -28,7 +28,8 @@
                :iterate
                :alexandria
                :cl-annot
-               :arrow-macros)
+               :arrow-macros
+               :lparallel)
   :components ((:module "src"
                 :components
                 ((:file :cl-statistics)
@@ -64,10 +65,5 @@
                                :fill-pointer t)))
           (setf (fill-pointer seq) (read-sequence seq stream))
           seq)))
-  :in-order-to ((test-op (load-op pddl.component-planner-test))))
+  :in-order-to ((test-op (test-op pddl.component-planner.test))))
 
-
-(defmethod asdf:perform ((op asdf:test-op)
-			 (system (eql (asdf:find-system :pddl.component-planner))))
-  (funcall (find-symbol "RUN!" (find-package :fiveam)) :pddl.component-planner)
-  t)

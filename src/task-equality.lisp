@@ -1,7 +1,6 @@
 (in-package :pddl.component-planner)
 (cl-syntax:use-syntax :annot)
 
-@export
 (defun task-plan-equal (t1 t2)
   "Computes plan-wise compatibility. It returns true if any of the component plan
 mapped from t1 to t2 is a valid plan of t2.
@@ -28,14 +27,14 @@ function basically cannot negatively prove the compatibility.
           (some
            (lambda (plan1)
              (handler-case
-               (simulate-plan
-                (pddl-environment
-                 :problem problem2
-                 :plan (map-component-plan
-                        plan1
-                        (mapping-between-tasks t1 t2))))
-               (error (c)
-                 (warn "error during compatibility cheking!")
+                 (simulate-plan
+                  (pddl-environment
+                   :problem problem2
+                   :domain (domain problem2)
+                   :plan (map-component-plan
+                          plan1
+                          (mapping-between-tasks t1 t2))))
+               (application-failure ()
                  nil)))
            plans)
           :proven))

@@ -3,7 +3,6 @@
 
 ;;; primary function : apply-mapping
 
-@export
 (defun map-component-plan (pddl-plan mapping)
   (ematch pddl-plan
     ((pddl-plan actions problem)
@@ -21,8 +20,8 @@
 
 (defun map-action (action alist)
   (ematch action
-    ((pddl-action parameters)
-     (ground-action action (%apply parameters alist)))))
+    ((pddl-action parameters problem domain)
+     (ground-action action (%apply parameters alist) problem domain))))
 
 (defun %apply (parameters mapping)
   (mapcar

@@ -6,10 +6,11 @@
 
 ;;;; basic plan-task functionality
 
-(defvar *preprocessor* "lama-clean")
-(defvar *preprocessor-options* "")
+(defvar *preprocessor* "fd-clean")
+(defvar *preprocessor-options* "--search-options --if-unit-cost --heuristic hlm,hff=lm_ff_syn(lm_rhw(reasonable_orders=true)) --search lazy_greedy([hff,hlm],preferred=[hff,hlm]) --if-non-unit-cost --heuristic hlm1,hff1=lm_ff_syn(lm_rhw(reasonable_orders=true,lm_cost_type=one,cost_type=one)) --search lazy_greedy([hff1,hlm1],preferred=[hff1,hlm1],cost_type=one,reopen_closed=false) --always")
 (defvar *debug-preprocessing* nil)
 (defvar *component-plan-time-limit* 30)
+(defvar *component-plan-memory-limit* 1000000)
 (defvar *remove-component-problem-cost* nil
   "The problem and the domain solved by
 the external planner could be modified so that it does not have
@@ -22,10 +23,10 @@ returns a list of PDDL-PLAN. The call to this function is cached and memoized, s
 careful if you measure the elapsed time. When you measure the time, run
  (clear-plan-task-cache) to clear the cache.
 
-The behavior of this function can be tweaked:
+The behavior of this function can be tweaked: see
 `*remove-component-problem-cost*',
 `*preprocessor*',`*preprocessor-options*', `*debug-preprocessing*',
-`*component-plan-time-limit*'.
+`*component-plan-time-limit*', `*component-plan-memory-limit*'.
 
 It signals 'evaluation-signal each time in order to count the actual
 invocation of underlying planner easiy. "
@@ -51,7 +52,7 @@ invocation of underlying planner easiy. "
                      :options *preprocessor-options*
                      :time-limit 1
                      :hard-time-limit *component-plan-time-limit*
-                     :memory *memory-limit*
+                     :memory (floor (/ *component-plan-memory-limit* *num-threads*))
                      :stream (if *debug-preprocessing* *error-output* s)
                      :error (if *debug-preprocessing* *error-output* s)
                      :verbose *debug-preprocessing*)))

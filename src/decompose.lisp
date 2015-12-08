@@ -164,9 +164,9 @@
 
 (defvar *preprocess-only* nil)
 (defvar *validation* nil)
-(defvar *main-search* "lama-clean")
-(defvar *main-options* "")
-
+(defvar *main-search* "fd-clean")
+(defvar *main-options* "--search-options --if-unit-cost --heuristic hlm,hff=lm_ff_syn(lm_rhw(reasonable_orders=true)) --search lazy_greedy([hff,hlm],preferred=[hff,hlm]) --if-non-unit-cost --heuristic hlm1,hff1=lm_ff_syn(lm_rhw(reasonable_orders=true,lm_cost_type=one,cost_type=one)) --search lazy_greedy([hff1,hlm1],preferred=[hff1,hlm1],cost_type=one,reopen_closed=false) --always")
+(define-condition no-macro () ())
 (defun solve-problem-enhancing (problem &rest test-problem-args)
   (clear-plan-task-cache)
   (format t "~&Enhancing the problem with macros.")
@@ -186,6 +186,8 @@
     (format t "~&Enhancement finished on:~%   ~a~%-> ~a" (name problem) (name eproblem))
     (format t "~&Solving the enhanced problem with the main planner ~a." *main-search*)
     (when *preprocess-only* (return-from solve-problem-enhancing))
+    (when (zerop (length macros))
+      (signal 'no-macro))
     (multiple-value-bind (edomain-mod eproblem-mod macros-mod)
         (if *remove-main-problem-cost*
             (remove-cost edomain eproblem macros)

@@ -5,46 +5,70 @@
 (defmacro suppress (&body body)
   `(handler-bind ((warning #'muffle-warning))
      ,@body))
-@export
-(defvar *verbose* nil)
-@export
-(defvar *iterated* nil)
-@export
-(defvar *use-plain-planner* nil)
-@export
-(defun solve (ppath dpath)
-    (let ((*start* (get-universal-time)))
-      (unwind-protect 
-          (if *use-plain-planner*
-              (plan-plain dpath ppath)
-              (multiple-value-bind (dname domain) (suppress (parse-file dpath nil t))
-                (multiple-value-bind (pname problem) (suppress (parse-file ppath nil t))
-                  (print dname)
-                  (print domain)
-                  (print pname)
-                  (print problem)
-                  (let ((plans
-                         (solve-problem-enhancing problem
-                                                  :time-limit 1 ; satisficing
-                                                  :name *main-search*
-                                                  :options *main-options*
-                                                  :verbose *verbose*
-                                                  :iterated *iterated*)))
-                    (iter (for plan in plans)
-                          (for i from 1)
-                          (for plp =
-                               (merge-pathnames
-                                (format nil "~a.plan.~a"
-                                        (pathname-name ppath) i)))
-                          (when (probe-file plp) (delete-file plp))
-                          (write-plan plan plp *default-pathname-defaults* t)
-                          (when *validation*
-                            (always
-                             (validate-plan dpath ppath plp :verbose *verbose*))))))))
-        (format t "~&Wall time: ~a sec~%"
-              (- (get-universal-time) *start*)))))
 
-@export
+(defvar *verbose* nil)
+
+(defvar *iterated* nil)
+
+(defvar *use-plain-planner* nil)
+
+(defvar *num-threads* 1)
+(defvar *rely-on-cfs* nil)
+
+(defun cgroup-path (subsystem name)
+  (let ((*print-case* :downcase))
+    (let ((path (pathname
+                 (format nil
+                         "/sys/fs/cgroup/~a~a/~a"
+                         subsystem
+                         (uiop:run-program
+                          (format nil "grep :~a: /proc/self/cgroup | cut -d: -f3" subsystem)
+                          :output '(:STRING :STRIPPED T))
+                         name))))
+      (unless (probe-file path)
+        (error "no such cgroup file ~a exists" path))
+      path)))
+
+(defun solve (ppath &optional (dpath (find-domain ppath)))
+  (setf *start* (get-universal-time))
+  (with-open-file (s (cgroup-path :cpu :cpu.cfs_period_us) :direction :output :if-exists :supersede) (princ 100000 s))
+  (with-open-file (s (cgroup-path :cpu :cpu.cfs_quota_us) :direction :output :if-exists :supersede) (princ (* *num-threads* 100000) s))
+    (unwind-protect 
+        (if *use-plain-planner*
+            (plan-plain dpath ppath)
+            (multiple-value-bind (dname domain) (suppress (parse-file dpath nil t))
+              (multiple-value-bind (pname problem) (suppress (parse-file ppath nil t))
+                (print dname)
+                (print domain)
+                (print pname)
+                (print problem)
+                (handler-case
+                    (let ((plans
+                           (solve-problem-enhancing problem
+                                                    :time-limit 1 ; satisficing
+                                                    :name *main-search*
+                                                    :options *main-options*
+                                                    :verbose *verbose*
+                                                    :iterated *iterated*)))
+                      (and plans
+                           (iter (for plan in plans)
+                                 (for i from 1)
+                                 (for plp =
+                                      (merge-pathnames
+                                       (format nil "~a.plan.~a"
+                                               (pathname-name ppath) i)))
+                                 (when (probe-file plp) (delete-file plp))
+                                 (write-plan plan plp *default-pathname-defaults* t)
+                                 (when *validation*
+                                   (always
+                                    (validate-plan dpath ppath plp :verbose *verbose*))))))
+                  (no-macro ()
+                    (format t "~&No macros found, switch to the plain mode")
+                    (plan-plain dpath ppath))))))
+      (format t "~&Wall time: ~a sec~%"
+              (- (get-universal-time) *start*))
+    (end-kernel)))
+
 (defvar *training-instances* nil)
 
 (defun just-copy-file (src dest)
@@ -96,21 +120,21 @@
                   :options *main-options*
                   :verbose *verbose*
                   :iterated *iterated*)))))
-      (iter (for path in plans)
-            (for i from 1)
-            (for new-path =
-                 (merge-pathnames
-                  (format nil "~a.plan.~a"
-                          (pathname-name ppath) i)))
-            (when (probe-file new-path) (delete-file new-path))
-            (sb-ext:run-program
-             "/bin/cp" (list (namestring path)
-                             (namestring new-path)))
-            (when *validation*
-              (always
-               (validate-plan dpath ppath new-path :verbose *verbose*)))))))
+      (and plans
+           (iter (for path in plans)
+                 (for i from 1)
+                 (for new-path =
+                      (merge-pathnames
+                       (format nil "~a.plan.~a"
+                               (pathname-name ppath) i)))
+                 (when (probe-file new-path) (delete-file new-path))
+                 (sb-ext:run-program
+                  "/bin/cp" (list (namestring path)
+                                  (namestring new-path)))
+                 (when *validation*
+                   (always
+                    (validate-plan dpath ppath new-path :verbose *verbose*))))))))
 
-@export
 (defun find-domain (problem-path)
   (let ((dpath (make-pathname
                 :defaults problem-path :name "domain")))
@@ -119,9 +143,10 @@
                 :defaults problem-path :name
                 (format nil "~a-domain" (pathname-name problem-path)))))
     (when (probe-file dpath) (return-from find-domain dpath)))
-  (error "~& Failed to infer the domain file pathname!"))
+  (error "~& Failed to infer the domain file pathname!~% ~a~% ~a"
+         (make-pathname :defaults problem-path :name "domain")
+         (make-pathname :defaults problem-path :name (format nil "~a-domain" (pathname-name problem-path)))))
 
-@export
 (defun reformat-pddl (path)
   (unwind-protect
        (print-pddl-object
