@@ -18,7 +18,7 @@
   :version "0.1"
   :author "guicho"
   :license "LLGPL"
-  :depends-on (:optima
+  :depends-on (:trivia
                :function-cache
                :guicho-utilities
                :pddl.component-abstraction

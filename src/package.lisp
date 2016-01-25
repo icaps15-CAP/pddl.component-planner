@@ -2,7 +2,7 @@
 (defpackage pddl.component-planner
   (:use :cl
         :statistics
-        :optima
+        :trivia
         :function-cache
         :guicho-utilities
         :pddl.component-abstraction
@@ -54,6 +54,8 @@
            :*rely-on-cfs*)
   (:shadowing-import-from :guicho-utilities
                           :permutations)
+  (:shadowing-import-from :arrow-macros
+                          :<>)
   (:shadowing-import-from :statistics
                           :variance
                           :median

@@ -73,8 +73,8 @@
 
 (defun just-copy-file (src dest)
   (ensure-directories-exist dest)
-  (eazy-process:shell-command
-   (format nil "cp ~a ~a" (namestring src) (namestring dest)) :verbose t)
+  (uiop:run-program
+   (format nil "cp ~a ~a" (namestring src) (namestring dest)))
   (namestring dest))
 
 (defun plan-plain (dpath ppath)

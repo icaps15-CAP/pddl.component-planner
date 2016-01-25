@@ -12,7 +12,7 @@
         :pddl.component-planner
         :guicho-utilities
         :iterate
-        :optima
+        :trivia
         :fiveam)
   (:shadow :fail)
   (:shadowing-import-from :pddl :maximize :minimize))

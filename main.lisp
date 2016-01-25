@@ -1,7 +1,7 @@
 
 (defpackage :pddl.component-planner.experiment
   (:nicknames :experiment)
-  (:use :cl :cl-rlimit :pddl :pddl.component-planner :optima
+  (:use :cl :cl-rlimit :pddl :pddl.component-planner :trivia
         :alexandria :iterate :guicho-utilities)
   (:shadowing-import-from :pddl :minimize :maximize)
   (:export
