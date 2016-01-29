@@ -1,8 +1,3 @@
-#!/bin/sh
-#|-*- mode:lisp -*-|#
-#|
-exec ros -Q -- $0 "$@"
-|#
 (defpackage :pddl.component-planner.experiment
   (:nicknames :experiment)
   (:use :cl :cl-rlimit :pddl :pddl.component-planner :trivia

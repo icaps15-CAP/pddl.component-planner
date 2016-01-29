@@ -50,7 +50,7 @@
                  (:file :decompose)
                  (:file :plan)
                  ;; (:file :delete-effect-minimization)
-                 )
+                 (:file :0.experiment))
                 :serial t))
   :description ""
   :long-description
