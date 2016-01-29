@@ -31,104 +31,104 @@
       ;; debug options
       ((list* "-v" rest)
        (setf *verbose* t)
-       (main rest))
+       (parse rest))
       ((list* "--validation" rest)
        (setf *validation* t)
-       (main rest))
+       (parse rest))
       ((list* "--debug-preprocessing" rest)
        (setf *debug-preprocessing* t)
-       (main rest))
+       (parse rest))
 
       ;; run mode options
       ((list* "--preprocess-only" rest)
        (format t "~&; Preprocessing-only mode was activated")
        (format t "~&; CAP does not run the main planner.")
        (setf *preprocess-only* t)
-       (main rest))
+       (parse rest))
       ((list* "--plain" rest)
        (format t "~&; Plain mode was activated, CAP runs only the main planner.")
        (setf *use-plain-planner* t)
-       (main rest))
+       (parse rest))
       ((list "--reformat" path)
        (format t "~&; Loading the pddl file and reformatting the result to stdout")
        (reformat-pddl path))
       ((list* "--training" path rest)
        (format t "~&; Copy the training instances ~a (effective only under --plain)" path)
        (setf *training-instances* (cons (pathname path) *training-instances*))
-       (main rest))
+       (parse rest))
       
       ;; time limit and resource
       ((list* "--preprocess-limit" time rest)
        (setf *preprocess-time-limit* (parse-integer time))
-       (main rest))
+       (parse rest))
       ((list* "--component-plan-limit" time rest)
        (setf *component-plan-time-limit* (parse-integer time))
-       (main rest))
+       (parse rest))
       ((list* "--component-plan-memory-limit" memory rest)
        (setf *component-plan-memory-limit* (parse-integer memory))
-       (main rest))
+       (parse rest))
 
       ((list* "--iterative-resource" rest)
        (setf *iterative-resource* t)
-       (main rest))
+       (parse rest))
 
       ((list* "-t" time rest)
        (setf *hard-time-limit* (parse-integer time))
-       (main rest))
+       (parse rest))
       ((list* "-m" memory rest)
        (setf *memory-limit* (parse-integer memory))
        (setf *component-plan-memory-limit* *memory-limit*)
-       (main rest))
+       (parse rest))
 
       ;; CAP search options
       ((list* "--compatibility" rest)
        (setf *compatibility* :strict)
-       (main rest))
+       (parse rest))
       ((list* "--force-lifted" rest)
        (setf *ground-macros* nil)
-       (main rest))
+       (parse rest))
       #+nil
       ((list* "--precategorization" rest)
        (setf *precategorization* t)
-       (main rest))
+       (parse rest))
       ((list* "--binarization" rest)
        (setf *binarization* t)
-       (main rest))
+       (parse rest))
       ((list* "--component-abstraction" rest)
        (setf *component-abstraction* t)
-       (main rest))
+       (parse rest))
       ((list* "--force-variable-factoring" rest)
        (setf *variable-factoring* t)
-       (main rest))
+       (parse rest))
       ((list* "--cyclic-macros" rest)
        (setf *cyclic-macros* t)
-       (main rest))
+       (parse rest))
       ((list* "--iterated" rest)
        (setf *iterated* t)
-       (main rest))
+       (parse rest))
 
       ;; concurrency option
       ((list* "--threads" num rest)
        (setf *num-threads* (parse-integer num))
-       (main rest))
+       (parse rest))
 
       ((list* "--ipc-threads" rest)
-       (main (list* "--threads" "4" rest)))
+       (parse (list* "--threads" "4" rest)))
 
       ((list* "--cfs" rest)
        (setf *rely-on-cfs* t)
-       (main rest))
+       (parse rest))
 
       ;; cost options
       ((list* "--add-macro-cost" rest)
        (setf *add-macro-cost* t)
-       (main rest))
+       (parse rest))
       ((list* "--remove-main-problem-cost" rest)
        (setf *remove-main-problem-cost* t)
-       (main rest))
+       (parse rest))
       ((list* "--remove-component-problem-cost" rest)
        (setf *remove-component-problem-cost* t)
-       (main rest))
+       (parse rest))
 
       ;; not used at all now
       #+nil
@@ -136,7 +136,7 @@
        (let ((*threshold* (read-from-string th)))
          (if (numberp *threshold*)
              (if (<= 0 *threshold* 0.99999995)
-                 (main rest)
+                 (parse rest)
                  (error "--filtering-threashold should be 0 <= x < 0.99999995 ~~ 1-eps! "))
              (error "--filtering-threashold should be a lisp-readable number! ex) 0, 0.0, 1/2, 0.5d0, 0.7"))))
 
@@ -146,14 +146,14 @@
         rest
         (lambda (options rest)
           (setf *preprocessor-options* options)
-          (main rest))))
+          (parse rest))))
       ((list* "--main-search" planner rest)
        (setf *main-search* planner)
        (consume-until-hyphen
         rest
         (lambda (options rest)
           (setf *main-options* options)
-          (main rest))))
+          (parse rest))))
 
       ;; aliases
       ((list* "--both-search" searcher rest)
@@ -164,7 +164,7 @@
                 *preprocessor* searcher
                 *main-options* options
                 *preprocessor-options* options)
-          (main rest))))
+          (parse rest))))
 
       ;; find the problem files
       ((list ppath)
@@ -228,6 +228,6 @@
        (terpri *error-output*))
       (_
        (format *error-output* "~%Invalid Arguments!~%")
-       (main nil)
+       (parse nil)
        (error "~&Invalid Arguments!~2%")))))
 
