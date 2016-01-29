@@ -1,11 +1,8 @@
-
 (defpackage :pddl.component-planner.experiment
   (:nicknames :experiment)
   (:use :cl :cl-rlimit :pddl :pddl.component-planner :trivia
         :alexandria :iterate :guicho-utilities)
-  (:shadowing-import-from :pddl :minimize :maximize)
-  (:export
-   #:main))
+  (:shadowing-import-from :pddl :minimize :maximize))
 (in-package :pddl.component-planner.experiment)
 
 (defvar *build-date*
@@ -13,10 +10,9 @@
       (format nil "~2,,,'0@a:~2,,,'0@a:~2,,,'0@a ~2,,,'0@a/~2,,,'0@a, ~a"
               hour minute second month date year)))
 
-(defun toplevel ()
-  (sb-ext:disable-debugger)
+(defun main (&rest argv)
   (uiop:quit
-   (if (main) 0 1)))
+   (if (parse argv) 0 1)))
 
 (defun consume-until-hyphen (list next)
   (labels ((rec (acc list)
@@ -27,7 +23,7 @@
                 (rec (cons string acc) rest)))))
     (rec nil list)))
 
-(defun main (&optional (argv (cdr sb-ext:*posix-argv*)))
+(defun parse (argv)
   (when *verbose*
     (print argv))
   (let ((*package* (find-package :pddl.component-planner.experiment)))
@@ -234,14 +230,4 @@
        (format *error-output* "~%Invalid Arguments!~%")
        (main nil)
        (error "~&Invalid Arguments!~2%")))))
-
-(defun save (name)
-  (sb-ext:gc :full t)
-  (sb-ext:save-lisp-and-die
-   name
-   :toplevel #'toplevel
-   :executable t
-   :purify t
-   ;; :save-runtime-options t
-   ))
 
