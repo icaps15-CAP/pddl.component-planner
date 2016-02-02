@@ -101,14 +101,17 @@
             ((comparison-signal (lambda (c) (declare (ignore c)) (incf comparison-count)))
              (evaluation-signal (lambda (c) (declare (ignore c)) (incf evaluation-count))))
           (factoring-bmvectors problem domain))
-      (format<> t "~&Forward-macro computation: ~a sec" (elapsed-time))
-      (format<> t "~&~a macros found in total." (length <>))
-      (format<> t "~&Number of component plan evaluation: ~a" evaluation-count)
-      (format<> t "~&Number of comparison: ~a" comparison-count)
+      (let ((bmvs <>))
+        (format t "~&Forward-macro computation: ~a sec" (elapsed-time))
+        (format t "~&~a macros found in total." (length bmvs))
+        (format t "~&Number of component plan evaluation: ~a" evaluation-count)
+        (format t "~&Number of comparison: ~a" comparison-count)
+        bmvs)
       ;; macro filtering
       (funcall (apply #'compose (reverse filters)))
-      (format<> t "~&~a macros after filtering." (length <>))
-      (postprocess-macros domain problem <>))))
+      (let ((macros <>))
+        (format t "~&~a macros after filtering." (length macros))
+        (postprocess-macros domain problem macros)))))
 
 ;;; enhance the given problem
 
