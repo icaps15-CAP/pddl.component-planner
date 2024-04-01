@@ -18,7 +18,7 @@
   (labels ((rec (acc list)
              (ematch list
                ((list* "-" rest)
-                (funcall next (format nil "~{~a~^ ~}" (nreverse acc)) rest))
+                (funcall next (format nil "'~{~a~^ ~}'" (nreverse acc)) rest))
                ((list* string rest)
                 (rec (cons string acc) rest)))))
     (rec nil list)))
