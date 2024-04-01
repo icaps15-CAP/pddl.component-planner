@@ -37,7 +37,7 @@
                              ;; FIXME almost ignore it. is it correct?
                              (use-value (parameter c))))
                           (warning #'muffle-warning))
-             (let* ((*problem* (abstract-component-task-problem t1))
+             (let* ((*problem* (problem t1))
                     (*domain* (domain *problem*)))
                (change-class
                 (map-action m mapping)

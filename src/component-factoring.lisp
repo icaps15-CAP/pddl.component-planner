@@ -108,7 +108,7 @@
     ;; (remove-if #'trivial-component-p <> :key #'abstract-component-task-ac)
     ;; remove tasks without goals
     (format<> t "~&Tasks found : ~a" (length <>))
-    (remove-if-not #'abstract-component-task-goal <>)
+    (remove-if-not #'goal <>)
     (format<> t "~&Removing tasks w/o goals : ~a" (length <>))
     ;; categorize tasks into buckets, based on init/goal/attribute.
     (if *precategorization*

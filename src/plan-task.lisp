@@ -30,7 +30,7 @@ The behavior of this function can be tweaked: see
 
 It signals 'evaluation-signal each time in order to count the actual
 invocation of underlying planner easiy. "
-  (when (and (abstract-component-task-goal task) ;; filter if the task has no goal
+  (when (and (goal task) ;; filter if the task has no goal
              (within-time-limit)) ;; do not compute plans when the time limit is reached
     (multiple-value-match
         (let* ((*problem* (-<>> (build-component-problem task)

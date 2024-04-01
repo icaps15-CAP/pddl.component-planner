@@ -163,11 +163,11 @@ Returns itself if numeric-fluents are given."
            seed facts
            components attributes)))
      (make-abstract-component-task
-      :problem problem
+      :%problem problem
       ;; NOTE: these facts may contain environment objects
       ;; when they are more than 3 arg predicates.
-      :init (debinarize-predicates init)
-      :goal (debinarize-predicates goal)
+      :%init (debinarize-predicates init)
+      :%goal (debinarize-predicates goal)
       :ac (make-abstract-component
            :problem problem
            :seed seed
