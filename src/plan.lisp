@@ -31,42 +31,40 @@
 
 (defun solve (ppath &optional (dpath (find-domain ppath)))
   (setf *start* (get-universal-time))
-  (with-open-file (s (cgroup-path :cpu :cpu.cfs_period_us) :direction :output :if-exists :supersede) (princ 100000 s))
-  (with-open-file (s (cgroup-path :cpu :cpu.cfs_quota_us) :direction :output :if-exists :supersede) (princ (* *num-threads* 100000) s))
-    (unwind-protect 
-        (if *use-plain-planner*
-            (plan-plain dpath ppath)
-            (multiple-value-bind (dname domain) (suppress (parse-file dpath nil t))
-              (multiple-value-bind (pname problem) (suppress (parse-file ppath nil t))
-                (print dname)
-                (print domain)
-                (print pname)
-                (print problem)
-                (handler-case
-                    (let ((plans
+  (unwind-protect
+       (if *use-plain-planner*
+           (plan-plain dpath ppath)
+           (multiple-value-bind (dname domain) (suppress (parse-file dpath nil t))
+             (multiple-value-bind (pname problem) (suppress (parse-file ppath nil t))
+               (print dname)
+               (print domain)
+               (print pname)
+               (print problem)
+               (handler-case
+                   (let ((plans
                            (solve-problem-enhancing problem
                                                     :time-limit 1 ; satisficing
                                                     :name *main-search*
                                                     :options *main-options*
                                                     :verbose *verbose*
                                                     :iterated *iterated*)))
-                      (and plans
-                           (iter (for plan in plans)
-                                 (for i from 1)
-                                 (for plp =
-                                      (merge-pathnames
-                                       (format nil "~a.plan.~a"
-                                               (pathname-name ppath) i)))
-                                 (when (probe-file plp) (delete-file plp))
-                                 (write-plan plan plp *default-pathname-defaults* t)
-                                 (when *validation*
-                                   (always
-                                    (validate-plan dpath ppath plp :verbose *verbose*))))))
-                  (no-macro ()
-                    (format t "~&No macros found, switch to the plain mode")
-                    (plan-plain dpath ppath))))))
-      (format t "~&Wall time: ~a sec~%"
-              (- (get-universal-time) *start*))
+                     (and plans
+                          (iter (for plan in plans)
+                            (for i from 1)
+                            (for plp =
+                                 (merge-pathnames
+                                  (format nil "~a.plan.~a"
+                                          (pathname-name ppath) i)))
+                            (when (probe-file plp) (delete-file plp))
+                            (write-plan plan plp *default-pathname-defaults* t)
+                            (when *validation*
+                              (always
+                               (validate-plan dpath ppath plp :verbose *verbose*))))))
+                 (no-macro ()
+                   (format t "~&No macros found, switch to the plain mode")
+                   (plan-plain dpath ppath))))))
+    (format t "~&Wall time: ~a sec~%"
+            (- (get-universal-time) *start*))
     (end-kernel)))
 
 (defvar *training-instances* nil)
@@ -151,7 +149,7 @@
   (unwind-protect
        (print-pddl-object
         (if *remove-main-problem-cost*
-            (remove-costs 
+            (remove-costs
              (%load-pddl-for-reformatting path))
             (%load-pddl-for-reformatting path))
         *standard-output*)
@@ -171,4 +169,4 @@
 (defun %try-load-pddl-for-reformatting (path)
   (nth-value 1 (suppress (parse-file path nil t))))
 
-    
+
